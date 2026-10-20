@@ -3,15 +3,15 @@
 use std::collections::{BTreeMap, HashMap};
 use std::sync::Mutex;
 
-use rusqlite::Connection;
-use strikebook_desktop_lib::db;
-use strikebook_desktop_lib::error::{AppError, AppResult};
-use strikebook_desktop_lib::models::{
+use journalix_desktop_lib::db;
+use journalix_desktop_lib::error::{AppError, AppResult};
+use journalix_desktop_lib::models::{
     Account, Bar, BarsCacheKey, Execution, JournalExport, Leg, Note, Playbook, PriceLevel,
     ProviderConfigInput, Tag, Trade, UserSettings,
 };
-use strikebook_desktop_lib::repo;
-use strikebook_desktop_lib::secrets::SecretStore;
+use journalix_desktop_lib::repo;
+use journalix_desktop_lib::secrets::SecretStore;
+use rusqlite::Connection;
 
 const ACCOUNT: &str = "0199f0a2-0000-7000-8000-000000000001";
 const PLAYBOOK: &str = "0199f0a2-0000-7000-8000-000000000002";
@@ -196,12 +196,12 @@ fn migrations_create_every_table() -> AppResult<()> {
 #[test]
 fn file_database_uses_wal() -> AppResult<()> {
     let dir = tempfile::tempdir()?;
-    let conn = db::open(&dir.path().join("strikebook.db"))?;
+    let conn = db::open(&dir.path().join("journalix.db"))?;
     let mode: String = conn.query_row("PRAGMA journal_mode", [], |r| r.get(0))?;
     assert_eq!(mode.to_lowercase(), "wal");
     drop(conn);
     // Re-opening applies no migration twice.
-    let conn = db::open(&dir.path().join("strikebook.db"))?;
+    let conn = db::open(&dir.path().join("journalix.db"))?;
     assert_eq!(count(&conn, "schema_migrations")?, 1);
     Ok(())
 }
@@ -536,7 +536,7 @@ fn export_import_round_trip() -> AppResult<()> {
         },
     )?;
     let exported = repo::export_all(&source)?;
-    assert_eq!(exported.format, "strikebook.journal");
+    assert_eq!(exported.format, "journalix.journal");
     assert_eq!(exported.version, 1);
 
     // Through JSON, exactly as the webview sends it.

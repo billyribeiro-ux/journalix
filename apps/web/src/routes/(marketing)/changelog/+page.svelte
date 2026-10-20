@@ -76,7 +76,7 @@
 
 <Seo
 	title="Changelog"
-	description="What has shipped in Strikebook, release by release."
+	description="What has shipped in Journalix, release by release."
 	path="/changelog"
 />
 

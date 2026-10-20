@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { TradeChart } from '@strikebook/ui';
+	import { TradeChart } from '@journalix/ui';
 	import {
 		STRATEGIES,
 		describeContract,
@@ -10,8 +10,8 @@
 		formatQuantity,
 		formatR,
 		type Execution
-	} from '@strikebook/core';
-	import { TIMEFRAME_LABELS } from '@strikebook/core/market-data';
+	} from '@journalix/core';
+	import { TIMEFRAME_LABELS } from '@journalix/core/market-data';
 	import type { DemoTrade } from '#lib/marketing/demo-trade.ts';
 
 	interface Props {

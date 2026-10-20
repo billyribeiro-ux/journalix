@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
-	import { Button, Field, Select, TextInput, Textarea } from '@strikebook/ui';
+	import { Button, Field, Select, TextInput, Textarea } from '@journalix/ui';
 	import Seo from '#lib/marketing/Seo.svelte';
 	import { CONTACT_TOPICS, MESSAGE_MAX, type ContactTopic } from '#lib/marketing/site.ts';
 	import type { PageProps } from './$types';
@@ -40,7 +40,7 @@
 
 <Seo
 	title="Contact"
-	description="Questions about Strikebook, help with the app, privacy requests or feedback. Send a message and we’ll reply by email."
+	description="Questions about Journalix, help with the app, privacy requests or feedback. Send a message and we’ll reply by email."
 	path="/contact"
 />
 
@@ -48,7 +48,7 @@
 	<h1>Contact</h1>
 	<p class="lede">
 		Questions, problems, data requests or feature ideas. Messages are read by the person who builds
-		Strikebook, and you’ll get a reply by email.
+		Journalix, and you’ll get a reply by email.
 	</p>
 </header>
 

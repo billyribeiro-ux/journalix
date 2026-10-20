@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { CalendarScreen } from '@strikebook/ui';
+	import { CalendarScreen } from '@journalix/ui';
 </script>
 
-<svelte:head><title>Calendar — Strikebook</title></svelte:head>
+<svelte:head><title>Calendar — Journalix</title></svelte:head>
 <CalendarScreen />

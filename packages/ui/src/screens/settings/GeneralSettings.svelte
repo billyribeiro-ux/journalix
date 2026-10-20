@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { UserSettingsSchema, type UserSettings } from '@strikebook/core';
+	import { UserSettingsSchema, type UserSettings } from '@journalix/core';
 	import * as v from 'valibot';
 	import { untrack } from 'svelte';
 	import { useApp } from '../../app/context.ts';

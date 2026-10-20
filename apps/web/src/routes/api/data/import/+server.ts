@@ -1,4 +1,4 @@
-import { JournalExportSchema } from '@strikebook/core';
+import { JournalExportSchema } from '@journalix/core';
 import type { RequestHandler } from './$types';
 import { json, readJson, requireUser, rethrow } from '#lib/server/http.ts';
 import { importJournal } from '#lib/server/journal/store.ts';

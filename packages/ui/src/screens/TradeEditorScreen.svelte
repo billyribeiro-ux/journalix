@@ -6,7 +6,7 @@
 		STRATEGY_KINDS,
 		type AssetClass,
 		type StrategyKind
-	} from '@strikebook/core';
+	} from '@journalix/core';
 	import { useApp } from '../app/context.ts';
 	import Button from '../primitives/Button.svelte';
 	import Field from '../primitives/Field.svelte';

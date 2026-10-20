@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Button } from '@strikebook/ui';
+	import { Button } from '@journalix/ui';
 	import {
 		STRATEGIES,
 		formatMoney,
 		formatOcc,
 		formatPrice,
 		type StrategyKind
-	} from '@strikebook/core';
+	} from '@journalix/core';
 	import Seo from '#lib/marketing/Seo.svelte';
 	import PayoffDiagram from '#lib/marketing/PayoffDiagram.svelte';
 	import {
@@ -146,14 +146,14 @@
 
 <Seo
 	title="For options traders"
-	description="How Strikebook records multi-leg options trades: legs and fills, adds, legging, assignment and expiration, OCC symbols, payoff diagrams, IV, Greeks, P&L attribution and DTE analytics."
+	description="How Journalix records multi-leg options trades: legs and fills, adds, legging, assignment and expiration, OCC symbols, payoff diagrams, IV, Greeks, P&L attribution and DTE analytics."
 	path="/options"
 />
 
 <header class="page-head container">
 	<h1>A journal that knows what a spread is</h1>
 	<p class="lede">
-		Most journals were built for shares and treat an iron condor as four unrelated rows. Strikebook
+		Most journals were built for shares and treat an iron condor as four unrelated rows. Journalix
 		was built around legs and fills from the start, so a multi-leg trade is recorded, charted and
 		measured as one position.
 	</p>

@@ -1,7 +1,7 @@
-# Strikebook Desktop
+# Journalix Desktop
 
-The native desktop edition of Strikebook: a [Tauri 2](https://v2.tauri.app) shell around the shared
-SvelteKit UI (`@strikebook/ui`). The journal lives in a local SQLite database, and market-data API keys
+The native desktop edition of Journalix: a [Tauri 2](https://v2.tauri.app) shell around the shared
+SvelteKit UI (`@journalix/ui`). The journal lives in a local SQLite database, and market-data API keys
 are kept in the operating system's credential store. No account and no server are needed.
 
 ```
@@ -10,9 +10,9 @@ apps/desktop
 │   ├── lib/env.ts          AppRoute → desktop paths, navigation, active route
 │   ├── lib/tauri-repository.ts    JournalRepository over Tauri commands (the real app)
 │   ├── lib/browser-repository.ts  localStorage JournalRepository (browser-only dev fallback)
-│   └── routes/             one thin page per screen from @strikebook/ui
+│   └── routes/             one thin page per screen from @journalix/ui
 ├── static/theme-init.js    applies the saved theme before first paint (no inline script, so the CSP holds)
-└── src-tauri/              Rust crate `strikebook-desktop`
+└── src-tauri/              Rust crate `journalix-desktop`
     ├── migrations/         versioned SQL, embedded in the binary
     ├── src/{db,repo,models,secrets,commands}.rs
     ├── capabilities/default.json  what the webview may call (commands + HTTP allowlist)
@@ -52,16 +52,16 @@ Run from `apps/desktop` (or use the root `pnpm dev:desktop`).
 
 ## Where the data lives
 
-The database is `strikebook.db` (SQLite, WAL mode) in Tauri's app data directory for the identifier
-`com.strikebook.desktop`:
+The database is `journalix.db` (SQLite, WAL mode) in Tauri's app data directory for the identifier
+`com.journalix.desktop`:
 
-| OS      | Directory                                                                                   |
-| ------- | ------------------------------------------------------------------------------------------- |
-| macOS   | `~/Library/Application Support/com.strikebook.desktop/`                                     |
-| Windows | `%APPDATA%\com.strikebook.desktop\`                                                         |
-| Linux   | `$XDG_DATA_HOME/com.strikebook.desktop/` (default `~/.local/share/com.strikebook.desktop/`) |
+| OS      | Directory                                                                                 |
+| ------- | ----------------------------------------------------------------------------------------- |
+| macOS   | `~/Library/Application Support/com.journalix.desktop/`                                    |
+| Windows | `%APPDATA%\com.journalix.desktop\`                                                        |
+| Linux   | `$XDG_DATA_HOME/com.journalix.desktop/` (default `~/.local/share/com.journalix.desktop/`) |
 
-Back up the journal with **Settings → Data → Export** (a `strikebook.journal` JSON file) or by copying
+Back up the journal with **Settings → Data → Export** (a `journalix.journal` JSON file) or by copying
 the directory while the app is closed. Logs go to the platform log directory via `tauri-plugin-log`.
 
 Schema changes are new files in `src-tauri/migrations/`, added to `MIGRATIONS` in `src/db.rs`. They are
@@ -71,7 +71,7 @@ applied in one transaction at startup and recorded in `schema_migrations`. Never
 
 Provider API keys never touch the database or the UI's provider list (which only shows a hint such as
 `••••3F9A`). Each provider's secret map is stored as JSON in the OS credential store under service
-`com.strikebook.desktop`, with the provider configuration's id as the account:
+`com.journalix.desktop`, with the provider configuration's id as the account:
 
 - **macOS:** Keychain
 - **Windows:** Credential Manager
@@ -115,7 +115,7 @@ Any other URL is rejected by the plugin before a request is made.
 ## Browser fallback
 
 When the UI runs outside Tauri (`isTauri()` is false), it uses `browser-repository.ts`. This stores
-everything in `localStorage` under `strikebook:` keys, uses `fetch` directly and keeps bars in memory.
+everything in `localStorage` under `journalix:` keys, uses `fetch` directly and keeps bars in memory.
 It exists for UI development, screenshots and end-to-end tests. It keeps provider secrets in plain
 `localStorage`, so never use it for real keys. Direct browser requests to providers may also be blocked
 by CORS, which the desktop app avoids by fetching from Rust.

@@ -1,12 +1,12 @@
-import { buildTradeViews, type TradeView } from '@strikebook/core';
-import { createSampleJournal } from '@strikebook/core/sample';
+import { buildTradeViews, type TradeView } from '@journalix/core';
+import { createSampleJournal } from '@journalix/core/sample';
 import {
 	PROVIDERS,
 	chooseTimeframe,
 	windowFor,
 	type Bar,
 	type Timeframe
-} from '@strikebook/core/market-data';
+} from '@journalix/core/market-data';
 
 /** Everything the home-page hero needs to draw one sample trade on its chart. */
 export interface DemoTrade {

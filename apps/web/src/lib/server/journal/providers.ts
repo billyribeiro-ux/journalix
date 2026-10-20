@@ -12,7 +12,7 @@ import {
 	type ProviderConfigView,
 	type ProviderSecret,
 	type ProviderTestResult
-} from '@strikebook/core';
+} from '@journalix/core';
 import {
 	createBarsService,
 	getProvider,
@@ -21,7 +21,7 @@ import {
 	type BarsResult,
 	type ResolvedProvider,
 	TIMEFRAME_SECONDS
-} from '@strikebook/core/market-data';
+} from '@journalix/core/market-data';
 import { db } from '../db/index.ts';
 import { barCache, barCoverage, providerConfig } from '../db/schema.ts';
 import { decryptSecret, encryptSecret, secretHint } from '../crypto.ts';

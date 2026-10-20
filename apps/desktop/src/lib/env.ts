@@ -5,7 +5,7 @@ import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
 import { page } from '$app/state';
 import { invoke, isTauri } from '@tauri-apps/api/core';
-import type { AppEnv, AppRoute, RouteName, SaveFileRequest } from '@strikebook/ui';
+import type { AppEnv, AppRoute, RouteName, SaveFileRequest } from '@journalix/ui';
 
 function withQuery(path: string, name: string, value: string | undefined): string {
 	return value === undefined ? path : `${path}?${new URLSearchParams({ [name]: value })}`;

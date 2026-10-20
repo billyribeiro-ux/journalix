@@ -1,4 +1,4 @@
-import { blackScholes, payoffProfile, type PayoffLeg } from '@strikebook/core';
+import { blackScholes, payoffProfile, type PayoffLeg } from '@journalix/core';
 
 /**
  * A worked iron condor used for the illustration on the home and options pages. Entry

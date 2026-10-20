@@ -18,8 +18,8 @@ import {
 	type CrudStore,
 	type JournalRepository,
 	type ProviderTestResult
-} from '@strikebook/core';
-import { BarsRequestSchema, BarsResultSchema, type BarsResult } from '@strikebook/core/market-data';
+} from '@journalix/core';
+import { BarsRequestSchema, BarsResultSchema, type BarsResult } from '@journalix/core/market-data';
 
 type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
 

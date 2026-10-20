@@ -1,6 +1,6 @@
-# Strikebook
+# Journalix
 
-An options-first trading journal that runs as a web app and as a desktop app. You log every leg and every fill by hand (entries, adds, partial exits, exits, expirations and assignments), and Strikebook rebuilds the position, draws the trade on a TradingView Lightweight Charts chart with its stops, targets and risk zones, and rolls everything up into reports.
+An options-first trading journal that runs as a web app and as a desktop app. You log every leg and every fill by hand (entries, adds, partial exits, exits, expirations and assignments), and Journalix rebuilds the position, draws the trade on a TradingView Lightweight Charts chart with its stops, targets and risk zones, and rolls everything up into reports.
 
 There is no brokerage connection and no AI in this phase. Market data comes from whichever provider you add a key for in **Settings → Market data**.
 
@@ -36,7 +36,7 @@ pnpm install
 
 ```sh
 cp apps/web/.env.example apps/web/.env    # then fill in the secrets
-pnpm --filter @strikebook/web db:migrate
+pnpm --filter @journalix/web db:migrate
 pnpm dev:web                              # http://localhost:5173
 ```
 
@@ -70,14 +70,14 @@ Adding another provider means one file in `packages/core/src/market-data/provide
 
 ## Scripts
 
-| Command                                  | Runs                                                       |
-| ---------------------------------------- | ---------------------------------------------------------- |
-| `pnpm lint`                              | Prettier check and ESLint across the workspace             |
-| `pnpm check`                             | `svelte-check --fail-on-warnings` in every package         |
-| `pnpm test`                              | Vitest in every package                                    |
-| `pnpm build`                             | Production builds of both apps                             |
-| `pnpm verify`                            | All of the above, in that order                            |
-| `pnpm --filter @strikebook/web test:e2e` | Playwright against a production build (needs the database) |
+| Command                                 | Runs                                                       |
+| --------------------------------------- | ---------------------------------------------------------- |
+| `pnpm lint`                             | Prettier check and ESLint across the workspace             |
+| `pnpm check`                            | `svelte-check --fail-on-warnings` in every package         |
+| `pnpm test`                             | Vitest in every package                                    |
+| `pnpm build`                            | Production builds of both apps                             |
+| `pnpm verify`                           | All of the above, in that order                            |
+| `pnpm --filter @journalix/web test:e2e` | Playwright against a production build (needs the database) |
 
 Rust checks live in `apps/desktop/src-tauri`: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`.
 

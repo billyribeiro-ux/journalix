@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { Button } from '@strikebook/ui';
-	import { formatMoney, formatPrice } from '@strikebook/core';
+	import { Button } from '@journalix/ui';
+	import { formatMoney, formatPrice } from '@journalix/core';
 	import { SITE } from '#lib/index.ts';
 	import Seo from '#lib/marketing/Seo.svelte';
 	import HeroChart from '#lib/marketing/HeroChart.svelte';
@@ -139,8 +139,8 @@
 	<div class="hero-copy">
 		<h1 id="hero-title">Every leg. Every fill. On the chart.</h1>
 		<p class="lede">
-			Strikebook is a trading journal built around options. Log each execution as it happened,
-			review the trade drawn on the chart, and measure your results with analytics that understand
+			Journalix is a trading journal built around options. Log each execution as it happened, review
+			the trade drawn on the chart, and measure your results with analytics that understand
 			multi-leg positions.
 		</p>
 		<div class="cta-row">
@@ -158,7 +158,7 @@
 	<div class="section-head">
 		<h2 id="how-title" class="display">Log it, review it, measure it</h2>
 		<p class="lede">
-			A journal is only as useful as the record behind it. Strikebook keeps the record at the level
+			A journal is only as useful as the record behind it. Journalix keeps the record at the level
 			of individual fills and builds everything else from there.
 		</p>
 	</div>
@@ -183,7 +183,7 @@
 		<div>
 			<h2 id="options-title" class="display">Built for the way options trade</h2>
 			<p class="lede">
-				A spread is one trade, not four unrelated rows. Strikebook keeps the legs together and
+				A spread is one trade, not four unrelated rows. Journalix keeps the legs together and
 				computes the numbers an options trader actually checks.
 			</p>
 			<dl class="points">

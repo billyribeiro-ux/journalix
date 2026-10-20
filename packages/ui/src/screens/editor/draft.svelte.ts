@@ -18,7 +18,7 @@ import {
 	type Trade,
 	type TradeMetrics,
 	type UserSettings
-} from '@strikebook/core';
+} from '@journalix/core';
 
 export interface DraftLeg {
 	id: string;

@@ -2,7 +2,7 @@
 
 [[set]]
 identifier = "journal"
-description = "Every journal command the Strikebook UI calls: CRUD for accounts, tags, playbooks, notes and trades; settings; market-data providers (including reading a provider's secret); the bars cache; export, import and reset; and saving a generated file through a native save dialog."
+description = "Every journal command the Journalix UI calls: CRUD for accounts, tags, playbooks, notes and trades; settings; market-data providers (including reading a provider's secret); the bars cache; export, import and reset; and saving a generated file through a native save dialog."
 permissions = [
   "allow-accounts-list",
   "allow-accounts-save",

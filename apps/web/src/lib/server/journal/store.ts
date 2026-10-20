@@ -20,7 +20,7 @@ import {
 	type Tag,
 	type Trade,
 	type UserSettings
-} from '@strikebook/core';
+} from '@journalix/core';
 import { db, type Transaction } from '../db/index.ts';
 import {
 	note,
@@ -484,7 +484,7 @@ export async function exportJournal(userId: string): Promise<JournalExport> {
 		listTrades(userId)
 	]);
 	return {
-		format: 'strikebook.journal',
+		format: 'journalix.journal',
 		version: 1,
 		exportedAt: new Date().toISOString(),
 		settings,

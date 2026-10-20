@@ -7,7 +7,7 @@
 		type ExecutionKind,
 		type Side,
 		type TradeMetrics
-	} from '@strikebook/core';
+	} from '@journalix/core';
 	import Panel from '../../primitives/Panel.svelte';
 	import Button from '../../primitives/Button.svelte';
 	import IconButton from '../../primitives/IconButton.svelte';

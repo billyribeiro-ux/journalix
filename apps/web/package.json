@@ -1,5 +1,5 @@
 {
-	"name": "@strikebook/web",
+	"name": "@journalix/web",
 	"private": true,
 	"version": "0.1.0",
 	"type": "module",
@@ -19,8 +19,8 @@
 		"auth:schema": "auth generate --config src/lib/server/auth.ts --output src/lib/server/db/auth.schema.ts --yes"
 	},
 	"dependencies": {
-		"@strikebook/core": "workspace:*",
-		"@strikebook/ui": "workspace:*",
+		"@journalix/core": "workspace:*",
+		"@journalix/ui": "workspace:*",
 		"better-auth": "catalog:",
 		"drizzle-orm": "catalog:",
 		"phosphor-svelte": "catalog:",

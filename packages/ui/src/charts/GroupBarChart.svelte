@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { GroupStats } from '@strikebook/core';
-	import { formatMoney, formatNumber, formatPercent, formatR, formatRatio } from '@strikebook/core';
+	import type { GroupStats } from '@journalix/core';
+	import { formatMoney, formatNumber, formatPercent, formatR, formatRatio } from '@journalix/core';
 	import { scaleLinear } from 'd3';
 	import ChartEmpty from './ChartEmpty.svelte';
 	import ChartTable from './ChartTable.svelte';

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
-	import { Button, Field, TextInput } from '@strikebook/ui';
+	import { Button, Field, TextInput } from '@journalix/ui';
 	import AuthCard from '#lib/auth/AuthCard.svelte';
 	import type { PageProps } from './$types';
 
@@ -11,10 +11,10 @@
 </script>
 
 <svelte:head>
-	<title>Create your account — Strikebook</title>
+	<title>Create your account — Journalix</title>
 	<meta
 		name="description"
-		content="Create a Strikebook account and start journaling your options trades."
+		content="Create a Journalix account and start journaling your options trades."
 	/>
 </svelte:head>
 

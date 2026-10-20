@@ -1,4 +1,4 @@
-//! Field-level checks mirroring the Valibot schemas in `@strikebook/core` (domain/schemas.ts).
+//! Field-level checks mirroring the Valibot schemas in `@journalix/core` (domain/schemas.ts).
 //!
 //! The webview validates before invoking, but the backend never trusts IPC input: every
 //! invariant that protects stored data is enforced again here.

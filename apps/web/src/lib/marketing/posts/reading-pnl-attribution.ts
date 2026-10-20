@@ -121,7 +121,7 @@ export const post: Post = {
 		},
 		{
 			type: 'p',
-			text: 'Strikebook computes this for every closed options trade where the underlying price was recorded on the opening and closing fills. Implied volatility is solved from each fill, Greeks are taken at the first opening fill of each leg, and the four terms and the residual are shown side by side, labelled as an estimate. If you record the underlying price at each fill, you get the breakdown for free.'
+			text: 'Journalix computes this for every closed options trade where the underlying price was recorded on the opening and closing fills. Implied volatility is solved from each fill, Greeks are taken at the first opening fill of each leg, and the four terms and the residual are shown side by side, labelled as an estimate. If you record the underlying price at each fill, you get the breakdown for free.'
 		}
 	]
 };

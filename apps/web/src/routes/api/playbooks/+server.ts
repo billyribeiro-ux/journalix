@@ -1,4 +1,4 @@
-import { PlaybookSchema } from '@strikebook/core';
+import { PlaybookSchema } from '@journalix/core';
 import { collection } from '#lib/server/journal/crud.ts';
 import { listPlaybooks, savePlaybook } from '#lib/server/journal/store.ts';
 

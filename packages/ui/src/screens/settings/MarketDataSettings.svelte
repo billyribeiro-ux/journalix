@@ -6,8 +6,8 @@
 		formatDateTime,
 		type ProviderConfigView,
 		type ProviderTestResult
-	} from '@strikebook/core';
-	import { PROVIDERS } from '@strikebook/core/market-data';
+	} from '@journalix/core';
+	import { PROVIDERS } from '@journalix/core/market-data';
 	import { SvelteMap } from 'svelte/reactivity';
 	import { useApp } from '../../app/context.ts';
 	import Button from '../../primitives/Button.svelte';
@@ -196,9 +196,8 @@
 				so you can tell keys apart.
 			</li>
 			<li>
-				Requests go straight from {env.platform === 'desktop'
-					? 'this app'
-					: 'the Strikebook server'} to the provider. Nothing is shared with anyone else.
+				Requests go straight from {env.platform === 'desktop' ? 'this app' : 'the Journalix server'} to
+				the provider. Nothing is shared with anyone else.
 			</li>
 			<li>
 				Bars are cached per provider, so reopening a trade does not use your quota again. Changing a

@@ -18,8 +18,8 @@ use rusqlite::{Connection, OptionalExtension, params};
 
 use crate::error::{AppError, AppResult};
 
-/// Credential-store service name for every Strikebook secret.
-pub const SERVICE: &str = "com.strikebook.desktop";
+/// Credential-store service name for every Journalix secret.
+pub const SERVICE: &str = "com.journalix.desktop";
 
 const KEY_LEN: usize = 32;
 const NONCE_LEN: usize = 12;

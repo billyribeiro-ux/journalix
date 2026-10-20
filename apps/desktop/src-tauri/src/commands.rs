@@ -276,7 +276,7 @@ pub async fn file_save(app: tauri::AppHandle, name: String, contents: String) ->
         .rsplit_once('.')
         .map(|(_, ext)| ext.to_ascii_lowercase())
     {
-        Some(ext) if ext == "json" => (ext, "Strikebook journal"),
+        Some(ext) if ext == "json" => (ext, "Journalix journal"),
         Some(ext) if ext == "csv" => (ext, "CSV spreadsheet"),
         _ => {
             return Err(AppError::validation(

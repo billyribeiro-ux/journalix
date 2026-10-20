@@ -7,7 +7,7 @@
 		Segmented,
 		type BillingInterval,
 		type Plan
-	} from '@strikebook/ui';
+	} from '@journalix/ui';
 	import CheckIcon from 'phosphor-svelte/lib/CheckIcon';
 	import MinusIcon from 'phosphor-svelte/lib/MinusIcon';
 	import Seo from '#lib/marketing/Seo.svelte';
@@ -99,7 +99,7 @@
 		},
 		{
 			q: 'Do I need a market data subscription?',
-			a: 'Not to start. The simulator draws charts that pass through your fills so you can review trades straight away. For real candles you add your own key from Massive (formerly Polygon), Alpaca, Databento or Tiingo. Their pricing is separate from Strikebook’s.'
+			a: 'Not to start. The simulator draws charts that pass through your fills so you can review trades straight away. For real candles you add your own key from Massive (formerly Polygon), Alpaca, Databento or Tiingo. Their pricing is separate from Journalix’s.'
 		},
 		{
 			q: 'Can I import trades from my broker?',
@@ -122,7 +122,7 @@
 
 <Seo
 	title="Pricing"
-	description="Strikebook plans: Starter (free), Pro and Desk. Billing isn’t live yet; during early access every feature is free with no card required."
+	description="Journalix plans: Starter (free), Pro and Desk. Billing isn’t live yet; during early access every feature is free with no card required."
 	path="/pricing"
 />
 

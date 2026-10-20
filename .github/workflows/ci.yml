@@ -19,15 +19,15 @@ jobs:
       postgres:
         image: postgres:18
         env:
-          POSTGRES_USER: strikebook
-          POSTGRES_PASSWORD: strikebook
-          POSTGRES_DB: strikebook
+          POSTGRES_USER: journalix
+          POSTGRES_PASSWORD: journalix
+          POSTGRES_DB: journalix
         ports: ['5432:5432']
         options: >-
-          --health-cmd "pg_isready -U strikebook"
+          --health-cmd "pg_isready -U journalix"
           --health-interval 5s --health-timeout 5s --health-retries 10
     env:
-      DATABASE_URL: postgres://strikebook:strikebook@localhost:5432/strikebook
+      DATABASE_URL: postgres://journalix:journalix@localhost:5432/journalix
       ORIGIN: http://localhost:4173
       BETTER_AUTH_SECRET: ci-only-secret-that-is-at-least-32-characters
       PROVIDER_KEY_SECRET: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
@@ -45,9 +45,9 @@ jobs:
       - run: pnpm check
       - run: pnpm test
       - run: pnpm build
-      - run: pnpm --filter @strikebook/web db:migrate
-      - run: pnpm --filter @strikebook/web exec playwright install --with-deps chromium
-      - run: pnpm --filter @strikebook/web test:e2e
+      - run: pnpm --filter @journalix/web db:migrate
+      - run: pnpm --filter @journalix/web exec playwright install --with-deps chromium
+      - run: pnpm --filter @journalix/web test:e2e
 
   desktop:
     runs-on: ubuntu-24.04
@@ -72,7 +72,7 @@ jobs:
         working-directory: .
         run: |
           pnpm install --frozen-lockfile
-          pnpm --filter @strikebook/desktop build
+          pnpm --filter @journalix/desktop build
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.97.0

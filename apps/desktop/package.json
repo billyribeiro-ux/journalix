@@ -1,5 +1,5 @@
 {
-	"name": "@strikebook/desktop",
+	"name": "@journalix/desktop",
 	"private": true,
 	"version": "0.1.0",
 	"type": "module",
@@ -13,8 +13,8 @@
 		"tauri": "tauri"
 	},
 	"dependencies": {
-		"@strikebook/core": "workspace:*",
-		"@strikebook/ui": "workspace:*",
+		"@journalix/core": "workspace:*",
+		"@journalix/ui": "workspace:*",
 		"@tauri-apps/api": "catalog:",
 		"@tauri-apps/plugin-http": "catalog:",
 		"phosphor-svelte": "catalog:",

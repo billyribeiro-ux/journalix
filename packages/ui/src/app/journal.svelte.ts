@@ -21,7 +21,7 @@ import {
 	type TradeFilter,
 	type TradeView,
 	type UserSettings
-} from '@strikebook/core';
+} from '@journalix/core';
 
 export type LoadState = 'idle' | 'loading' | 'ready' | 'error';
 

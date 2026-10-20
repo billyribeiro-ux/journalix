@@ -1,6 +1,6 @@
 #![deny(clippy::all)]
 
-//! Strikebook desktop: a Tauri 2 shell around the shared SvelteKit UI, with the journal stored
+//! Journalix desktop: a Tauri 2 shell around the shared SvelteKit UI, with the journal stored
 //! in SQLite and provider secrets in the operating system's credential store.
 
 pub mod commands;
@@ -19,7 +19,7 @@ use crate::commands::{AppState, SharedState};
 use crate::error::{AppError, AppResult};
 use crate::secrets::KeychainStore;
 
-const DATABASE_FILE: &str = "strikebook.db";
+const DATABASE_FILE: &str = "journalix.db";
 const SECRET_KEY_FILE: &str = "secrets.key";
 
 /// Opens the database in the app data directory and builds the shared state.
@@ -84,7 +84,7 @@ pub fn run() {
         .run(tauri::generate_context!());
 
     if let Err(error) = result {
-        eprintln!("Strikebook failed to start: {error}");
+        eprintln!("Journalix failed to start: {error}");
         std::process::exit(1);
     }
 }

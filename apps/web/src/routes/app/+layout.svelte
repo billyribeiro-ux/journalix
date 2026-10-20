@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { AppShell } from '@strikebook/ui';
+	import { AppShell } from '@journalix/ui';
 	import { createHttpRepository } from '#lib/http-repository.ts';
 	import { createWebEnv } from '#lib/app-env.ts';
 	import type { LayoutProps } from './$types';

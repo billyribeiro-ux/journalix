@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { TradeDetailScreen } from '@strikebook/ui';
+	import { TradeDetailScreen } from '@journalix/ui';
 	import type { PageProps } from './$types';
 
 	let { params }: PageProps = $props();

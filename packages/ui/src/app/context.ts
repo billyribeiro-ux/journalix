@@ -1,5 +1,5 @@
 import { createContext } from 'svelte';
-import type { JournalRepository } from '@strikebook/core';
+import type { JournalRepository } from '@journalix/core';
 import type { AppEnv } from './routes.ts';
 import type { JournalStore } from './journal.svelte.ts';
 import type { Toaster } from './toaster.svelte.ts';

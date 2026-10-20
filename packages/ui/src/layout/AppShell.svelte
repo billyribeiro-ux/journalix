@@ -7,7 +7,7 @@
 	import SunIcon from 'phosphor-svelte/lib/SunIcon';
 	import MoonIcon from 'phosphor-svelte/lib/MoonIcon';
 	import MonitorIcon from 'phosphor-svelte/lib/MonitorIcon';
-	import type { JournalRepository } from '@strikebook/core';
+	import type { JournalRepository } from '@journalix/core';
 	import type { AppEnv } from '../app/routes.ts';
 	import { setAppContext } from '../app/context.ts';
 	import { JournalStore } from '../app/journal.svelte.ts';

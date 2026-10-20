@@ -62,7 +62,7 @@ pub fn migrate(conn: &mut Connection) -> AppResult<()> {
     let latest = MIGRATIONS.last().map_or(0, |(version, _, _)| *version);
     if current > latest {
         return Err(AppError::validation(format!(
-            "The journal database was created by a newer Strikebook (schema {current}); update the app"
+            "The journal database was created by a newer Journalix (schema {current}); update the app"
         )));
     }
     for (version, name, sql) in MIGRATIONS.iter().filter(|(v, _, _)| *v > current) {

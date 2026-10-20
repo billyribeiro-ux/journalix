@@ -98,10 +98,10 @@ export const post: Post = {
 			type: 'p',
 			text: 'For multi-leg structures, compute max loss for the structure as a whole, not per leg. The long put in a put credit spread has a max loss of its premium on its own, but as part of the spread it reduces risk. Treating legs separately produces numbers that don’t correspond to anything you actually held.'
 		},
-		{ type: 'h2', id: 'strikebook', text: 'How Strikebook decides' },
+		{ type: 'h2', id: 'journalix', text: 'How Journalix decides' },
 		{
 			type: 'p',
-			text: 'Strikebook computes R for every closed trade using the first of these that applies:'
+			text: 'Journalix computes R for every closed trade using the first of these that applies:'
 		},
 		{
 			type: 'ol',

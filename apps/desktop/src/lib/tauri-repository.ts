@@ -23,14 +23,14 @@ import {
 	type CrudStore,
 	type JournalRepository,
 	type ProviderSecret
-} from '@strikebook/core';
+} from '@journalix/core';
 import {
 	BarSchema,
 	type Bar,
 	type BarsCache,
 	type BarsCacheKey,
 	type FetchLike
-} from '@strikebook/core/market-data';
+} from '@journalix/core/market-data';
 import { createBarsApi, validateInput, validateOutput } from './repository-support.ts';
 
 /** Shape of `AppError` as serialized by the Rust backend. */

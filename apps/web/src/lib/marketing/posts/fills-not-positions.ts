@@ -115,7 +115,7 @@ export const post: Post = {
 		},
 		{
 			type: 'p',
-			text: 'That is the design Strikebook is built on. Each trade holds its legs; each leg holds its fills, including expirations and assignments; and every chart, metric and report is computed from those fills with the average-cost method. It is the only approach we found that stays correct for the way options are actually traded.'
+			text: 'That is the design Journalix is built on. Each trade holds its legs; each leg holds its fills, including expirations and assignments; and every chart, metric and report is computed from those fills with the average-cost method. It is the only approach we found that stays correct for the way options are actually traded.'
 		}
 	]
 };

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { PnlAttribution } from '@strikebook/core';
-	import { formatMoney, formatNumber, formatPercent } from '@strikebook/core';
+	import type { PnlAttribution } from '@journalix/core';
+	import { formatMoney, formatNumber, formatPercent } from '@journalix/core';
 	import { scaleBand, scaleLinear } from 'd3';
 	import ChartTable from './ChartTable.svelte';
 	import ChartTooltip from './ChartTooltip.svelte';

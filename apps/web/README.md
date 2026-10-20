@@ -1,6 +1,6 @@
-# Strikebook web
+# Journalix web
 
-SvelteKit 3.1 app with the marketing site (`src/routes/(marketing)`), sign-in (`src/routes/(auth)`), the journal (`src/routes/app`, client-rendered with the shared screens from `@strikebook/ui`) and a JSON API (`src/routes/api`).
+SvelteKit 3.1 app with the marketing site (`src/routes/(marketing)`), sign-in (`src/routes/(auth)`), the journal (`src/routes/app`, client-rendered with the shared screens from `@journalix/ui`) and a JSON API (`src/routes/api`).
 
 ## Environment
 

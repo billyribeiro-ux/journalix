@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { BarsRequestSchema } from '@strikebook/core/market-data';
+import { BarsRequestSchema } from '@journalix/core/market-data';
 import type { RequestHandler } from './$types';
 import { json, readJson, requireUser, rethrow } from '#lib/server/http.ts';
 import { getBars } from '#lib/server/journal/providers.ts';

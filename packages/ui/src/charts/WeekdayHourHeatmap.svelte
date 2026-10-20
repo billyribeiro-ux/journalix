@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { HeatCell } from '@strikebook/core';
-	import { formatMoney } from '@strikebook/core';
+	import type { HeatCell } from '@journalix/core';
+	import { formatMoney } from '@journalix/core';
 	import ChartEmpty from './ChartEmpty.svelte';
 	import ChartTable from './ChartTable.svelte';
 	import ChartTooltip from './ChartTooltip.svelte';

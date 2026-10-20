@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { TradeOutcome, TradeStatus } from '@strikebook/core';
+	import type { TradeOutcome, TradeStatus } from '@journalix/core';
 	import Badge from '../../primitives/Badge.svelte';
 
 	interface Props {

@@ -1,4 +1,4 @@
-import type { ReportTab, SettingsSection } from '@strikebook/ui';
+import type { ReportTab, SettingsSection } from '@journalix/ui';
 
 export const REPORT_TABS: readonly ReportTab[] = [
 	'overview',

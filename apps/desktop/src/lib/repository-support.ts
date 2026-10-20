@@ -9,7 +9,7 @@ import {
 	type ProviderConfigView,
 	type ProviderSecret,
 	type ProviderTestResult
-} from '@strikebook/core';
+} from '@journalix/core';
 import {
 	BarsRequestSchema,
 	BarsResultSchema,
@@ -19,7 +19,7 @@ import {
 	type BarsResult,
 	type FetchLike,
 	type ResolvedProvider
-} from '@strikebook/core/market-data';
+} from '@journalix/core/market-data';
 
 type AnySchema = v.GenericSchema;
 

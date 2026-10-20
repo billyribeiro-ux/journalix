@@ -6,7 +6,7 @@
 		formatR,
 		STRATEGIES,
 		type TradeMetrics
-	} from '@strikebook/core';
+	} from '@journalix/core';
 	import StatusBadge from '../parts/StatusBadge.svelte';
 
 	interface Props {

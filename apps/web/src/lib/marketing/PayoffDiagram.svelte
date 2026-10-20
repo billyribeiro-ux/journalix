@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { payoffCurve, payoffProfile, formatMoney, type PayoffLeg } from '@strikebook/core';
+	import { payoffCurve, payoffProfile, formatMoney, type PayoffLeg } from '@journalix/core';
 
 	interface Props {
 		legs: readonly PayoffLeg[];

@@ -391,7 +391,7 @@ pub struct UserSettings {
 }
 
 impl Default for UserSettings {
-    /// Mirrors `DEFAULT_SETTINGS` in `@strikebook/core`.
+    /// Mirrors `DEFAULT_SETTINGS` in `@journalix/core`.
     fn default() -> Self {
         Self {
             display_name: String::new(),
@@ -537,7 +537,7 @@ impl Bar {
     }
 }
 
-/// Mirrors `BarsCacheKey` in `@strikebook/core/market-data`.
+/// Mirrors `BarsCacheKey` in `@journalix/core/market-data`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct BarsCacheKey {
@@ -575,7 +575,7 @@ impl BarsCacheKey {
     }
 }
 
-pub const EXPORT_FORMAT: &str = "strikebook.journal";
+pub const EXPORT_FORMAT: &str = "journalix.journal";
 pub const EXPORT_VERSION: u32 = 1;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

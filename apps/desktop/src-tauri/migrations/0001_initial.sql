@@ -1,4 +1,4 @@
--- Strikebook desktop schema, version 1.
+-- Journalix desktop schema, version 1.
 -- Timestamps are ISO-8601 TEXT, numbers are REAL. Child rows keep their array order in `position`.
 
 CREATE TABLE trading_account (

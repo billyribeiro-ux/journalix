@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Logo } from '@strikebook/ui/marketing';
+	import { Logo } from '@journalix/ui/marketing';
 	import { SITE } from '#lib/index.ts';
 	import { FOOTER_COLUMNS } from '#lib/marketing/site.ts';
 </script>
@@ -8,7 +8,7 @@
 <footer class="site-footer">
 	<div class="inner">
 		<div class="brand">
-			<a class="home" href={resolve('')} aria-label="Strikebook home"><Logo size={24} /></a>
+			<a class="home" href={resolve('')} aria-label="Journalix home"><Logo size={24} /></a>
 			<p>{SITE.tagline}. Log every leg and fill, review it on the chart, measure what works.</p>
 		</div>
 
@@ -26,7 +26,7 @@
 
 	<div class="legal">
 		<p>
-			Not investment advice. Strikebook is a record-keeping and analysis tool. It is not a broker,
+			Not investment advice. Journalix is a record-keeping and analysis tool. It is not a broker,
 			dealer or investment adviser, and it does not place trades.
 		</p>
 		<p>© 2026 {SITE.name}</p>

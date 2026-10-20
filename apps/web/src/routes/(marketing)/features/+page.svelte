@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Button } from '@strikebook/ui';
+	import { Button } from '@journalix/ui';
 	import Seo from '#lib/marketing/Seo.svelte';
 
 	interface Group {
@@ -278,14 +278,14 @@
 
 <Seo
 	title="Features"
-	description="Every Strikebook feature: execution-level journaling, chart review with fills and stop history, multi-leg options analysis, Greeks and IV, analytics, playbooks, notebook and desktop app."
+	description="Every Journalix feature: execution-level journaling, chart review with fills and stop history, multi-leg options analysis, Greeks and IV, analytics, playbooks, notebook and desktop app."
 	path="/features"
 />
 
 <header class="page-head container">
 	<h1>Feature reference</h1>
 	<p class="lede">
-		Everything Strikebook does today, grouped by what you use it for. If something isn’t on this
+		Everything Journalix does today, grouped by what you use it for. If something isn’t on this
 		page, it isn’t in the product yet.
 	</p>
 	<nav class="toc" aria-label="Feature groups">
@@ -317,7 +317,7 @@
 
 	<section class="group" aria-labelledby="not-yet-title">
 		<div class="group-head">
-			<h2 id="not-yet-title">Not in Strikebook yet</h2>
+			<h2 id="not-yet-title">Not in Journalix yet</h2>
 			<p>So you know what to expect.</p>
 		</div>
 		<ul class="not-yet" role="list">

@@ -2,7 +2,7 @@
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
 	import MagnifyingGlassIcon from 'phosphor-svelte/lib/MagnifyingGlassIcon';
-	import { dailyPnl, dayKey, formatDayKey, newId, NoteSchema, type Note } from '@strikebook/core';
+	import { dailyPnl, dayKey, formatDayKey, newId, NoteSchema, type Note } from '@journalix/core';
 	import * as v from 'valibot';
 	import { untrack } from 'svelte';
 	import { useApp } from '../app/context.ts';

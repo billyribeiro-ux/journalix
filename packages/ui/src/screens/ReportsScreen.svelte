@@ -21,7 +21,7 @@
 		type Dimension,
 		type GroupStats,
 		type PnlAttribution
-	} from '@strikebook/core';
+	} from '@journalix/core';
 	import type { ReportTab } from '../app/routes.ts';
 	import { useApp } from '../app/context.ts';
 	import Panel from '../primitives/Panel.svelte';

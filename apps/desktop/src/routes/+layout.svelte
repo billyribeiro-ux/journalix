@@ -1,7 +1,7 @@
 <script lang="ts">
-	import '@strikebook/ui/styles.css';
+	import '@journalix/ui/styles.css';
 	import { isTauri } from '@tauri-apps/api/core';
-	import { AppShell } from '@strikebook/ui';
+	import { AppShell } from '@journalix/ui';
 	import { createDesktopEnv } from '#lib/env.ts';
 	import { createTauriRepository } from '#lib/tauri-repository.ts';
 	import { createBrowserRepository } from '#lib/browser-repository.ts';
@@ -15,7 +15,7 @@
 </script>
 
 <svelte:head>
-	<title>Strikebook</title>
+	<title>Journalix</title>
 </svelte:head>
 
 <AppShell {env} {repo}>{@render children()}</AppShell>

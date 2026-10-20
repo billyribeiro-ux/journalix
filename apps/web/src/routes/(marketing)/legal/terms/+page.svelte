@@ -6,25 +6,25 @@
 
 <Seo
 	title="Terms of service"
-	description="The terms for using Strikebook, a trading journal and analytics tool. Strikebook is not a broker or investment adviser and does not provide investment advice."
+	description="The terms for using Journalix, a trading journal and analytics tool. Journalix is not a broker or investment adviser and does not provide investment advice."
 	path="/legal/terms"
 />
 
 <LegalDocument
 	title="Terms of service"
-	summary="The agreement between you and Strikebook for using the website, web app and desktop app."
+	summary="The agreement between you and Journalix for using the website, web app and desktop app."
 >
 	<h2>1. Agreement</h2>
 	<p>
-		These terms govern your use of the Strikebook website, web application and desktop application
+		These terms govern your use of the Journalix website, web application and desktop application
 		(the “Service”). By creating an account or using the Service you agree to them. If you use the
 		Service on behalf of an organisation, you agree on its behalf and confirm you have authority to
 		do so. You must be at least 18 years old to use the Service.
 	</p>
 
-	<h2>2. What Strikebook is, and is not</h2>
+	<h2>2. What Journalix is, and is not</h2>
 	<p>
-		Strikebook is software for recording and analysing your own trades. It is not a broker-dealer,
+		Journalix is software for recording and analysing your own trades. It is not a broker-dealer,
 		investment adviser, commodity trading adviser or financial planner. It does not hold funds,
 		execute or route orders, or connect to your brokerage account to trade.
 	</p>
@@ -132,7 +132,7 @@
 
 	<h2>12. Limitation of liability</h2>
 	<p>
-		To the fullest extent permitted by law, Strikebook will not be liable for any indirect,
+		To the fullest extent permitted by law, Journalix will not be liable for any indirect,
 		incidental, special, consequential or punitive damages, or for any trading losses, lost profits,
 		lost data or business interruption, arising from or related to the Service, even if advised of
 		their possibility. Our total liability for any claim relating to the Service is limited to the
@@ -141,7 +141,7 @@
 
 	<h2>13. Indemnity</h2>
 	<p>
-		You agree to indemnify and hold Strikebook harmless from claims arising from your misuse of the
+		You agree to indemnify and hold Journalix harmless from claims arising from your misuse of the
 		Service, your violation of these terms, or your violation of any third party’s terms, including
 		a market data provider’s.
 	</p>

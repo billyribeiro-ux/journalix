@@ -1,6 +1,6 @@
 <script lang="ts">
 	import FunnelSimpleIcon from 'phosphor-svelte/lib/FunnelSimpleIcon';
-	import { addDays, dayKey, isFilterActive, STRATEGIES, type StrategyKind } from '@strikebook/core';
+	import { addDays, dayKey, isFilterActive, STRATEGIES, type StrategyKind } from '@journalix/core';
 	import { useApp } from '../app/context.ts';
 	import MultiSelect from '../primitives/MultiSelect.svelte';
 	import Select from '../primitives/Select.svelte';

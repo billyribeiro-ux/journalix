@@ -14,7 +14,7 @@
 		isFilterActive,
 		riskAdjusted,
 		STRATEGIES
-	} from '@strikebook/core';
+	} from '@journalix/core';
 	import { useApp } from '../app/context.ts';
 	import Button from '../primitives/Button.svelte';
 	import Panel from '../primitives/Panel.svelte';

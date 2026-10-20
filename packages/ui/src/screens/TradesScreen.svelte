@@ -14,7 +14,7 @@
 		formatR,
 		STRATEGIES,
 		type TradeView
-	} from '@strikebook/core';
+	} from '@journalix/core';
 	import { useApp } from '../app/context.ts';
 	import { saveFile } from '../app/save-file.ts';
 	import Button from '../primitives/Button.svelte';
@@ -187,7 +187,7 @@
 				.join(',')
 		);
 		void saveFile(env, {
-			name: `strikebook-trades-${new Date().toISOString().slice(0, 10)}.csv`,
+			name: `journalix-trades-${new Date().toISOString().slice(0, 10)}.csv`,
 			contents: [header.join(','), ...lines].join('\n'),
 			mime: 'text/csv;charset=utf-8'
 		});

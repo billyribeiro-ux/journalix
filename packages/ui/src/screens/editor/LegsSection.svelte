@@ -1,7 +1,7 @@
 <script lang="ts">
 	import TrashIcon from 'phosphor-svelte/lib/TrashIcon';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
-	import { describeContract, formatOcc, type LegKind } from '@strikebook/core';
+	import { describeContract, formatOcc, type LegKind } from '@journalix/core';
 	import Panel from '../../primitives/Panel.svelte';
 	import Button from '../../primitives/Button.svelte';
 	import IconButton from '../../primitives/IconButton.svelte';

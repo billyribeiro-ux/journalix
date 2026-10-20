@@ -1,8 +1,8 @@
 <script lang="ts">
 	import DownloadSimpleIcon from 'phosphor-svelte/lib/DownloadSimpleIcon';
 	import UploadSimpleIcon from 'phosphor-svelte/lib/UploadSimpleIcon';
-	import { JournalExportSchema, newId, type JournalExport } from '@strikebook/core';
-	import { createSampleJournal } from '@strikebook/core/sample';
+	import { JournalExportSchema, newId, type JournalExport } from '@journalix/core';
+	import { createSampleJournal } from '@journalix/core/sample';
 	import * as v from 'valibot';
 	import { useApp } from '../../app/context.ts';
 	import { saveFile } from '../../app/save-file.ts';
@@ -26,7 +26,7 @@
 		try {
 			const data = await repo.data.exportAll();
 			const saved = await saveFile(env, {
-				name: `strikebook-journal-${data.exportedAt.slice(0, 10)}.json`,
+				name: `journalix-journal-${data.exportedAt.slice(0, 10)}.json`,
 				contents: JSON.stringify(data, null, '\t'),
 				mime: 'application/json'
 			});
@@ -76,7 +76,7 @@
 			const issue = parsed.issues[0];
 			const path = issue?.path?.map((p) => String(p.key)).join('.') ?? '';
 			toaster.error(
-				`${file.name} is not a Strikebook export`,
+				`${file.name} is not a Journalix export`,
 				issue ? `${path ? `${path}: ` : ''}${issue.message}` : undefined
 			);
 			return;

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { HistogramBin } from '@strikebook/core';
-	import { formatMoney, formatNumber, formatR } from '@strikebook/core';
+	import type { HistogramBin } from '@journalix/core';
+	import { formatMoney, formatNumber, formatR } from '@journalix/core';
 	import { scaleLinear } from 'd3';
 	import ChartEmpty from './ChartEmpty.svelte';
 	import ChartTable from './ChartTable.svelte';

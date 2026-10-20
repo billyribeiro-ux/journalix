@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { TradesScreen } from '@strikebook/ui';
+	import { TradesScreen } from '@journalix/ui';
 </script>
 
 <TradesScreen />

@@ -1,4 +1,4 @@
-import { UserSettingsSchema } from '@strikebook/core';
+import { UserSettingsSchema } from '@journalix/core';
 import type { RequestHandler } from './$types';
 import { json, readJson, requireUser } from '#lib/server/http.ts';
 import { getSettings, saveSettings } from '#lib/server/journal/store.ts';

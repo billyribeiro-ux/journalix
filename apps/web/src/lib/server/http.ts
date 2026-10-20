@@ -1,6 +1,6 @@
 import { error, isHttpError, type RequestEvent } from '@sveltejs/kit';
 import * as v from 'valibot';
-import { RepositoryError } from '@strikebook/core';
+import { RepositoryError } from '@journalix/core';
 
 /** The signed-in user's id, or a 401. */
 export function requireUser(event: RequestEvent): string {

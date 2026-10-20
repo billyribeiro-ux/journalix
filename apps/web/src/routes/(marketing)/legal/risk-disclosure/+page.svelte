@@ -6,18 +6,18 @@
 
 <Seo
 	title="Risk disclosure"
-	description="Trading options, stocks and futures involves substantial risk. Strikebook is a journal, not investment advice, and its calculations are estimates with known limitations."
+	description="Trading options, stocks and futures involves substantial risk. Journalix is a journal, not investment advice, and its calculations are estimates with known limitations."
 	path="/legal/risk-disclosure"
 />
 
 <LegalDocument
 	title="Risk disclosure"
-	summary="Trading involves substantial risk of loss. Please read this before relying on anything Strikebook shows you."
+	summary="Trading involves substantial risk of loss. Please read this before relying on anything Journalix shows you."
 >
 	<h2>Not investment advice</h2>
 	<p>
-		Strikebook is a journal and analytics tool. It is not a broker, dealer or investment adviser,
-		and it is not registered as one with the SEC, FINRA, the CFTC, the NFA or any state regulator.
+		Journalix is a journal and analytics tool. It is not a broker, dealer or investment adviser, and
+		it is not registered as one with the SEC, FINRA, the CFTC, the NFA or any state regulator.
 		Nothing on this website, in the app, in the blog or in any communication from us is a
 		recommendation or solicitation to buy or sell any security, option, future or other financial
 		instrument, or advice about whether a strategy is suitable for you.
@@ -58,7 +58,7 @@
 
 	<h2>Past performance</h2>
 	<p>
-		Strikebook’s analytics describe what happened in trades you recorded. Win rates, expectancy,
+		Journalix’s analytics describe what happened in trades you recorded. Win rates, expectancy,
 		R-multiples, Sharpe ratios, equity curves and every other statistic are historical. Past
 		performance, whether yours or anyone else’s, does not guarantee or predict future results. Small
 		samples are especially unreliable.
@@ -105,9 +105,9 @@
 
 	<h2>Not for tax or regulatory reporting</h2>
 	<p>
-		Strikebook’s P&L uses the average-cost method within each trade and does not apply tax rules
-		such as wash sales, lot selection or Section 1256 treatment. Use your broker’s statements and a
-		tax professional for tax reporting.
+		Journalix’s P&L uses the average-cost method within each trade and does not apply tax rules such
+		as wash sales, lot selection or Section 1256 treatment. Use your broker’s statements and a tax
+		professional for tax reporting.
 	</p>
 
 	<h2>Your responsibility</h2>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Logo } from '@strikebook/ui/marketing';
+	import { Logo } from '@journalix/ui/marketing';
 	import { resolve } from '$app/paths';
 	import type { LayoutProps } from './$types';
 
@@ -8,13 +8,13 @@
 
 <div class="auth">
 	<header>
-		<a href={resolve('')} class="home" aria-label="Strikebook home"><Logo /></a>
+		<a href={resolve('')} class="home" aria-label="Journalix home"><Logo /></a>
 	</header>
 	<main id="main">
 		{@render children()}
 	</main>
 	<footer>
-		<p>Not investment advice. Strikebook is a journal, not a broker or advisor.</p>
+		<p>Not investment advice. Journalix is a journal, not a broker or advisor.</p>
 	</footer>
 </div>
 

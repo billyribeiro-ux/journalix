@@ -12,7 +12,7 @@
 		type GroupStats,
 		type Tag,
 		type TagCategory
-	} from '@strikebook/core';
+	} from '@journalix/core';
 	import * as v from 'valibot';
 	import { useApp } from '../app/context.ts';
 	import Button from '../primitives/Button.svelte';

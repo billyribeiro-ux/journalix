@@ -5,7 +5,7 @@
 
 ## Context
 
-Strikebook ships as a hosted web app and a Tauri desktop app. Both need the same position math, reports and screens, but store data differently (PostgreSQL behind an HTTP API, SQLite behind Tauri commands).
+Journalix ships as a hosted web app and a Tauri desktop app. Both need the same position math, reports and screens, but store data differently (PostgreSQL behind an HTTP API, SQLite behind Tauri commands).
 
 ## Decision
 

@@ -324,7 +324,7 @@ export const ProviderConfigInputSchema = v.object({
 export type ProviderConfigInput = v.InferOutput<typeof ProviderConfigInputSchema>;
 
 export const JournalExportSchema = v.object({
-	format: v.literal('strikebook.journal'),
+	format: v.literal('journalix.journal'),
 	version: v.literal(1),
 	exportedAt: IsoDateTimeSchema,
 	settings: UserSettingsSchema,

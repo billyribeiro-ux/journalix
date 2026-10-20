@@ -712,7 +712,7 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 
 	const settings: UserSettings = { ...DEFAULT_SETTINGS, displayName: 'Sample Trader' };
 	return {
-		format: 'strikebook.journal',
+		format: 'journalix.journal',
 		version: 1,
 		exportedAt: new Date(Math.min(now, nyInstant(endDay, 17, 0))).toISOString(),
 		settings,

@@ -5,7 +5,7 @@
 		formatR,
 		formatRatio,
 		type GroupStats
-	} from '@strikebook/core';
+	} from '@journalix/core';
 
 	interface Props {
 		rows: readonly GroupStats[];

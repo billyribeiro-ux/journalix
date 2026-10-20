@@ -1,5 +1,5 @@
 {
-	"name": "strikebook",
+	"name": "journalix",
 	"private": true,
 	"type": "module",
 	"description": "Options-first trading journal — web and desktop.",
@@ -19,8 +19,8 @@
 		}
 	},
 	"scripts": {
-		"dev:web": "pnpm --filter @strikebook/web dev",
-		"dev:desktop": "pnpm --filter @strikebook/desktop tauri dev",
+		"dev:web": "pnpm --filter @journalix/web dev",
+		"dev:desktop": "pnpm --filter @journalix/desktop tauri dev",
 		"build": "pnpm -r build",
 		"check": "pnpm -r check",
 		"lint": "prettier --check . && eslint .",

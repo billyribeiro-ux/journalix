@@ -20,7 +20,7 @@
 		STRATEGIES,
 		yearsBetween,
 		type PayoffLeg
-	} from '@strikebook/core';
+	} from '@journalix/core';
 	import {
 		chooseTimeframe,
 		TIMEFRAME_LABELS,
@@ -30,7 +30,7 @@
 		type BarsResult,
 		type Instrument,
 		type Timeframe
-	} from '@strikebook/core/market-data';
+	} from '@journalix/core/market-data';
 	import { useApp } from '../app/context.ts';
 	import Button from '../primitives/Button.svelte';
 	import Badge from '../primitives/Badge.svelte';

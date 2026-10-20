@@ -15,4 +15,4 @@ A trade is legs plus executions (`fill`, `expiration`, `assignment`, `exercise`)
 
 - Editing any fill recomputes the whole trade consistently, in both apps.
 - The chart can place every fill, and stops and targets can be drawn as step paths over time.
-- Imports and exports only need the raw records, and the format is stable (`strikebook.journal`, version 1).
+- Imports and exports only need the raw records, and the format is stable (`journalix.journal`, version 1).

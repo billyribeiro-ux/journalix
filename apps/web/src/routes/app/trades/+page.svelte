@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { TradesScreen } from '@strikebook/ui';
+	import { TradesScreen } from '@journalix/ui';
 </script>
 
-<svelte:head><title>Trades — Strikebook</title></svelte:head>
+<svelte:head><title>Trades — Journalix</title></svelte:head>
 <TradesScreen />

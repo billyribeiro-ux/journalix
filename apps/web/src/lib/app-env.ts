@@ -1,7 +1,7 @@
 import { goto } from '$app/navigation';
 import { resolve } from '$app/paths';
 import { page } from '$app/state';
-import type { AppEnv, AppRoute, AppUser, RouteName } from '@strikebook/ui';
+import type { AppEnv, AppRoute, AppUser, RouteName } from '@journalix/ui';
 
 function withQuery(path: string, query: Record<string, string | undefined>): string {
 	const params = new URLSearchParams();

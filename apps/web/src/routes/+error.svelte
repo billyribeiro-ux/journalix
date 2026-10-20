@@ -2,8 +2,8 @@
 	import '#lib/marketing/marketing.css';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { Button } from '@strikebook/ui';
-	import { Logo } from '@strikebook/ui/marketing';
+	import { Button } from '@journalix/ui';
+	import { Logo } from '@journalix/ui/marketing';
 	import { SITE } from '#lib/index.ts';
 
 	const notFound = $derived(page.status === 404);
@@ -22,7 +22,7 @@
 
 <div class="mk">
 	<header class="container top">
-		<a class="home" href={resolve('')} aria-label="Strikebook home"><Logo size={26} /></a>
+		<a class="home" href={resolve('')} aria-label="Journalix home"><Logo size={26} /></a>
 	</header>
 	<main id="main" class="container error">
 		<p class="status num">Error {page.status}</p>

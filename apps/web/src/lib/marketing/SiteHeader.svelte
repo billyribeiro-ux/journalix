@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { Button } from '@strikebook/ui';
-	import { Logo } from '@strikebook/ui/marketing';
+	import { Button } from '@journalix/ui';
+	import { Logo } from '@journalix/ui/marketing';
 	import ListIcon from 'phosphor-svelte/lib/ListIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
 	import { NAV_LINKS } from '#lib/marketing/site.ts';
@@ -55,8 +55,8 @@
 
 <header class="site-header" onfocusout={onFocusOut}>
 	<div class="bar">
-		<a class="home" href={resolve('')} aria-label="Strikebook home">
-			<Logo size={26} label="Strikebook" />
+		<a class="home" href={resolve('')} aria-label="Journalix home">
+			<Logo size={26} label="Journalix" />
 		</a>
 
 		<nav class="primary" aria-label="Main">

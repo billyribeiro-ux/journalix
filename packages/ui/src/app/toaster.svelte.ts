@@ -1,4 +1,4 @@
-import { newId } from '@strikebook/core';
+import { newId } from '@journalix/core';
 
 export type ToastTone = 'info' | 'success' | 'error';
 

@@ -6,7 +6,7 @@ import { getRequestEvent } from '$app/server';
 import { db } from '#lib/server/db/index.ts';
 
 export const auth = betterAuth({
-	appName: 'Strikebook',
+	appName: 'Journalix',
 	baseURL: ORIGIN,
 	secret: BETTER_AUTH_SECRET,
 	database: drizzleAdapter(db, { provider: 'pg' }),

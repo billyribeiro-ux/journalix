@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import { Button } from '@strikebook/ui';
+	import { Button } from '@journalix/ui';
 	import { SITE } from '#lib/index.ts';
 	import Seo from '#lib/marketing/Seo.svelte';
 	import PostBody from '#lib/marketing/PostBody.svelte';
@@ -55,7 +55,7 @@
 	<aside class="post-cta" aria-labelledby="post-cta-title">
 		<h2 id="post-cta-title">Measure your own trades this way</h2>
 		<p>
-			Strikebook records every leg and fill and computes these numbers for you. Free during early
+			Journalix records every leg and fill and computes these numbers for you. Free during early
 			access.
 		</p>
 		<div class="cta-row">

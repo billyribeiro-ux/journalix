@@ -3,7 +3,7 @@
  * diverging fills and keyboard navigation. d3 is used for math only; every chart renders
  * its SVG with Svelte markup.
  */
-import { formatMoney, formatNumber } from '@strikebook/core';
+import { formatMoney, formatNumber } from '@journalix/core';
 
 export type BarDirection = 'up' | 'down' | 'left' | 'right';
 

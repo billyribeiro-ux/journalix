@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { PayoffLeg, PayoffPoint } from '@strikebook/core';
-	import { formatMoney, payoffCurve, payoffProfile, payoffRange } from '@strikebook/core';
+	import type { PayoffLeg, PayoffPoint } from '@journalix/core';
+	import { formatMoney, payoffCurve, payoffProfile, payoffRange } from '@journalix/core';
 	import { bisector, line, scaleLinear } from 'd3';
 	import ChartEmpty from './ChartEmpty.svelte';
 	import ChartLegend from './ChartLegend.svelte';

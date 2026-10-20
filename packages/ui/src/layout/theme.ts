@@ -1,6 +1,6 @@
 export type ThemeChoice = 'system' | 'dark' | 'light';
 
-const KEY = 'strikebook-theme';
+const KEY = 'journalix-theme';
 
 /** Applies a theme to <html> and remembers it for the pre-paint script. */
 export function applyTheme(choice: ThemeChoice): void {

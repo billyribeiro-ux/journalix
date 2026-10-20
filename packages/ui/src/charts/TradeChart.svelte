@@ -14,14 +14,14 @@
 		type ExecutionRole,
 		type Leg,
 		type TradeView
-	} from '@strikebook/core';
+	} from '@journalix/core';
 	import {
 		bucketStart,
 		TIMEFRAME_LABELS,
 		TIMEFRAME_SECONDS,
 		type Bar,
 		type Timeframe
-	} from '@strikebook/core/market-data';
+	} from '@journalix/core/market-data';
 	import { readTheme, watchTheme, withAlpha, type ChartTheme } from './trade/theme.ts';
 	import { ZonesPrimitive, type Zone } from './trade/zones.ts';
 

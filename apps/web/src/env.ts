@@ -12,7 +12,7 @@ const required = (description: string) =>
 
 export const variables = defineEnvVars({
 	DATABASE_URL: required(
-		'PostgreSQL connection string, e.g. postgres://user:pass@localhost:5432/strikebook'
+		'PostgreSQL connection string, e.g. postgres://user:pass@localhost:5432/journalix'
 	),
 	ORIGIN: required('Public origin of the app, e.g. http://localhost:5173'),
 	BETTER_AUTH_SECRET: {

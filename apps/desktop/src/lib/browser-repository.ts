@@ -2,7 +2,7 @@
  * Development-only `JournalRepository` for running the desktop UI in an ordinary browser
  * (`pnpm dev` without Tauri: UI work, screenshots, end-to-end tests).
  *
- * It persists to `localStorage` under the `strikebook:` prefix and mirrors the Rust backend's
+ * It persists to `localStorage` under the `journalix:` prefix and mirrors the Rust backend's
  * rules (validation, cascades, a single default provider). Provider secrets are kept in
  * `localStorage` in plain text: acceptable for a local development fallback, never for the
  * shipped app, which stores them in the OS keychain. When storage is unavailable (private
@@ -34,11 +34,11 @@ import {
 	type Tag,
 	type Trade,
 	type UserSettings
-} from '@strikebook/core';
-import type { Bar, BarsCache, BarsCacheKey, FetchLike } from '@strikebook/core/market-data';
+} from '@journalix/core';
+import type { Bar, BarsCache, BarsCacheKey, FetchLike } from '@journalix/core/market-data';
 import { createBarsApi, secretHint, validateInput } from './repository-support.ts';
 
-const PREFIX = 'strikebook:';
+const PREFIX = 'journalix:';
 
 /** `localStorage` with an in-memory fallback; every access is guarded. */
 class KeyValueStore {
@@ -57,7 +57,7 @@ class KeyValueStore {
 		if (this.#warned) return;
 		this.#warned = true;
 		console.warn(
-			'Strikebook: localStorage is unavailable; data is kept in memory for this session.',
+			'Journalix: localStorage is unavailable; data is kept in memory for this session.',
 			error
 		);
 	}
@@ -109,9 +109,9 @@ function readJson<S extends v.GenericSchema>(
 	try {
 		const parsed = v.safeParse(schema, JSON.parse(raw));
 		if (parsed.success) return parsed.output;
-		console.warn(`Strikebook: ignoring invalid stored "${key}"`, parsed.issues);
+		console.warn(`Journalix: ignoring invalid stored "${key}"`, parsed.issues);
 	} catch (error) {
-		console.warn(`Strikebook: ignoring unreadable stored "${key}"`, error);
+		console.warn(`Journalix: ignoring unreadable stored "${key}"`, error);
 	}
 	return fallback;
 }
@@ -379,7 +379,7 @@ export function createBrowserRepository(): JournalRepository {
 		data: {
 			async exportAll() {
 				return {
-					format: 'strikebook.journal',
+					format: 'journalix.journal',
 					version: 1,
 					exportedAt: now(),
 					settings: load.settings(),

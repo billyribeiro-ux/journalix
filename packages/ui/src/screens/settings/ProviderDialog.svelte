@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { newId, type ProviderConfigView, type ProviderId } from '@strikebook/core';
-	import { PROVIDER_ORDER, PROVIDERS, type ProviderField } from '@strikebook/core/market-data';
+	import { newId, type ProviderConfigView, type ProviderId } from '@journalix/core';
+	import { PROVIDER_ORDER, PROVIDERS, type ProviderField } from '@journalix/core/market-data';
 	import { useApp } from '../../app/context.ts';
 	import Button from '../../primitives/Button.svelte';
 	import Dialog from '../../primitives/Dialog.svelte';

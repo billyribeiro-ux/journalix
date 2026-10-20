@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { Button } from '@strikebook/ui';
+	import { Button } from '@journalix/ui';
 	import Seo from '#lib/marketing/Seo.svelte';
 
 	const principles = [
@@ -10,7 +10,7 @@
 		},
 		{
 			title: 'No guesswork',
-			text: 'There are no AI summaries or generated insights. Every number in Strikebook comes from your fills and a formula you can look up: average cost, Black-Scholes, a Taylor expansion. Where a figure is an estimate, such as P&L attribution, it says so and shows the part it can’t explain.'
+			text: 'There are no AI summaries or generated insights. Every number in Journalix comes from your fills and a formula you can look up: average cost, Black-Scholes, a Taylor expansion. Where a figure is an estimate, such as P&L attribution, it says so and shows the part it can’t explain.'
 		},
 		{
 			title: 'Precision over convenience',
@@ -18,19 +18,19 @@
 		},
 		{
 			title: 'Say what it doesn’t do',
-			text: 'Strikebook doesn’t sync with brokers yet, doesn’t place trades and doesn’t give advice. The feature reference lists what exists today, and nothing more.'
+			text: 'Journalix doesn’t sync with brokers yet, doesn’t place trades and doesn’t give advice. The feature reference lists what exists today, and nothing more.'
 		}
 	] as const;
 </script>
 
 <Seo
 	title="About"
-	description="Why Strikebook exists: trading journals rarely understand multi-leg options. Built by a trader-engineer around fills, precision and data ownership."
+	description="Why Journalix exists: trading journals rarely understand multi-leg options. Built by a trader-engineer around fills, precision and data ownership."
 	path="/about"
 />
 
 <header class="page-head container">
-	<h1>Why Strikebook exists</h1>
+	<h1>Why Journalix exists</h1>
 	<p class="lede">
 		Most trading journals were designed for shares. Options traders end up with spreadsheets or with
 		tools that flatten a four-leg condor into four unrelated rows.
@@ -53,7 +53,7 @@
 			the same kind of trade.
 		</p>
 		<p>
-			Strikebook was built by a trader who also writes software, for the way options are actually
+			Journalix was built by a trader who also writes software, for the way options are actually
 			traded. Trades are made of legs; legs are made of fills; everything else is computed from the
 			fills. That one decision is what makes the chart review, the structure detection, the Greeks
 			and the R-multiples possible.
@@ -75,7 +75,7 @@
 	<section class="status" aria-labelledby="status-title">
 		<h2 id="status-title">Where things stand</h2>
 		<p>
-			Strikebook is in early access. The journal, chart review, options analysis and analytics
+			Journalix is in early access. The journal, chart review, options analysis and analytics
 			described on this site are working today, on the web and as a desktop app. Billing isn’t live,
 			so every feature is free while we listen to the traders using it. The
 			<a href={resolve('changelog')}>changelog</a> records what ships.

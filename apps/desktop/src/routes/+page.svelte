@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { DashboardScreen } from '@strikebook/ui';
+	import { DashboardScreen } from '@journalix/ui';
 </script>
 
 <DashboardScreen />

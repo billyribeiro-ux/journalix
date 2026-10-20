@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
-	import { Button, Field, TextInput } from '@strikebook/ui';
+	import { Button, Field, TextInput } from '@journalix/ui';
 	import AuthCard from '#lib/auth/AuthCard.svelte';
 	import type { PageProps } from './$types';
 
@@ -11,7 +11,7 @@
 </script>
 
 <svelte:head>
-	<title>Sign in — Strikebook</title>
+	<title>Sign in — Journalix</title>
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
@@ -42,7 +42,7 @@
 		<Button type="submit" variant="primary" {busy}>Sign in</Button>
 	</form>
 	{#snippet footer()}
-		New to Strikebook? <a href={resolve('signup')}>Create an account</a>
+		New to Journalix? <a href={resolve('signup')}>Create an account</a>
 	{/snippet}
 </AuthCard>
 

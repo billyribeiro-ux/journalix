@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { newId, RepositoryError, type Account, type Trade } from '@strikebook/core';
+import { newId, RepositoryError, type Account, type Trade } from '@journalix/core';
 import { createBrowserRepository } from './browser-repository.ts';
 
 const T0 = '2026-10-20T13:30:00.000Z';

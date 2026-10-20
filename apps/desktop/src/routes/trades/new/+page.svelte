@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { TradeEditorScreen } from '@strikebook/ui';
+	import { TradeEditorScreen } from '@journalix/ui';
 
 	const duplicateOf = $derived(page.url.searchParams.get('duplicate') ?? undefined);
 </script>

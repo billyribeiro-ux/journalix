@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { BillingScreen } from '@strikebook/ui';
+	import { BillingScreen } from '@journalix/ui';
 </script>
 
-<svelte:head><title>Billing — Strikebook</title></svelte:head>
+<svelte:head><title>Billing — Journalix</title></svelte:head>
 <BillingScreen />

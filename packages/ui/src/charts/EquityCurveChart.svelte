@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { EquityPoint } from '@strikebook/core';
-	import { formatDateTime, formatMoney, formatPercent } from '@strikebook/core';
+	import type { EquityPoint } from '@journalix/core';
+	import { formatDateTime, formatMoney, formatPercent } from '@journalix/core';
 	import { area, bisector, line, scaleLinear } from 'd3';
 	import ChartEmpty from './ChartEmpty.svelte';
 	import ChartTable from './ChartTable.svelte';

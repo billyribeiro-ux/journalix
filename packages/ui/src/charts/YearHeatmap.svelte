@@ -1,6 +1,6 @@
 <script lang="ts">
-	import type { DailyPnl } from '@strikebook/core';
-	import { formatDayKey, formatMoney } from '@strikebook/core';
+	import type { DailyPnl } from '@journalix/core';
+	import { formatDayKey, formatMoney } from '@journalix/core';
 	import ChartTable from './ChartTable.svelte';
 	import ChartTooltip from './ChartTooltip.svelte';
 	import type { TableRow, TooltipRow } from './chart-utils.ts';

@@ -31,7 +31,7 @@ pub enum AppError {
     Io(#[from] std::io::Error),
 
     /// Another thread panicked while holding the database lock.
-    #[error("The database is unavailable after an internal error; restart Strikebook")]
+    #[error("The database is unavailable after an internal error; restart Journalix")]
     LockPoisoned,
 
     #[error("Could not resolve the application data directory: {0}")]

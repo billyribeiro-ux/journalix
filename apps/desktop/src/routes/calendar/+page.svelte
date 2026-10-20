@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { CalendarScreen } from '@strikebook/ui';
+	import { CalendarScreen } from '@journalix/ui';
 </script>
 
 <CalendarScreen />

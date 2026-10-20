@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatMoney } from '@strikebook/core';
+	import { formatMoney } from '@journalix/core';
 
 	interface Props {
 		value: number | null;

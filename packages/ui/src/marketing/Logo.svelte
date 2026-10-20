@@ -2,13 +2,13 @@
 	interface Props {
 		/** Height of the mark in pixels; the wordmark scales with it. */
 		size?: number;
-		/** Show the "Strikebook" wordmark beside the mark. */
+		/** Show the "Journalix" wordmark beside the mark. */
 		wordmark?: boolean;
 		/** Accessible name. Defaults to the product name. */
 		label?: string;
 	}
 
-	let { size = 24, wordmark = true, label = 'Strikebook' }: Props = $props();
+	let { size = 24, wordmark = true, label = 'Journalix' }: Props = $props();
 </script>
 
 <span class="logo" style:--logo-size="{size}px" role="img" aria-label={label}>
@@ -19,7 +19,7 @@
 		<circle class="kink" cx="12.5" cy="23" r="2.1" />
 		<circle class="kink" cx="20" cy="11.5" r="2.1" />
 	</svg>
-	{#if wordmark}<span class="word" aria-hidden="true">Strikebook</span>{/if}
+	{#if wordmark}<span class="word" aria-hidden="true">Journalix</span>{/if}
 </span>
 
 <style>

@@ -6,7 +6,7 @@
 
 <Seo
 	title="Privacy policy"
-	description="What data Strikebook collects, how it is used and protected, how provider keys are encrypted, and how to export or delete your journal."
+	description="What data Journalix collects, how it is used and protected, how provider keys are encrypted, and how to export or delete your journal."
 	path="/legal/privacy"
 />
 
@@ -28,8 +28,8 @@
 
 	<h2>Who we are</h2>
 	<p>
-		This policy covers the Strikebook website, the Strikebook web application and the Strikebook
-		desktop application (together, the “Service”). “Strikebook”, “we” and “us” refer to the operator
+		This policy covers the Journalix website, the Journalix web application and the Journalix
+		desktop application (together, the “Service”). “Journalix”, “we” and “us” refer to the operator
 		of the Service. You can reach us through the <a href={resolve('contact')}>contact page</a>.
 	</p>
 
