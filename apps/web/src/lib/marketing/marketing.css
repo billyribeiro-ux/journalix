@@ -1,0 +1,181 @@
+/*
+ * Shared layout and type for the public site. Everything is scoped under `.mk`, the class on the
+ * marketing layout's root element, so nothing leaks into the app.
+ */
+.mk {
+	--site-max: 1200px;
+	--site-gutter: var(--space-4);
+	--section-gap: var(--space-16);
+
+	display: flex;
+	flex-direction: column;
+	min-height: 100dvh;
+	font-size: var(--text-md);
+	font-variant-numeric: tabular-nums;
+}
+
+@media (min-width: 720px) {
+	.mk {
+		--site-gutter: var(--space-8);
+		--section-gap: var(--space-24);
+	}
+}
+
+.mk main {
+	flex: 1;
+}
+
+.mk .container {
+	width: 100%;
+	max-width: var(--site-max);
+	margin: 0 auto;
+	padding: 0 var(--site-gutter);
+}
+
+.mk .section {
+	padding-top: var(--section-gap);
+}
+
+/* Page header used by every inner page. */
+.mk .page-head {
+	padding-top: var(--space-16);
+	padding-bottom: var(--space-10);
+	border-bottom: 1px solid var(--color-line);
+}
+
+.mk .page-head h1 {
+	max-width: 22ch;
+	font-size: clamp(var(--text-3xl), 6vw, var(--text-5xl));
+	font-weight: 600;
+	line-height: 1.04;
+	letter-spacing: var(--tracking-display);
+}
+
+.mk .page-head .lede {
+	max-width: 60ch;
+	margin-top: var(--space-6);
+	color: var(--color-ink-2);
+	font-size: var(--text-lg);
+	line-height: var(--leading-normal);
+}
+
+.mk .display {
+	font-size: clamp(var(--text-2xl), 4.2vw, var(--text-4xl));
+	font-weight: 600;
+	line-height: 1.08;
+	letter-spacing: var(--tracking-display);
+}
+
+.mk .lede {
+	color: var(--color-ink-2);
+	font-size: var(--text-lg);
+	line-height: var(--leading-normal);
+}
+
+/* Long-form text: articles, legal documents. */
+.mk .prose {
+	max-width: var(--prose-max);
+	color: var(--color-ink-2);
+	font-size: var(--text-md);
+	line-height: 1.65;
+}
+
+.mk .prose > * + * {
+	margin-top: var(--space-4);
+}
+
+.mk .prose h2 {
+	margin-top: var(--space-12);
+	color: var(--color-ink);
+	font-size: var(--text-xl);
+	letter-spacing: var(--tracking-tight);
+}
+
+.mk .prose h3 {
+	margin-top: var(--space-8);
+	color: var(--color-ink);
+	font-size: var(--text-lg);
+}
+
+.mk .prose ul,
+.mk .prose ol {
+	padding-left: var(--space-6);
+}
+
+.mk .prose li + li {
+	margin-top: var(--space-2);
+}
+
+.mk .prose strong {
+	color: var(--color-ink);
+	font-weight: 600;
+}
+
+.mk .prose a {
+	color: var(--color-ink);
+}
+
+/* Hairline-ruled definition list for dense reference content. */
+.mk .spec {
+	display: grid;
+	border-top: 1px solid var(--color-line);
+}
+
+.mk .spec > div {
+	display: grid;
+	gap: var(--space-1);
+	padding: var(--space-4) 0;
+	border-bottom: 1px solid var(--color-line);
+}
+
+.mk .spec dt {
+	color: var(--color-ink);
+	font-weight: 600;
+}
+
+.mk .spec dd {
+	color: var(--color-ink-2);
+	max-width: 62ch;
+}
+
+@media (min-width: 720px) {
+	.mk .spec > div {
+		grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+		gap: var(--space-8);
+	}
+}
+
+.mk .note {
+	color: var(--color-ink-3);
+	font-size: var(--text-sm);
+}
+
+.mk .cta-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-3);
+}
+
+/* Marketing buttons are a step larger than the app's. */
+.mk .cta-row :is(a, button) {
+	min-height: 44px;
+	padding: 0 var(--space-5);
+	font-size: var(--text-md);
+}
+
+.mk .skip-link {
+	position: absolute;
+	top: var(--space-2);
+	left: var(--space-2);
+	z-index: calc(var(--z-sticky) + 1);
+	padding: var(--space-2) var(--space-4);
+	background: var(--color-signal);
+	color: var(--color-signal-ink);
+	font-weight: 600;
+	border-radius: var(--radius-sm);
+	transform: translateY(-200%);
+}
+
+.mk .skip-link:focus {
+	transform: none;
+}
