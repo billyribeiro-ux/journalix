@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-playbooks-list"
+description = "Enables the playbooks_list command without any pre-configured scope."
+commands.allow = ["playbooks_list"]
+
+[[permission]]
+identifier = "deny-playbooks-list"
+description = "Denies the playbooks_list command without any pre-configured scope."
+commands.deny = ["playbooks_list"]

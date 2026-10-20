@@ -1,0 +1,54 @@
+[package]
+name = "strikebook-desktop"
+version = "0.1.0"
+description = "Strikebook — the options trading journal (desktop edition)"
+authors = ["Strikebook"]
+license = "UNLICENSED"
+edition = "2024"
+rust-version = "1.90"
+publish = false
+
+[lib]
+# The `_lib` suffix avoids a name clash with the binary on Windows (cargo issue #8519).
+name = "strikebook_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "strikebook-desktop"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "=2.7.3", features = [] }
+
+[dependencies]
+tauri = { version = "=2.12.4", features = [] }
+tauri-plugin-dialog = "=2.8.3"
+tauri-plugin-http = "=2.8.3"
+tauri-plugin-log = "=2.10.1"
+rusqlite = { version = "=0.40.2", features = ["bundled"] }
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.154"
+thiserror = "=2.0.21"
+log = "=0.4.34"
+chrono = { version = "=0.4.45", default-features = false, features = ["clock", "std"] }
+chacha20poly1305 = { version = "=0.11.0", default-features = false, features = ["alloc"] }
+getrandom = "=0.4.3"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+keyring = { version = "=3.6.3", features = ["apple-native"] }
+
+[target.'cfg(target_os = "windows")'.dependencies]
+keyring = { version = "=3.6.3", features = ["windows-native"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+keyring = { version = "=3.6.3", features = ["sync-secret-service", "crypto-rust"] }
+
+[dev-dependencies]
+tempfile = "=3.27.0"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

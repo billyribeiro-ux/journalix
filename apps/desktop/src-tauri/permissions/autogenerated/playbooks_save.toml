@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-playbooks-save"
+description = "Enables the playbooks_save command without any pre-configured scope."
+commands.allow = ["playbooks_save"]
+
+[[permission]]
+identifier = "deny-playbooks-save"
+description = "Denies the playbooks_save command without any pre-configured scope."
+commands.deny = ["playbooks_save"]

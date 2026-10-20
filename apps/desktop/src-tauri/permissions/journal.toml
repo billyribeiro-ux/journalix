@@ -1,0 +1,35 @@
+"$schema" = "schemas/schema.json"
+
+[[set]]
+identifier = "journal"
+description = "Every journal command the Strikebook UI calls: CRUD for accounts, tags, playbooks, notes and trades; settings; market-data providers (including reading a provider's secret); the bars cache; export, import and reset; and saving a generated file through a native save dialog."
+permissions = [
+  "allow-accounts-list",
+  "allow-accounts-save",
+  "allow-accounts-remove",
+  "allow-tags-list",
+  "allow-tags-save",
+  "allow-tags-remove",
+  "allow-playbooks-list",
+  "allow-playbooks-save",
+  "allow-playbooks-remove",
+  "allow-notes-list",
+  "allow-notes-save",
+  "allow-notes-remove",
+  "allow-trades-list",
+  "allow-trades-get",
+  "allow-trades-save",
+  "allow-trades-remove",
+  "allow-settings-get",
+  "allow-settings-save",
+  "allow-providers-list",
+  "allow-providers-save",
+  "allow-providers-remove",
+  "allow-providers-secret",
+  "allow-bars-read",
+  "allow-bars-write",
+  "allow-data-export",
+  "allow-data-import",
+  "allow-data-reset",
+  "allow-file-save",
+]

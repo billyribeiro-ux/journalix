@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-bars-write"
+description = "Enables the bars_write command without any pre-configured scope."
+commands.allow = ["bars_write"]
+
+[[permission]]
+identifier = "deny-bars-write"
+description = "Denies the bars_write command without any pre-configured scope."
+commands.deny = ["bars_write"]

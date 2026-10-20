@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-providers-remove"
+description = "Enables the providers_remove command without any pre-configured scope."
+commands.allow = ["providers_remove"]
+
+[[permission]]
+identifier = "deny-providers-remove"
+description = "Denies the providers_remove command without any pre-configured scope."
+commands.deny = ["providers_remove"]

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-tags-save"
+description = "Enables the tags_save command without any pre-configured scope."
+commands.allow = ["tags_save"]
+
+[[permission]]
+identifier = "deny-tags-save"
+description = "Denies the tags_save command without any pre-configured scope."
+commands.deny = ["tags_save"]

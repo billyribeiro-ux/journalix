@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-trades-save"
+description = "Enables the trades_save command without any pre-configured scope."
+commands.allow = ["trades_save"]
+
+[[permission]]
+identifier = "deny-trades-save"
+description = "Denies the trades_save command without any pre-configured scope."
+commands.deny = ["trades_save"]

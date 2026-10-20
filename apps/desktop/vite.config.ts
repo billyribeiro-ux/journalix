@@ -3,6 +3,8 @@ import { playwright } from '@vitest/browser-playwright';
 import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
 
+// Tauri loads the static SPA from `build/` in production and the dev server on port 1420 in
+// development (see src-tauri/tauri.conf.json). https://v2.tauri.app/start/frontend/sveltekit/
 export default defineConfig({
 	plugins: [
 		sveltekit({
@@ -11,9 +13,21 @@ export default defineConfig({
 				runes: ({ filename }) =>
 					filename.split(/[/\\]/).includes('node_modules') ? undefined : true
 			},
-			adapter: adapter()
+			adapter: adapter({ fallback: 'index.html' })
 		})
 	],
+	// Keep Rust compiler output visible when running under `tauri dev`.
+	clearScreen: false,
+	server: {
+		port: 1420,
+		strictPort: true,
+		watch: {
+			// The Rust crate rebuilds itself; Vite must not reload on its changes.
+			ignored: ['**/src-tauri/**']
+		}
+	},
+	// Expose Tauri's build-time variables (platform, arch, debug) alongside VITE_*.
+	envPrefix: ['VITE_', 'TAURI_ENV_*'],
 	test: {
 		expect: { requireAssertions: true },
 		projects: [

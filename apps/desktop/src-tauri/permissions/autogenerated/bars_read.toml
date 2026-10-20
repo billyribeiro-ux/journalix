@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-bars-read"
+description = "Enables the bars_read command without any pre-configured scope."
+commands.allow = ["bars_read"]
+
+[[permission]]
+identifier = "deny-bars-read"
+description = "Denies the bars_read command without any pre-configured scope."
+commands.deny = ["bars_read"]
