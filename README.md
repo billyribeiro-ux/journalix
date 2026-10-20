@@ -20,7 +20,7 @@ Pinned in `package.json` (`devEngines`), `.nvmrc` and `mise.toml`:
 
 - Node.js 24.22.0 (Active LTS)
 - pnpm 12.14.0
-- Rust 1.97.0 (desktop only; the crate's minimum is 1.90)
+- Rust 1.99.1 (desktop only; the crate's minimum is 1.90)
 - PostgreSQL 15 or later (web only)
 
 `pnpm-workspace.yaml` refuses any package version published less than 24 hours ago (`minimumReleaseAge: 1440`), and every shared dependency is pinned once in the catalog.

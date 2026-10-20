@@ -75,7 +75,7 @@ jobs:
           pnpm --filter @journalix/desktop build
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.97.0
+          toolchain: 1.99.1
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
         with:
