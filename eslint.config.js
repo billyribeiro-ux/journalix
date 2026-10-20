@@ -42,7 +42,11 @@ export default defineConfig(
 		rules: {
 			'svelte/button-has-type': 'error',
 			'svelte/no-at-html-tags': 'error',
-			'svelte/require-each-key': 'error'
+			'svelte/require-each-key': 'error',
+			// Journal state lives in `$state.raw` snapshots that are replaced, never mutated. The Maps and
+			// Dates this rule flags are local lookups built inside `$derived` or timestamps formatted
+			// immediately, so wrapping them in SvelteMap/SvelteDate would add tracking with no effect.
+			'svelte/prefer-svelte-reactivity': 'off'
 		}
 	}
 );
