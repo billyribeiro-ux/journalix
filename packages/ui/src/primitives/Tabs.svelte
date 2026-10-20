@@ -15,17 +15,21 @@
 
 	function onkeydown(event: KeyboardEvent): void {
 		const index = tabs.findIndex((t) => t.value === value);
-		let next = index;
-		if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
-		else if (event.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length;
-		else if (event.key === 'Home') next = 0;
-		else if (event.key === 'End') next = tabs.length - 1;
-		else return;
+		const keyed: Record<string, number> = {
+			ArrowRight: (index + 1) % tabs.length,
+			ArrowLeft: (index - 1 + tabs.length) % tabs.length,
+			Home: 0,
+			End: tabs.length - 1
+		};
+		const next = keyed[event.key];
+		if (next === undefined) return;
 		event.preventDefault();
 		const tab = tabs[next];
 		if (tab) {
 			select(tab.value);
-			(event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+			(event.currentTarget as HTMLElement)
+				.querySelectorAll<HTMLButtonElement>('[role="tab"]')
+				[next]?.focus();
 		}
 	}
 </script>

@@ -57,7 +57,9 @@ export class JournalStore {
 	);
 
 	/** Views after the global filter — what every report shows. */
-	filtered = $derived.by<TradeView[]>(() => applyFilter(this.views, this.filter, this.settings.timeZone));
+	filtered = $derived.by<TradeView[]>(() =>
+		applyFilter(this.views, this.filter, this.settings.timeZone)
+	);
 
 	stats = $derived(computeStats(this.filtered));
 
@@ -92,27 +94,32 @@ export class JournalStore {
 		this.status = 'loading';
 		this.error = null;
 		try {
-			const [settings, accounts, tags, playbooks, notes, trades, providers] = await Promise.all([
-				this.#repo.settings.get(),
-				this.#repo.accounts.list(),
-				this.#repo.tags.list(),
-				this.#repo.playbooks.list(),
-				this.#repo.notes.list(),
-				this.#repo.trades.list(),
-				this.#repo.providers.list()
-			]);
-			this.settings = settings;
-			this.accounts = accounts;
-			this.tags = tags;
-			this.playbooks = playbooks;
-			this.notes = notes;
-			this.trades = trades;
-			this.providers = providers;
+			await this.refresh();
 			this.status = 'ready';
 		} catch (error) {
 			this.error = error instanceof Error ? error.message : 'Could not load the journal';
 			this.status = 'error';
 		}
+	}
+
+	/** Reloads everything in place, keeping the current screen mounted. Throws on failure. */
+	async refresh(): Promise<void> {
+		const [settings, accounts, tags, playbooks, notes, trades, providers] = await Promise.all([
+			this.#repo.settings.get(),
+			this.#repo.accounts.list(),
+			this.#repo.tags.list(),
+			this.#repo.playbooks.list(),
+			this.#repo.notes.list(),
+			this.#repo.trades.list(),
+			this.#repo.providers.list()
+		]);
+		this.settings = settings;
+		this.accounts = accounts;
+		this.tags = tags;
+		this.playbooks = playbooks;
+		this.notes = notes;
+		this.trades = trades;
+		this.providers = providers;
 	}
 
 	view(id: string): TradeView | undefined {
@@ -159,7 +166,9 @@ export class JournalStore {
 	async deleteTag(id: string): Promise<void> {
 		await this.#repo.tags.remove(id);
 		this.tags = this.tags.filter((t) => t.id !== id);
-		this.trades = this.trades.map((t) => (t.tagIds.includes(id) ? { ...t, tagIds: t.tagIds.filter((x) => x !== id) } : t));
+		this.trades = this.trades.map((t) =>
+			t.tagIds.includes(id) ? { ...t, tagIds: t.tagIds.filter((x) => x !== id) } : t
+		);
 	}
 
 	async savePlaybook(playbook: Playbook): Promise<Playbook> {
@@ -203,17 +212,18 @@ export class JournalStore {
 
 	async deleteProvider(id: string): Promise<void> {
 		await this.#repo.providers.remove(id);
-		this.providers = this.providers.filter((p) => p.id !== id);
+		// Removing the default promotes another config server-side; reload to reflect it.
+		this.providers = await this.#repo.providers.list();
 	}
 
 	async importJournal(data: JournalExport): Promise<number> {
 		const result = await this.#repo.data.importAll(data);
-		await this.load();
+		await this.refresh();
 		return result.trades;
 	}
 
 	async resetJournal(): Promise<void> {
 		await this.#repo.data.reset();
-		await this.load();
+		await this.refresh();
 	}
 }

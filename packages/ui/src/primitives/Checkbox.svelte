@@ -13,7 +13,13 @@
 </script>
 
 <div class="check">
-	<input type="checkbox" {id} bind:checked {disabled} aria-describedby={description ? `${id}-desc` : undefined} />
+	<input
+		type="checkbox"
+		{id}
+		bind:checked
+		{disabled}
+		aria-describedby={description ? `${id}-desc` : undefined}
+	/>
 	<label for={id}>
 		{@render children()}
 		{#if description}<span class="desc" id="{id}-desc">{description}</span>{/if}

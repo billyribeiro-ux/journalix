@@ -16,7 +16,14 @@
 		invalid?: boolean;
 	}
 
-	let { value = $bindable(), options, groups, placeholder, invalid = false, ...rest }: Props = $props();
+	let {
+		value = $bindable(),
+		options,
+		groups,
+		placeholder,
+		invalid = false,
+		...rest
+	}: Props = $props();
 </script>
 
 <div class="wrap">
@@ -34,7 +41,13 @@
 		{/each}
 	</select>
 	<svg class="chevron" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
-		<path d="M3 4.5 6 7.5 9 4.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+		<path
+			d="M3 4.5 6 7.5 9 4.5"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="1.5"
+			stroke-linecap="round"
+		/>
 	</svg>
 </div>
 

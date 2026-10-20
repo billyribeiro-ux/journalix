@@ -36,6 +36,7 @@
 
 	header {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: flex-start;
 		justify-content: space-between;
 		gap: var(--space-4);
@@ -46,6 +47,11 @@
 		font-size: var(--text-md);
 		font-weight: 600;
 		letter-spacing: -0.01em;
+	}
+
+	.titles {
+		flex: 1 1 240px;
+		min-width: 0;
 	}
 
 	.titles p {
@@ -59,6 +65,7 @@
 		gap: var(--space-2);
 		align-items: center;
 		flex-wrap: wrap;
+		flex-shrink: 0;
 	}
 
 	.content {

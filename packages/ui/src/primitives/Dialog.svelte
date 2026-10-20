@@ -12,7 +12,15 @@
 		onclose?: () => void;
 	}
 
-	let { open = $bindable(false), title, description, size = 'md', children, footer, onclose }: Props = $props();
+	let {
+		open = $bindable(false),
+		title,
+		description,
+		size = 'md',
+		children,
+		footer,
+		onclose
+	}: Props = $props();
 
 	let dialog = $state<HTMLDialogElement | null>(null);
 	const id = $props.id();
@@ -52,7 +60,9 @@
 					<h2 id="{id}-title">{title}</h2>
 					{#if description}<p id="{id}-desc">{description}</p>{/if}
 				</div>
-				<button type="button" class="close" aria-label="Close" onclick={close}><XIcon size={18} /></button>
+				<button type="button" class="close" aria-label="Close" onclick={close}
+					><XIcon size={18} /></button
+				>
 			</header>
 			<div class="body">{@render children()}</div>
 			{#if footer}<footer>{@render footer()}</footer>{/if}

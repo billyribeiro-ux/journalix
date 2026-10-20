@@ -8,7 +8,20 @@
 		describedBy?: string;
 	}
 
-	let { value = $bindable(''), invalid = false, describedBy, type = 'text', ...rest }: Props = $props();
+	let {
+		value = $bindable(''),
+		invalid = false,
+		describedBy,
+		type = 'text',
+		...rest
+	}: Props = $props();
 </script>
 
-<input class="control" {type} bind:value aria-invalid={invalid || undefined} aria-describedby={describedBy} {...rest} />
+<input
+	class="control"
+	{type}
+	bind:value
+	aria-invalid={invalid || undefined}
+	aria-describedby={describedBy}
+	{...rest}
+/>

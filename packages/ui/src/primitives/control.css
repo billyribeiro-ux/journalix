@@ -26,7 +26,8 @@
 	background: var(--color-surface-2);
 }
 
-.control[aria-invalid='true'] {
+.control[aria-invalid='true'],
+.control[aria-invalid='true']:hover:not(:disabled) {
 	border-color: var(--color-loss);
 }
 

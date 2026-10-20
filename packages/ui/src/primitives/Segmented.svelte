@@ -16,10 +16,16 @@
 
 	function onkeydown(event: KeyboardEvent): void {
 		const index = options.findIndex((o) => o.value === value);
-		let next = index;
-		if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = (index + 1) % options.length;
-		else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = (index - 1 + options.length) % options.length;
-		else return;
+		const forward = (index + 1) % options.length;
+		const back = (index - 1 + options.length) % options.length;
+		const keyed: Record<string, number> = {
+			ArrowRight: forward,
+			ArrowDown: forward,
+			ArrowLeft: back,
+			ArrowUp: back
+		};
+		const next = keyed[event.key];
+		if (next === undefined) return;
 		event.preventDefault();
 		const option = options[next];
 		if (option) {

@@ -10,7 +10,14 @@
 		children: Snippet;
 	}
 
-	let { label, size = 'md', tone = 'default', type = 'button', children, ...rest }: Props = $props();
+	let {
+		label,
+		size = 'md',
+		tone = 'default',
+		type = 'button',
+		children,
+		...rest
+	}: Props = $props();
 </script>
 
 <button class="icon-btn {size} {tone}" {type} aria-label={label} title={label} {...rest}>

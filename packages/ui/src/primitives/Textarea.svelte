@@ -10,7 +10,8 @@
 	let { value = $bindable(''), invalid = false, rows = 4, ...rest }: Props = $props();
 </script>
 
-<textarea class="control" bind:value {rows} aria-invalid={invalid || undefined} {...rest}></textarea>
+<textarea class="control" bind:value {rows} aria-invalid={invalid || undefined} {...rest}
+></textarea>
 
 <style>
 	textarea {

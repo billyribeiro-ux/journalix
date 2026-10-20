@@ -12,7 +12,15 @@
 		children: Snippet;
 	}
 
-	let { label, for: htmlFor, help, error = null, optional = false, hideLabel = false, children }: Props = $props();
+	let {
+		label,
+		for: htmlFor,
+		help,
+		error = null,
+		optional = false,
+		hideLabel = false,
+		children
+	}: Props = $props();
 </script>
 
 <div class="field" class:invalid={!!error}>
@@ -32,6 +40,8 @@
 	.field {
 		display: grid;
 		gap: var(--space-1);
+		/* Stretched grid cells must not spread label, control and help apart. */
+		align-content: start;
 		min-width: 0;
 	}
 

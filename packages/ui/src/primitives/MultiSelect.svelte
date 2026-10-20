@@ -19,7 +19,14 @@
 		onchange?: (values: T[]) => void;
 	}
 
-	let { label, values = $bindable([]), options, placeholder, searchable = false, onchange }: Props = $props();
+	let {
+		label,
+		values = $bindable([]),
+		options,
+		placeholder,
+		searchable = false,
+		onchange
+	}: Props = $props();
 
 	const id = $props.id();
 	let open = $state(false);
@@ -27,12 +34,15 @@
 	let root = $state<HTMLDivElement | null>(null);
 
 	const visible = $derived(
-		query.trim() ? options.filter((o) => o.label.toLowerCase().includes(query.trim().toLowerCase())) : options
+		query.trim()
+			? options.filter((o) => o.label.toLowerCase().includes(query.trim().toLowerCase()))
+			: options
 	);
 
 	const summary = $derived.by(() => {
 		if (values.length === 0) return placeholder;
-		if (values.length === 1) return options.find((o) => o.value === values[0])?.label ?? placeholder;
+		if (values.length === 1)
+			return options.find((o) => o.value === values[0])?.label ?? placeholder;
 		return `${values.length} selected`;
 	});
 
@@ -83,7 +93,13 @@
 	{#if open}
 		<div class="popover">
 			{#if searchable}
-				<input class="search" type="search" placeholder="Search" bind:value={query} aria-label="Search {label}" />
+				<input
+					class="search"
+					type="search"
+					placeholder="Search"
+					bind:value={query}
+					aria-label="Search {label}"
+				/>
 			{/if}
 			<ul id="{id}-list" role="listbox" aria-multiselectable="true" aria-label={label}>
 				{#each visible as option (option.value)}
@@ -92,7 +108,8 @@
 							<span class="box" aria-hidden="true">
 								{#if values.includes(option.value)}<CheckIcon size={12} weight="bold" />{/if}
 							</span>
-							{#if option.color}<span class="dot" style:background={option.color} aria-hidden="true"></span>{/if}
+							{#if option.color}<span class="dot" style:background={option.color} aria-hidden="true"
+								></span>{/if}
 							<span class="text">{option.label}</span>
 						</button>
 					</li>

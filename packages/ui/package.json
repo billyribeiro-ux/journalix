@@ -4,7 +4,9 @@
 	"private": true,
 	"type": "module",
 	"description": "Shared Svelte 5 design system, charts and application screens for web and desktop.",
-	"sideEffects": ["**/*.css"],
+	"sideEffects": [
+		"**/*.css"
+	],
 	"svelte": "./src/index.ts",
 	"exports": {
 		".": {

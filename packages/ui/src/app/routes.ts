@@ -38,4 +38,15 @@ export interface AppEnv {
 	signOut?(): Promise<void>;
 	/** Link back to the public site (web only). */
 	readonly homeHref?: string;
+	/**
+	 * Saves a generated file. The desktop app shows a native save dialog; when absent, screens
+	 * fall back to a browser download. Resolves `false` when the user cancels.
+	 */
+	saveFile?(file: SaveFileRequest): Promise<boolean>;
+}
+
+export interface SaveFileRequest {
+	readonly name: string;
+	readonly contents: string;
+	readonly mime: string;
 }

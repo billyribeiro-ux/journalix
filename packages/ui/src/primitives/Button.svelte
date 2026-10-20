@@ -30,7 +30,13 @@
 		<span>{@render children()}</span>
 	</a>
 {:else}
-	<button class="btn {variant} {size}" {type} disabled={disabled || busy} aria-busy={busy || undefined} {...rest}>
+	<button
+		class="btn {variant} {size}"
+		{type}
+		disabled={disabled || busy}
+		aria-busy={busy || undefined}
+		{...rest}
+	>
 		{#if busy}
 			<span class="spinner" aria-hidden="true"></span>
 		{:else if icon}

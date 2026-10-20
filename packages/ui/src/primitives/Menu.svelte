@@ -26,7 +26,9 @@
 	}
 
 	function onkeydown(event: KeyboardEvent): void {
-		const buttons = [...(root?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not(:disabled)') ?? [])];
+		const buttons = [
+			...(root?.querySelectorAll<HTMLButtonElement>('[role="menuitem"]:not(:disabled)') ?? [])
+		];
 		const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
 		if (event.key === 'ArrowDown') {
 			event.preventDefault();
@@ -66,7 +68,13 @@
 	{#if open}
 		<div class="items {align}" id="{id}-menu" role="menu" aria-label={label}>
 			{#each items as item (item.label)}
-				<button type="button" role="menuitem" class={item.tone ?? 'default'} disabled={item.disabled} onclick={() => choose(item)}>
+				<button
+					type="button"
+					role="menuitem"
+					class={item.tone ?? 'default'}
+					disabled={item.disabled}
+					onclick={() => choose(item)}
+				>
 					{item.label}
 				</button>
 			{/each}

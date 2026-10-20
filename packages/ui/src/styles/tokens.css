@@ -11,7 +11,9 @@
 	color-scheme: light dark;
 
 	/* Type */
-	--font-sans: 'IBM Plex Sans Variable', 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--font-sans:
+		'IBM Plex Sans Variable', 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+		sans-serif;
 	--font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 	--text-2xs: 0.6875rem; /* 11 */
 	--text-xs: 0.75rem; /* 12 */
@@ -86,6 +88,8 @@
 	--color-signal: #f2c14e;
 	--color-signal-ink: #0f1b2d;
 	--color-signal-soft: #fbedc5;
+	/* Entry and add markers on charts: amber that holds 4.5:1 on the chart surface. */
+	--chart-entry: #9a6f00;
 	--color-focus: #2459d6;
 
 	--color-gain: #008a7e;
@@ -127,6 +131,8 @@
 		--color-signal: #f2c14e;
 		--color-signal-ink: #0f1b2d;
 		--color-signal-soft: #3b3420;
+		/* Entry and add markers on charts: amber that holds 4.5:1 on the chart surface. */
+		--chart-entry: #f2c14e;
 		--color-focus: #f2c14e;
 
 		--color-gain: #00a99c;
@@ -166,6 +172,8 @@
 	--color-signal: #f2c14e;
 	--color-signal-ink: #0f1b2d;
 	--color-signal-soft: #3b3420;
+	/* Entry and add markers on charts: amber that holds 4.5:1 on the chart surface. */
+	--chart-entry: #f2c14e;
 	--color-focus: #f2c14e;
 
 	--color-gain: #00a99c;

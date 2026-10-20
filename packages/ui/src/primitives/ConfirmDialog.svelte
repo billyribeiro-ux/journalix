@@ -11,7 +11,14 @@
 		onconfirm: () => Promise<void> | void;
 	}
 
-	let { open = $bindable(false), title, message, confirmLabel, tone = 'danger', onconfirm }: Props = $props();
+	let {
+		open = $bindable(false),
+		title,
+		message,
+		confirmLabel,
+		tone = 'danger',
+		onconfirm
+	}: Props = $props();
 	let busy = $state(false);
 
 	async function confirm(): Promise<void> {

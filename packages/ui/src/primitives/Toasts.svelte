@@ -16,13 +16,21 @@
 	{#each toaster.toasts as toast (toast.id)}
 		<div class="toast {toast.tone}" role={toast.tone === 'error' ? 'alert' : 'status'}>
 			<span class="icon" aria-hidden="true">
-				{#if toast.tone === 'success'}<CheckCircleIcon size={18} weight="fill" />{:else if toast.tone === 'error'}<WarningCircleIcon size={18} weight="fill" />{:else}<InfoIcon size={18} weight="fill" />{/if}
+				{#if toast.tone === 'success'}<CheckCircleIcon
+						size={18}
+						weight="fill"
+					/>{:else if toast.tone === 'error'}<WarningCircleIcon
+						size={18}
+						weight="fill"
+					/>{:else}<InfoIcon size={18} weight="fill" />{/if}
 			</span>
 			<div class="text">
 				<p class="message">{toast.message}</p>
 				{#if toast.detail}<p class="detail">{toast.detail}</p>{/if}
 			</div>
-			<button type="button" aria-label="Dismiss" onclick={() => toaster.dismiss(toast.id)}><XIcon size={14} /></button>
+			<button type="button" aria-label="Dismiss" onclick={() => toaster.dismiss(toast.id)}
+				><XIcon size={14} /></button
+			>
 		</div>
 	{/each}
 </div>

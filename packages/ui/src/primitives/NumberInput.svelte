@@ -11,7 +11,15 @@
 		suffix?: string;
 	}
 
-	let { value = $bindable(null), invalid = false, describedBy, prefix, suffix, step = 'any', ...rest }: Props = $props();
+	let {
+		value = $bindable(null),
+		invalid = false,
+		describedBy,
+		prefix,
+		suffix,
+		step = 'any',
+		...rest
+	}: Props = $props();
 
 	let text = $state(value === null || value === undefined ? '' : String(value));
 

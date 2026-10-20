@@ -5,4 +5,7 @@ export { JournalStore } from './app/journal.svelte.ts';
 export { Toaster } from './app/toaster.svelte.ts';
 export * from './screens/index.ts';
 export { default as AppShell } from './layout/AppShell.svelte';
-export { default as TradeChart } from './charts/TradeChart.svelte';
+export * from './charts/index.ts';
+export * from './app/plans.ts';
+export { saveFile } from './app/save-file.ts';
+export { applyTheme, type ThemeChoice } from './layout/theme.ts';
