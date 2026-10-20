@@ -1,5 +1,13 @@
 import { formatOccCompact } from '../../options/occ.ts';
-import { errorFromResponse, ProviderError, requireSecret, type Bar, type MarketDataProvider, type Timeframe } from '../types.ts';
+import {
+	errorFromResponse,
+	ProviderError,
+	requireSecret,
+	tooManyBars,
+	type Bar,
+	type MarketDataProvider,
+	type Timeframe
+} from '../types.ts';
 
 /** Alpaca Market Data API v2 (stocks) and v1beta1 (options). Docs: https://docs.alpaca.markets/reference/stockbars */
 const FRAMES: Readonly<Record<Timeframe, string>> = {
@@ -39,8 +47,20 @@ export const alpaca: MarketDataProvider = {
 	supportsOptions: true,
 	timeframes: ['1m', '5m', '15m', '30m', '1h', '4h', '1D', '1W'],
 	fields: [
-		{ name: 'apiKey', label: 'API key ID', kind: 'secret', required: true, placeholder: 'APCA-API-KEY-ID' },
-		{ name: 'apiSecret', label: 'API secret key', kind: 'secret', required: true, placeholder: 'APCA-API-SECRET-KEY' },
+		{
+			name: 'apiKey',
+			label: 'API key ID',
+			kind: 'secret',
+			required: true,
+			placeholder: 'APCA-API-KEY-ID'
+		},
+		{
+			name: 'apiSecret',
+			label: 'API secret key',
+			kind: 'secret',
+			required: true,
+			placeholder: 'APCA-API-SECRET-KEY'
+		},
 		{
 			name: 'feed',
 			label: 'Stock feed',
@@ -59,7 +79,10 @@ export const alpaca: MarketDataProvider = {
 		const key = requireSecret(ctx, 'apiKey', 'Alpaca');
 		const secret = requireSecret(ctx, 'apiSecret', 'Alpaca');
 		const isOption = req.instrument.type === 'option';
-		const symbol = req.instrument.type === 'equity' ? req.instrument.symbol : formatOccCompact(req.instrument.contract);
+		const symbol =
+			req.instrument.type === 'equity'
+				? req.instrument.symbol
+				: formatOccCompact(req.instrument.contract);
 		const path = isOption ? '/v1beta1/options/bars' : '/v2/stocks/bars';
 		const bars: Bar[] = [];
 		let pageToken: string | null = null;
@@ -78,7 +101,11 @@ export const alpaca: MarketDataProvider = {
 			}
 			if (pageToken) params.set('page_token', pageToken);
 			const res = await ctx.fetch(`https://data.alpaca.markets${path}?${params}`, {
-				headers: { 'APCA-API-KEY-ID': key, 'APCA-API-SECRET-KEY': secret, Accept: 'application/json' },
+				headers: {
+					'APCA-API-KEY-ID': key,
+					'APCA-API-SECRET-KEY': secret,
+					Accept: 'application/json'
+				},
 				signal: ctx.signal ?? null
 			});
 			if (!res.ok) throw await errorFromResponse('Alpaca', res);
@@ -89,11 +116,19 @@ export const alpaca: MarketDataProvider = {
 				throw new ProviderError('parse', 'Alpaca returned an unreadable response');
 			}
 			for (const b of body.bars?.[symbol] ?? []) {
-				bars.push({ time: Math.floor(Date.parse(b.t) / 1000), open: b.o, high: b.h, low: b.l, close: b.c, volume: b.v });
+				bars.push({
+					time: Math.floor(Date.parse(b.t) / 1000),
+					open: b.o,
+					high: b.h,
+					low: b.l,
+					close: b.c,
+					volume: b.v
+				});
 			}
 			pageToken = body.next_page_token ?? null;
-			if (!pageToken) break;
+			if (!pageToken) return bars;
 		}
-		return bars;
+		// Returning a partial window would be cached as complete; fail instead.
+		throw tooManyBars('Alpaca');
 	}
 };

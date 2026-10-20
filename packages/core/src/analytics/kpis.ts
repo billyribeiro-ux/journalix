@@ -70,11 +70,15 @@ export function computeStats(input: readonly TradeView[]): PerformanceStats {
 	const winRate = winRateOf(views);
 	const averageWin = winPnls.length ? mean(winPnls) : null;
 	const averageLoss = lossPnls.length ? mean(lossPnls) : null;
-	const payoffRatio = averageWin !== null && averageLoss !== null ? safeDivide(averageWin, Math.abs(averageLoss)) : null;
+	const payoffRatio =
+		averageWin !== null && averageLoss !== null
+			? safeDivide(averageWin, Math.abs(averageLoss))
+			: null;
 
 	const rs = views.map((v) => v.metrics.rMultiple).filter((r): r is number => r !== null);
 	const rStd = stdDev(rs);
-	const sqn = rs.length >= 2 && rStd > 0 ? (Math.sqrt(Math.min(rs.length, 100)) * mean(rs)) / rStd : null;
+	const sqn =
+		rs.length >= 2 && rStd > 0 ? (Math.sqrt(Math.min(rs.length, 100)) * mean(rs)) / rStd : null;
 
 	let maxWins = 0;
 	let maxLosses = 0;
@@ -124,7 +128,10 @@ export function computeStats(input: readonly TradeView[]): PerformanceStats {
 		totalR: sum(rs),
 		rTrades: rs.length,
 		sqn,
-		kelly: winRate !== null && payoffRatio !== null && payoffRatio > 0 ? winRate - (1 - winRate) / payoffRatio : null,
+		kelly:
+			winRate !== null && payoffRatio !== null && payoffRatio > 0
+				? winRate - (1 - winRate) / payoffRatio
+				: null,
 		maxConsecutiveWins: maxWins,
 		maxConsecutiveLosses: maxLosses,
 		averageHoldMs: hold(views),

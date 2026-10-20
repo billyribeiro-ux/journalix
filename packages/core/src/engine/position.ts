@@ -7,7 +7,12 @@
  * figures are both available.
  */
 import type { Execution, Leg, PriceLevel, StrategyKind, Trade } from '../domain/schemas.ts';
-import { detectStrategy, STRATEGIES, type StrategyBias, type StructureLeg } from '../options/strategy.ts';
+import {
+	detectStrategy,
+	STRATEGIES,
+	type StrategyBias,
+	type StructureLeg
+} from '../options/strategy.ts';
 import { payoffProfile, type PayoffLeg } from '../options/payoff.ts';
 import { calendarDaysBetween } from '../util/time.ts';
 import { clean, sum } from '../util/math.ts';
@@ -20,7 +25,7 @@ export interface LegState {
 	readonly leg: Leg;
 	/** Signed open size after all executions (+ long, − short). */
 	readonly netQuantity: number;
-	/** Average price of the currently open size, or of the opening fills once flat. */
+	/** Average price of the currently open size, or once flat of the fills that opened in the first direction. */
 	readonly averageOpenPrice: number;
 	/** Average price of the fills that reduced the position. */
 	readonly averageClosePrice: number | null;
@@ -91,6 +96,30 @@ export interface EngineOptions {
 const byTime = (a: Execution, b: Execution): number =>
 	Date.parse(a.executedAt) - Date.parse(b.executedAt) || a.id.localeCompare(b.id);
 
+/**
+ * The position that 1R is measured on: the opening fills up to the moment the initial stop was
+ * set (or just the first fill when the stop was planned before entry), in the first direction and
+ * before any reduction. Later adds and flip-opened size do not change the initial risk.
+ */
+export function initialPosition(
+	state: LegState,
+	stopSetAt: string | null
+): { readonly price: number; readonly quantity: number } | null {
+	const first = state.executions[0];
+	if (!first) return null;
+	const direction = first.side === 'buy' ? 1 : -1;
+	const cutoff = Math.max(Date.parse(first.executedAt), stopSetAt ? Date.parse(stopSetAt) : 0);
+	let quantity = 0;
+	let notional = 0;
+	for (const fill of state.executions) {
+		if (Date.parse(fill.executedAt) > cutoff) break;
+		if ((fill.side === 'buy' ? 1 : -1) !== direction) break;
+		quantity += fill.quantity;
+		notional += fill.quantity * fill.price;
+	}
+	return quantity > 0 ? { price: notional / quantity, quantity } : null;
+}
+
 /** Replays one leg's executions with the average-cost method. */
 export function computeLegState(leg: Leg, executions: readonly Execution[]): LegState {
 	const fills = executions.filter((e) => e.legId === leg.id).sort(byTime);
@@ -104,6 +133,9 @@ export function computeLegState(leg: Leg, executions: readonly Execution[]): Leg
 	let closingNotional = 0;
 	let openingCash = 0;
 	let openingDirection = 0;
+	// Opening fills in the first direction only, so a flip does not blend long and short prices.
+	let firstDirectionNotional = 0;
+	let firstDirectionOpened = 0;
 
 	for (const fill of fills) {
 		const signed = fill.side === 'buy' ? fill.quantity : -fill.quantity;
@@ -116,6 +148,10 @@ export function computeLegState(leg: Leg, executions: readonly Execution[]): Leg
 			opened += Math.abs(signed);
 			openingNotional += fill.price * Math.abs(signed);
 			openingCash += -signed * fill.price * leg.multiplier;
+			if (Math.sign(signed) === openingDirection) {
+				firstDirectionNotional += fill.price * Math.abs(signed);
+				firstDirectionOpened += Math.abs(signed);
+			}
 		} else {
 			const closing = Math.min(Math.abs(signed), Math.abs(position));
 			realized += closing * (fill.price - average) * Math.sign(position) * leg.multiplier;
@@ -141,7 +177,14 @@ export function computeLegState(leg: Leg, executions: readonly Execution[]): Leg
 	return {
 		leg,
 		netQuantity: clean(position),
-		averageOpenPrice: position !== 0 ? average : opened > 0 ? openingNotional / opened : 0,
+		averageOpenPrice:
+			position !== 0
+				? average
+				: firstDirectionOpened > 0
+					? firstDirectionNotional / firstDirectionOpened
+					: opened > 0
+						? openingNotional / opened
+						: 0,
 		averageClosePrice: closed > 0 ? closingNotional / closed : null,
 		peakQuantity: openingDirection * peak,
 		openedQuantity: opened,
@@ -247,24 +290,42 @@ export function computeTradeMetrics(trade: Trade, options: EngineOptions): Trade
 	if (trade.plannedRisk !== null) {
 		initialRisk = trade.plannedRisk;
 		riskSource = 'planned';
-	} else if (initialStop !== null && singleLeg && primary && !isOptionLeg(primary.leg) && averageEntry !== null) {
-		const perUnit = Math.abs(averageEntry - initialStop);
-		const risk = perUnit * Math.abs(primary.peakQuantity) * primary.leg.multiplier;
-		if (risk > 0) {
-			initialRisk = risk;
-			riskSource = 'stop';
+	} else if (
+		initialStop !== null &&
+		singleLeg &&
+		primary &&
+		!isOptionLeg(primary.leg) &&
+		averageEntry !== null
+	) {
+		const initial = initialPosition(primary, stops[0]?.setAt ?? null);
+		if (initial) {
+			const risk =
+				Math.abs(initial.price - initialStop) * initial.quantity * primary.leg.multiplier;
+			if (risk > 0) {
+				initialRisk = risk;
+				riskSource = 'stop';
+			}
 		}
 	} else if (maxLoss !== null && maxLoss < 0) {
 		initialRisk = -maxLoss;
 		riskSource = 'structure';
 	}
 
-	const rMultiple = initialRisk !== null && initialRisk > 0 && status === 'closed' ? netPnl / initialRisk : null;
+	const rMultiple =
+		initialRisk !== null && initialRisk > 0 && status === 'closed' ? netPnl / initialRisk : null;
 
 	let plannedRewardRisk: number | null = null;
-	if (initialStop !== null && initialTarget !== null && averageEntry !== null && singleLeg && primary && !isOptionLeg(primary.leg)) {
-		const risk = Math.abs(averageEntry - initialStop);
-		if (risk > 0) plannedRewardRisk = Math.abs(initialTarget - averageEntry) / risk;
+	if (
+		initialStop !== null &&
+		initialTarget !== null &&
+		averageEntry !== null &&
+		singleLeg &&
+		primary &&
+		!isOptionLeg(primary.leg)
+	) {
+		const entry = initialPosition(primary, stops[0]?.setAt ?? null)?.price ?? averageEntry;
+		const risk = Math.abs(entry - initialStop);
+		if (risk > 0) plannedRewardRisk = Math.abs(initialTarget - entry) / risk;
 	}
 
 	const expirations = trade.legs
@@ -274,7 +335,9 @@ export function computeTradeMetrics(trade: Trade, options: EngineOptions): Trade
 		.sort();
 	const nearestExpiration = expirations[0] ?? null;
 	const dteAtEntry =
-		first && nearestExpiration ? calendarDaysBetween(first.executedAt, nearestExpiration, 'America/New_York') : null;
+		first && nearestExpiration
+			? calendarDaysBetween(first.executedAt, nearestExpiration, 'America/New_York')
+			: null;
 
 	const openedAt = first?.executedAt ?? null;
 	const closedAt = status === 'closed' ? (last?.executedAt ?? null) : null;
@@ -291,7 +354,9 @@ export function computeTradeMetrics(trade: Trade, options: EngineOptions): Trade
 
 	const underlyingAtEntry = fills.find((f) => f.underlyingPrice !== null)?.underlyingPrice ?? null;
 	const underlyingAtExit =
-		status === 'closed' ? ([...fills].reverse().find((f) => f.underlyingPrice !== null)?.underlyingPrice ?? null) : null;
+		status === 'closed'
+			? ([...fills].reverse().find((f) => f.underlyingPrice !== null)?.underlyingPrice ?? null)
+			: null;
 
 	return {
 		status,
@@ -343,4 +408,27 @@ export interface TradeView {
 
 export function buildTradeViews(trades: readonly Trade[], options: EngineOptions): TradeView[] {
 	return trades.map((trade) => ({ trade, metrics: computeTradeMetrics(trade, options) }));
+}
+
+export type ExecutionRole = 'open' | 'add' | 'reduce' | 'close' | 'flip';
+
+/** How each execution changed its leg: opened, added to, reduced, closed or flipped it. */
+export function classifyExecutions(
+	leg: Leg,
+	executions: readonly Execution[]
+): Map<string, ExecutionRole> {
+	const roles = new Map<string, ExecutionRole>();
+	let position = 0;
+	for (const fill of executions.filter((e) => e.legId === leg.id).sort(byTime)) {
+		const signed = fill.side === 'buy' ? fill.quantity : -fill.quantity;
+		let role: ExecutionRole;
+		if (position === 0) role = 'open';
+		else if (Math.sign(signed) === Math.sign(position)) role = 'add';
+		else if (Math.abs(signed) < Math.abs(position) - 1e-12) role = 'reduce';
+		else if (Math.abs(Math.abs(signed) - Math.abs(position)) <= 1e-12) role = 'close';
+		else role = 'flip';
+		roles.set(fill.id, role);
+		position = clean(position + signed);
+	}
+	return roles;
 }

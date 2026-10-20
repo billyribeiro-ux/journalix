@@ -1,4 +1,11 @@
-import { errorFromResponse, ProviderError, requireSecret, type Bar, type MarketDataProvider, type Timeframe } from '../types.ts';
+import {
+	errorFromResponse,
+	ProviderError,
+	requireSecret,
+	type Bar,
+	type MarketDataProvider,
+	type Timeframe
+} from '../types.ts';
 
 /** Tiingo IEX intraday and end-of-day prices. Docs: https://www.tiingo.com/documentation/iex */
 const INTRADAY: Partial<Readonly<Record<Timeframe, string>>> = {
@@ -29,10 +36,19 @@ export const tiingo: MarketDataProvider = {
 	docs: 'https://www.tiingo.com/documentation/iex',
 	supportsOptions: false,
 	timeframes: ['1m', '5m', '15m', '30m', '1h', '4h', '1D', '1W'],
-	fields: [{ name: 'apiKey', label: 'API token', kind: 'secret', required: true, placeholder: 'Your Tiingo token' }],
+	fields: [
+		{
+			name: 'apiKey',
+			label: 'API token',
+			kind: 'secret',
+			required: true,
+			placeholder: 'Your Tiingo token'
+		}
+	],
 	notice: 'Intraday bars come from IEX only, so volume is IEX volume.',
 	async fetchBars(req, ctx) {
-		if (req.instrument.type !== 'equity') throw new ProviderError('unsupported', 'Tiingo does not provide options bars');
+		if (req.instrument.type !== 'equity')
+			throw new ProviderError('unsupported', 'Tiingo does not provide options bars');
 		const token = requireSecret(ctx, 'apiKey', 'Tiingo');
 		const symbol = encodeURIComponent(req.instrument.symbol.toLowerCase());
 		const intraday = INTRADAY[req.timeframe];
@@ -58,16 +74,15 @@ export const tiingo: MarketDataProvider = {
 		} catch {
 			throw new ProviderError('parse', 'Tiingo returned an unreadable response');
 		}
-		if (!Array.isArray(rows)) throw new ProviderError('upstream', 'Tiingo returned an unexpected payload');
-		return rows.map(
-			(r): Bar => ({
-				time: Math.floor(Date.parse(r.date) / 1000),
-				open: r.open,
-				high: r.high,
-				low: r.low,
-				close: r.close,
-				volume: r.volume ?? 0
-			})
-		);
+		if (!Array.isArray(rows))
+			throw new ProviderError('upstream', 'Tiingo returned an unexpected payload');
+		return rows.map((r): Bar => ({
+			time: Math.floor(Date.parse(r.date) / 1000),
+			open: r.open,
+			high: r.high,
+			low: r.low,
+			close: r.close,
+			volume: r.volume ?? 0
+		}));
 	}
 };

@@ -111,28 +111,54 @@ export class ProviderError extends Error {
 }
 
 /** Maps an HTTP failure to a typed provider error with a short, safe message. */
+/** Raised when a provider still has pages left after the adapter's page cap. */
+export function tooManyBars(provider: string): ProviderError {
+	return new ProviderError(
+		'invalid_request',
+		`${provider} has more bars for this window than one request loads. Choose a larger timeframe.`
+	);
+}
+
 export async function errorFromResponse(provider: string, res: Response): Promise<ProviderError> {
-	let detail = '';
-	try {
-		detail = (await res.text()).slice(0, 300).replace(/\s+/g, ' ').trim();
-	} catch {
-		detail = '';
-	}
+	const detail = await res
+		.text()
+		.then((text) => text.slice(0, 300).replace(/\s+/g, ' ').trim())
+		.catch(() => '');
 	const suffix = detail ? ` — ${detail}` : '';
 	switch (res.status) {
 		case 401:
 			return new ProviderError('unauthorized', `${provider} rejected the API key${suffix}`, 401);
 		case 403:
-			return new ProviderError('forbidden', `${provider} plan does not include this data${suffix}`, 403);
+			return new ProviderError(
+				'forbidden',
+				`${provider} plan does not include this data${suffix}`,
+				403
+			);
 		case 404:
-			return new ProviderError('not_found', `${provider} has no data for this symbol${suffix}`, 404);
+			return new ProviderError(
+				'not_found',
+				`${provider} has no data for this symbol${suffix}`,
+				404
+			);
 		case 422:
 		case 400:
-			return new ProviderError('invalid_request', `${provider} rejected the request${suffix}`, res.status);
+			return new ProviderError(
+				'invalid_request',
+				`${provider} rejected the request${suffix}`,
+				res.status
+			);
 		case 429:
-			return new ProviderError('rate_limited', `${provider} rate limit reached; try again shortly`, 429);
+			return new ProviderError(
+				'rate_limited',
+				`${provider} rate limit reached; try again shortly`,
+				429
+			);
 		default:
-			return new ProviderError('upstream', `${provider} returned HTTP ${res.status}${suffix}`, res.status);
+			return new ProviderError(
+				'upstream',
+				`${provider} returned HTTP ${res.status}${suffix}`,
+				res.status
+			);
 	}
 }
 

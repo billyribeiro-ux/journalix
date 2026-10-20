@@ -81,10 +81,15 @@ const NY = 'America/New_York';
 
 /** An instant on a given New York trading day at hh:mm. */
 function nyInstant(day: string, hour: number, minute: number): number {
-	const guess = Date.parse(`${day}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00Z`);
-	const shown = new Intl.DateTimeFormat('en-US', { timeZone: NY, hourCycle: 'h23', hour: '2-digit', minute: '2-digit' }).format(
-		new Date(guess)
+	const guess = Date.parse(
+		`${day}T${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00Z`
 	);
+	const shown = new Intl.DateTimeFormat('en-US', {
+		timeZone: NY,
+		hourCycle: 'h23',
+		hour: '2-digit',
+		minute: '2-digit'
+	}).format(new Date(guess));
 	const [h, m] = shown.split(':').map(Number);
 	return guess + ((hour - (h ?? 0)) * 60 + (minute - (m ?? 0))) * 60_000;
 }
@@ -122,7 +127,14 @@ interface LegSpec {
 function premium(spec: LegSpec, spot: number, at: number, iv: number): number {
 	if (spec.kind === 'stock') return round(spot, 2);
 	const years = yearsBetween(at, expiryInstant(spec.expiration ?? ''));
-	const p = blackScholes({ right: spec.kind, spot, strike: spec.strike ?? spot, years, rate: RATE, volatility: iv }).price;
+	const p = blackScholes({
+		right: spec.kind,
+		spot,
+		strike: spec.strike ?? spot,
+		years,
+		rate: RATE,
+		volatility: iv
+	}).price;
 	return Math.max(0.01, round(p, 2));
 }
 
@@ -131,6 +143,11 @@ export interface SampleJournalOptions {
 	readonly endDay?: string;
 	readonly seed?: number;
 	readonly tradingDays?: number;
+	/**
+	 * Fills, levels and notes after this instant are dropped, so a sample generated during the
+	 * session never contains future executions. Defaults to the current time.
+	 */
+	readonly now?: number;
 }
 
 export function createSampleJournal(options: SampleJournalOptions = {}): JournalExport {
@@ -159,7 +176,12 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 		createdAt
 	};
 
-	const tag = (name: string, category: Tag['category'], color: string): Tag => ({ id: newId(), name, category, color });
+	const tag = (name: string, category: Tag['category'], color: string): Tag => ({
+		id: newId(),
+		name,
+		category,
+		color
+	});
 	const tags: Tag[] = [
 		tag('A+ setup', 'setup', '#3fb68b'),
 		tag('Opening range', 'setup', '#4c8dff'),
@@ -176,7 +198,12 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 	];
 	const tagByName = new Map(tags.map((t) => [t.name, t.id]));
 
-	const playbook = (name: string, color: string, description: string, rules: string[]): Playbook => ({
+	const playbook = (
+		name: string,
+		color: string,
+		description: string,
+		rules: string[]
+	): Playbook => ({
 		id: newId(),
 		name,
 		description,
@@ -186,30 +213,50 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 		createdAt
 	});
 	const playbooks: Playbook[] = [
-		playbook('Opening range breakout', '#4c8dff', 'Trade the break of the first 15-minute range with the trend.', [
-			'Wait for the 15-minute range to complete',
-			'Enter on a close outside the range with volume',
-			'Stop on the opposite side of the range midpoint',
-			'Take half at 1R, trail the rest'
-		]),
-		playbook('Premium harvest', '#3fb68b', 'Sell defined-risk premium 30–45 DTE when IV rank is elevated.', [
-			'IV rank above 30',
-			'Short strikes outside the expected move',
-			'Close at 50% of max profit',
-			'Manage or roll at 21 DTE'
-		]),
-		playbook('0DTE momentum', '#c94f6d', 'Same-day options on SPY/QQQ in the direction of the trend.', [
-			'Only after 10:00 ET',
-			'Trade with VWAP and the 9 EMA aligned',
-			'Risk no more than 0.5% of the account',
-			'Hard exit by 15:30 ET'
-		]),
-		playbook('Swing pullback', '#c08a2b', 'Buy pullbacks to the 20-day moving average in leading stocks.', [
-			'Stock above the 50-day moving average',
-			'Pullback on lighter volume',
-			'Stop below the swing low',
-			'Target the prior high'
-		])
+		playbook(
+			'Opening range breakout',
+			'#4c8dff',
+			'Trade the break of the first 15-minute range with the trend.',
+			[
+				'Wait for the 15-minute range to complete',
+				'Enter on a close outside the range with volume',
+				'Stop on the opposite side of the range midpoint',
+				'Take half at 1R, trail the rest'
+			]
+		),
+		playbook(
+			'Premium harvest',
+			'#3fb68b',
+			'Sell defined-risk premium 30–45 DTE when IV rank is elevated.',
+			[
+				'IV rank above 30',
+				'Short strikes outside the expected move',
+				'Close at 50% of max profit',
+				'Manage or roll at 21 DTE'
+			]
+		),
+		playbook(
+			'0DTE momentum',
+			'#c94f6d',
+			'Same-day options on SPY/QQQ in the direction of the trend.',
+			[
+				'Only after 10:00 ET',
+				'Trade with VWAP and the 9 EMA aligned',
+				'Risk no more than 0.5% of the account',
+				'Hard exit by 15:30 ET'
+			]
+		),
+		playbook(
+			'Swing pullback',
+			'#c08a2b',
+			'Buy pullbacks to the 20-day moving average in leading stocks.',
+			[
+				'Stock above the 50-day moving average',
+				'Pullback on lighter volume',
+				'Stop below the swing low',
+				'Target the prior high'
+			]
+		)
 	];
 	const [orb, harvest, zeroDte, swing] = playbooks as [Playbook, Playbook, Playbook, Playbook];
 
@@ -280,7 +327,14 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 					expiration = day;
 					holdMinutes = r.int(6, 110);
 					const kind = bullish ? 'call' : 'put';
-					legs = [{ kind, strike: strikeNear(S0, meta.step, bullish ? 1 : -1), expiration, qty: contracts * 2 }];
+					legs = [
+						{
+							kind,
+							strike: strikeNear(S0, meta.step, bullish ? 1 : -1),
+							expiration,
+							qty: contracts * 2
+						}
+					];
 					playbookId = zeroDte.id;
 					break;
 				}
@@ -288,7 +342,14 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 					expiration = fridayAfter(day, r.int(5, 30));
 					holdMinutes = r.int(60, 60 * 24 * 6);
 					const kind = bullish ? 'call' : 'put';
-					legs = [{ kind, strike: strikeNear(S0, meta.step, bullish ? r.int(0, 2) : -r.int(0, 2)), expiration, qty: contracts }];
+					legs = [
+						{
+							kind,
+							strike: strikeNear(S0, meta.step, bullish ? r.int(0, 2) : -r.int(0, 2)),
+							expiration,
+							qty: contracts
+						}
+					];
 					playbookId = r.chance(0.5) ? swing.id : orb.id;
 					break;
 				}
@@ -350,7 +411,14 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 				case 'short_put': {
 					expiration = fridayAfter(day, r.int(25, 45));
 					holdMinutes = r.int(60 * 24 * 4, 60 * 24 * 25);
-					legs = [{ kind: 'put', strike: strikeNear(S0 * 0.94, meta.step), expiration, qty: -Math.min(2, contracts) }];
+					legs = [
+						{
+							kind: 'put',
+							strike: strikeNear(S0 * 0.94, meta.step),
+							expiration,
+							qty: -Math.min(2, contracts)
+						}
+					];
 					playbookId = harvest.id;
 					break;
 				}
@@ -365,7 +433,14 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 				}
 				default: {
 					holdMinutes = r.chance(0.5) ? r.int(8, 240) : r.int(60 * 24, 60 * 24 * 10);
-					legs = [{ kind: 'stock', strike: null, expiration: null, qty: (bullish ? 1 : -1) * r.pick([50, 100, 150, 200, 300]) }];
+					legs = [
+						{
+							kind: 'stock',
+							strike: null,
+							expiration: null,
+							qty: (bullish ? 1 : -1) * r.pick([50, 100, 150, 200, 300])
+						}
+					];
 					playbookId = holdMinutes < 300 ? orb.id : swing.id;
 				}
 			}
@@ -376,8 +451,13 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 			closeAt = Math.max(closeAt, openAt + 3 * 60_000);
 			// Keep closes inside market hours.
 			const closeDay = new Date(closeAt).toISOString().slice(0, 10);
-			const closeNy = new Intl.DateTimeFormat('en-US', { timeZone: NY, hourCycle: 'h23', hour: '2-digit' }).format(new Date(closeAt));
-			if (Number(closeNy) >= 16 || Number(closeNy) < 9) closeAt = nyInstant(closeDay, 15, r.int(10, 50));
+			const closeNy = new Intl.DateTimeFormat('en-US', {
+				timeZone: NY,
+				hourCycle: 'h23',
+				hour: '2-digit'
+			}).format(new Date(closeAt));
+			if (Number(closeNy) >= 16 || Number(closeNy) < 9)
+				closeAt = nyInstant(closeDay, 15, r.int(10, 50));
 			if (closeAt <= openAt) closeAt = openAt + 10 * 60_000;
 			const wd = new Date(closeAt).getUTCDay();
 			if (wd === 6) closeAt -= 86_400_000;
@@ -386,10 +466,12 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 
 			const years = (closeAt - openAt) / (365 * 86_400_000);
 			const dirSign = bullish ? 1 : -1;
-			const premiumSeller = style === 'credit_spread' || style === 'iron_condor' || style === 'short_put';
+			const premiumSeller =
+				style === 'credit_spread' || style === 'iron_condor' || style === 'short_put';
 			const move = premiumSeller
 				? meta.iv * Math.sqrt(years) * r.normal() * 0.8
-				: dirSign * edge * meta.iv * Math.sqrt(Math.max(years, 1 / 2000)) * 6 + meta.iv * Math.sqrt(years) * r.normal();
+				: dirSign * edge * meta.iv * Math.sqrt(Math.max(years, 1 / 2000)) * 6 +
+					meta.iv * Math.sqrt(years) * r.normal();
 			const S1 = S0 * Math.exp(move);
 			const ivOpen = meta.iv * (premiumSeller ? 1.15 : 1) * (0.9 + r.next() * 0.25);
 			const ivClose = ivOpen * (premiumSeller ? 0.85 + r.next() * 0.2 : 0.92 + r.next() * 0.18);
@@ -405,12 +487,20 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 
 			const execs: Execution[] = [];
 			const fee = (spec: LegSpec, qty: number): number =>
-				spec.kind === 'stock' ? round(Math.max(0, qty * 0.005), 2) : round(qty * 0.65 + 0.04 * qty, 2);
+				spec.kind === 'stock'
+					? round(Math.max(0, qty * 0.005), 2)
+					: round(qty * 0.65 + 0.04 * qty, 2);
 
 			const addAt = openAt + Math.floor((closeAt - openAt) * 0.25);
 			const partialAt = openAt + Math.floor((closeAt - openAt) * 0.7);
-			const scaleIn = (style === 'shares' || style === 'long_option') && Math.abs(legs[0]?.qty ?? 0) >= 2 && r.chance(0.35);
-			const scaleOut = (style === 'shares' || style === 'long_option' || style === 'zero_dte') && Math.abs(legs[0]?.qty ?? 0) >= 2 && r.chance(0.5);
+			const scaleIn =
+				(style === 'shares' || style === 'long_option') &&
+				Math.abs(legs[0]?.qty ?? 0) >= 2 &&
+				r.chance(0.35);
+			const scaleOut =
+				(style === 'shares' || style === 'long_option' || style === 'zero_dte') &&
+				Math.abs(legs[0]?.qty ?? 0) >= 2 &&
+				r.chance(0.5);
 			const sAdd = S0 + (S1 - S0) * 0.2 + S0 * 0.002 * r.normal();
 			const sPartial = S0 + (S1 - S0) * 0.75 + S0 * 0.002 * r.normal();
 
@@ -421,7 +511,14 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 				const openSide = spec.qty > 0 ? 'buy' : 'sell';
 				const closeSide = spec.qty > 0 ? 'sell' : 'buy';
 				const firstQty = scaleIn && i === 0 ? Math.ceil(total / 2) : total;
-				const exec = (side: 'buy' | 'sell', qty: number, at: number, s: number, iv: number, kind: Execution['kind'] = 'fill'): Execution => ({
+				const exec = (
+					side: 'buy' | 'sell',
+					qty: number,
+					at: number,
+					s: number,
+					iv: number,
+					kind: Execution['kind'] = 'fill'
+				): Execution => ({
 					id: newId(at),
 					legId: leg.id,
 					side,
@@ -478,7 +575,9 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 			// Leave the most recent few trades open.
 			const isRecent = dayIndex >= days.length - 2 && n === 0;
 			const finalExecs = isRecent
-				? execs.filter((e) => Date.parse(e.executedAt) <= openAt + 60_000 || Date.parse(e.executedAt) === addAt)
+				? execs.filter(
+						(e) => Date.parse(e.executedAt) <= openAt + 60_000 || Date.parse(e.executedAt) === addAt
+					)
 				: execs;
 			const lastFill = Math.max(...finalExecs.map((e) => Date.parse(e.executedAt)));
 			if (!isRecent && lastFill > Date.parse(`${endDay}T23:59:59Z`)) continue;
@@ -487,7 +586,13 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 			if (style === 'shares' || style === 'long_option' || style === 'zero_dte') {
 				const riskPct = style === 'shares' ? 0.012 + r.next() * 0.01 : 0.004 + r.next() * 0.004;
 				const stop = round(S0 * (1 - dirSign * riskPct), 2);
-				levels.push({ id: newId(openAt), kind: 'stop', price: stop, setAt: new Date(openAt).toISOString(), note: 'Initial stop' });
+				levels.push({
+					id: newId(openAt),
+					kind: 'stop',
+					price: stop,
+					setAt: new Date(openAt).toISOString(),
+					note: 'Initial stop'
+				});
 				levels.push({
 					id: newId(openAt + 1),
 					kind: 'target',
@@ -513,9 +618,11 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 				if (premiumSeller) return Math.abs(S1 / S0 - 1) < 0.05;
 				return (S1 - S0) * dirSign > 0;
 			})();
-			if (style === 'zero_dte' || style === 'shares') tradeTags.push(r.pick(['Opening range', 'VWAP reclaim']));
+			if (style === 'zero_dte' || style === 'shares')
+				tradeTags.push(r.pick(['Opening range', 'VWAP reclaim']));
 			if (won && r.chance(0.5)) tradeTags.push('A+ setup');
-			if (!won && r.chance(0.45)) tradeTags.push(r.pick(['FOMO entry', 'Moved stop', 'Oversized', 'Early exit']));
+			if (!won && r.chance(0.45))
+				tradeTags.push(r.pick(['FOMO entry', 'Moved stop', 'Oversized', 'Early exit']));
 			if (!won && r.chance(0.15)) tradeTags.push('Revenge');
 			if (won && r.chance(0.3)) tradeTags.push('Calm');
 			if (r.chance(0.12)) tradeTags.push('Earnings');
@@ -531,7 +638,9 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 				assetClass,
 				strategy: null,
 				playbookId,
-				tagIds: [...new Set(tradeTags)].map((t) => tagByName.get(t)).filter((id): id is string => id !== undefined),
+				tagIds: [...new Set(tradeTags)]
+					.map((t) => tagByName.get(t))
+					.filter((id): id is string => id !== undefined),
 				legs: legRecords,
 				executions: finalExecs.sort((a, b) => Date.parse(a.executedAt) - Date.parse(b.executedAt)),
 				levels,
@@ -544,8 +653,17 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 					`${sym} rejected at resistance; fading the move back to the mean.`
 				]),
 				review: won
-					? r.pick(['Followed the plan. Managed the exit well.', 'Clean execution; could have held the runner longer.', ''])
-					: r.pick(['Entered before confirmation.', 'Stop was too tight for the volatility.', 'Ignored the market context.', '']),
+					? r.pick([
+							'Followed the plan. Managed the exit well.',
+							'Clean execution; could have held the runner longer.',
+							''
+						])
+					: r.pick([
+							'Entered before confirmation.',
+							'Stop was too tight for the volatility.',
+							'Ignored the market context.',
+							''
+						]),
 				rating: r.int(won ? 3 : 1, won ? 5 : 4),
 				confidence: r.int(2, 5),
 				mfe: null,
@@ -573,16 +691,35 @@ export function createSampleJournal(options: SampleJournalOptions = {}): Journal
 		}
 	});
 
+	const now = options.now ?? Date.now();
+	const past = (iso: string): boolean => Date.parse(iso) <= now;
+	const settled = trades.flatMap((t) => {
+		if (t.executions.every((e) => past(e.executedAt))) return [t];
+		const executions = t.executions.filter((e) => past(e.executedAt));
+		if (!executions.some((e) => e.kind === 'fill')) return [];
+		// Keep only legs that were opened before `now`, with the levels set by then.
+		const legIds = new Set(executions.map((e) => e.legId));
+		return [
+			{
+				...t,
+				legs: t.legs.filter((l) => legIds.has(l.id)),
+				executions,
+				levels: t.levels.filter((l) => past(l.setAt))
+			}
+		];
+	});
+	const pastNotes = notes.filter((n) => past(n.createdAt));
+
 	const settings: UserSettings = { ...DEFAULT_SETTINGS, displayName: 'Sample Trader' };
 	return {
 		format: 'strikebook.journal',
 		version: 1,
-		exportedAt: new Date(nyInstant(endDay, 17, 0)).toISOString(),
+		exportedAt: new Date(Math.min(now, nyInstant(endDay, 17, 0))).toISOString(),
 		settings,
 		accounts: [main, ira],
 		tags,
 		playbooks,
-		notes,
-		trades
+		notes: pastNotes,
+		trades: settled
 	};
 }

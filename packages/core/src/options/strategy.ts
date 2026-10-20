@@ -17,42 +17,244 @@ export interface StrategyInfo {
 	readonly bias: StrategyBias;
 	/** Whether loss is bounded by the structure itself (before stops). */
 	readonly definedRisk: boolean;
-	readonly family: 'shares' | 'single' | 'vertical' | 'volatility' | 'condor' | 'butterfly' | 'time' | 'stock-hedge' | 'futures' | 'other';
+	readonly family:
+		| 'shares'
+		| 'single'
+		| 'vertical'
+		| 'volatility'
+		| 'condor'
+		| 'butterfly'
+		| 'time'
+		| 'stock-hedge'
+		| 'futures'
+		| 'other';
 }
 
 export const STRATEGIES: Readonly<Record<StrategyKind, StrategyInfo>> = {
-	shares_long: { label: 'Long shares', short: 'Long', bias: 'bullish', definedRisk: false, family: 'shares' },
-	shares_short: { label: 'Short shares', short: 'Short', bias: 'bearish', definedRisk: false, family: 'shares' },
-	long_call: { label: 'Long call', short: 'LC', bias: 'bullish', definedRisk: true, family: 'single' },
-	short_call: { label: 'Short call', short: 'SC', bias: 'bearish', definedRisk: false, family: 'single' },
-	long_put: { label: 'Long put', short: 'LP', bias: 'bearish', definedRisk: true, family: 'single' },
-	short_put: { label: 'Short put', short: 'SP', bias: 'bullish', definedRisk: false, family: 'single' },
-	covered_call: { label: 'Covered call', short: 'CC', bias: 'bullish', definedRisk: false, family: 'stock-hedge' },
-	protective_put: { label: 'Protective put', short: 'PP', bias: 'bullish', definedRisk: true, family: 'stock-hedge' },
-	collar: { label: 'Collar', short: 'Collar', bias: 'bullish', definedRisk: true, family: 'stock-hedge' },
-	bull_call_spread: { label: 'Bull call spread', short: 'BCS', bias: 'bullish', definedRisk: true, family: 'vertical' },
-	bear_call_spread: { label: 'Bear call spread', short: 'BeCS', bias: 'bearish', definedRisk: true, family: 'vertical' },
-	bull_put_spread: { label: 'Bull put spread', short: 'BPS', bias: 'bullish', definedRisk: true, family: 'vertical' },
-	bear_put_spread: { label: 'Bear put spread', short: 'BePS', bias: 'bearish', definedRisk: true, family: 'vertical' },
-	long_straddle: { label: 'Long straddle', short: 'L Strad', bias: 'volatility', definedRisk: true, family: 'volatility' },
-	short_straddle: { label: 'Short straddle', short: 'S Strad', bias: 'neutral', definedRisk: false, family: 'volatility' },
-	long_strangle: { label: 'Long strangle', short: 'L Strang', bias: 'volatility', definedRisk: true, family: 'volatility' },
-	short_strangle: { label: 'Short strangle', short: 'S Strang', bias: 'neutral', definedRisk: false, family: 'volatility' },
-	iron_condor: { label: 'Iron condor', short: 'IC', bias: 'neutral', definedRisk: true, family: 'condor' },
-	reverse_iron_condor: { label: 'Reverse iron condor', short: 'RIC', bias: 'volatility', definedRisk: true, family: 'condor' },
-	iron_butterfly: { label: 'Iron butterfly', short: 'IB', bias: 'neutral', definedRisk: true, family: 'butterfly' },
-	reverse_iron_butterfly: { label: 'Reverse iron butterfly', short: 'RIB', bias: 'volatility', definedRisk: true, family: 'butterfly' },
-	long_call_butterfly: { label: 'Long call butterfly', short: 'LCB', bias: 'neutral', definedRisk: true, family: 'butterfly' },
-	short_call_butterfly: { label: 'Short call butterfly', short: 'SCB', bias: 'volatility', definedRisk: true, family: 'butterfly' },
-	long_put_butterfly: { label: 'Long put butterfly', short: 'LPB', bias: 'neutral', definedRisk: true, family: 'butterfly' },
-	short_put_butterfly: { label: 'Short put butterfly', short: 'SPB', bias: 'volatility', definedRisk: true, family: 'butterfly' },
-	call_calendar: { label: 'Call calendar', short: 'C Cal', bias: 'neutral', definedRisk: true, family: 'time' },
-	put_calendar: { label: 'Put calendar', short: 'P Cal', bias: 'neutral', definedRisk: true, family: 'time' },
-	call_diagonal: { label: 'Call diagonal', short: 'C Diag', bias: 'bullish', definedRisk: true, family: 'time' },
-	put_diagonal: { label: 'Put diagonal', short: 'P Diag', bias: 'bearish', definedRisk: true, family: 'time' },
-	ratio_spread: { label: 'Ratio spread', short: 'Ratio', bias: 'mixed', definedRisk: false, family: 'other' },
-	futures_long: { label: 'Long futures', short: 'Long', bias: 'bullish', definedRisk: false, family: 'futures' },
-	futures_short: { label: 'Short futures', short: 'Short', bias: 'bearish', definedRisk: false, family: 'futures' },
+	shares_long: {
+		label: 'Long shares',
+		short: 'Long',
+		bias: 'bullish',
+		definedRisk: false,
+		family: 'shares'
+	},
+	shares_short: {
+		label: 'Short shares',
+		short: 'Short',
+		bias: 'bearish',
+		definedRisk: false,
+		family: 'shares'
+	},
+	long_call: {
+		label: 'Long call',
+		short: 'LC',
+		bias: 'bullish',
+		definedRisk: true,
+		family: 'single'
+	},
+	short_call: {
+		label: 'Short call',
+		short: 'SC',
+		bias: 'bearish',
+		definedRisk: false,
+		family: 'single'
+	},
+	long_put: {
+		label: 'Long put',
+		short: 'LP',
+		bias: 'bearish',
+		definedRisk: true,
+		family: 'single'
+	},
+	short_put: {
+		label: 'Short put',
+		short: 'SP',
+		bias: 'bullish',
+		definedRisk: false,
+		family: 'single'
+	},
+	covered_call: {
+		label: 'Covered call',
+		short: 'CC',
+		bias: 'bullish',
+		definedRisk: false,
+		family: 'stock-hedge'
+	},
+	protective_put: {
+		label: 'Protective put',
+		short: 'PP',
+		bias: 'bullish',
+		definedRisk: true,
+		family: 'stock-hedge'
+	},
+	collar: {
+		label: 'Collar',
+		short: 'Collar',
+		bias: 'bullish',
+		definedRisk: true,
+		family: 'stock-hedge'
+	},
+	bull_call_spread: {
+		label: 'Bull call spread',
+		short: 'BCS',
+		bias: 'bullish',
+		definedRisk: true,
+		family: 'vertical'
+	},
+	bear_call_spread: {
+		label: 'Bear call spread',
+		short: 'BeCS',
+		bias: 'bearish',
+		definedRisk: true,
+		family: 'vertical'
+	},
+	bull_put_spread: {
+		label: 'Bull put spread',
+		short: 'BPS',
+		bias: 'bullish',
+		definedRisk: true,
+		family: 'vertical'
+	},
+	bear_put_spread: {
+		label: 'Bear put spread',
+		short: 'BePS',
+		bias: 'bearish',
+		definedRisk: true,
+		family: 'vertical'
+	},
+	long_straddle: {
+		label: 'Long straddle',
+		short: 'L Strad',
+		bias: 'volatility',
+		definedRisk: true,
+		family: 'volatility'
+	},
+	short_straddle: {
+		label: 'Short straddle',
+		short: 'S Strad',
+		bias: 'neutral',
+		definedRisk: false,
+		family: 'volatility'
+	},
+	long_strangle: {
+		label: 'Long strangle',
+		short: 'L Strang',
+		bias: 'volatility',
+		definedRisk: true,
+		family: 'volatility'
+	},
+	short_strangle: {
+		label: 'Short strangle',
+		short: 'S Strang',
+		bias: 'neutral',
+		definedRisk: false,
+		family: 'volatility'
+	},
+	iron_condor: {
+		label: 'Iron condor',
+		short: 'IC',
+		bias: 'neutral',
+		definedRisk: true,
+		family: 'condor'
+	},
+	reverse_iron_condor: {
+		label: 'Reverse iron condor',
+		short: 'RIC',
+		bias: 'volatility',
+		definedRisk: true,
+		family: 'condor'
+	},
+	iron_butterfly: {
+		label: 'Iron butterfly',
+		short: 'IB',
+		bias: 'neutral',
+		definedRisk: true,
+		family: 'butterfly'
+	},
+	reverse_iron_butterfly: {
+		label: 'Reverse iron butterfly',
+		short: 'RIB',
+		bias: 'volatility',
+		definedRisk: true,
+		family: 'butterfly'
+	},
+	long_call_butterfly: {
+		label: 'Long call butterfly',
+		short: 'LCB',
+		bias: 'neutral',
+		definedRisk: true,
+		family: 'butterfly'
+	},
+	short_call_butterfly: {
+		label: 'Short call butterfly',
+		short: 'SCB',
+		bias: 'volatility',
+		definedRisk: true,
+		family: 'butterfly'
+	},
+	long_put_butterfly: {
+		label: 'Long put butterfly',
+		short: 'LPB',
+		bias: 'neutral',
+		definedRisk: true,
+		family: 'butterfly'
+	},
+	short_put_butterfly: {
+		label: 'Short put butterfly',
+		short: 'SPB',
+		bias: 'volatility',
+		definedRisk: true,
+		family: 'butterfly'
+	},
+	call_calendar: {
+		label: 'Call calendar',
+		short: 'C Cal',
+		bias: 'neutral',
+		definedRisk: true,
+		family: 'time'
+	},
+	put_calendar: {
+		label: 'Put calendar',
+		short: 'P Cal',
+		bias: 'neutral',
+		definedRisk: true,
+		family: 'time'
+	},
+	call_diagonal: {
+		label: 'Call diagonal',
+		short: 'C Diag',
+		bias: 'bullish',
+		definedRisk: true,
+		family: 'time'
+	},
+	put_diagonal: {
+		label: 'Put diagonal',
+		short: 'P Diag',
+		bias: 'bearish',
+		definedRisk: true,
+		family: 'time'
+	},
+	ratio_spread: {
+		label: 'Ratio spread',
+		short: 'Ratio',
+		bias: 'mixed',
+		definedRisk: false,
+		family: 'other'
+	},
+	futures_long: {
+		label: 'Long futures',
+		short: 'Long',
+		bias: 'bullish',
+		definedRisk: false,
+		family: 'futures'
+	},
+	futures_short: {
+		label: 'Short futures',
+		short: 'Short',
+		bias: 'bearish',
+		definedRisk: false,
+		family: 'futures'
+	},
 	custom: { label: 'Custom', short: 'Custom', bias: 'mixed', definedRisk: false, family: 'other' }
 };
 
@@ -99,7 +301,8 @@ export function detectStrategy(input: readonly StructureLeg[]): StrategyKind {
 		const shares = stock.quantity * stock.multiplier;
 		const calls = options.filter((o) => o.kind === 'call');
 		const puts = options.filter((o) => o.kind === 'put');
-		const covers = (o: StructureLeg): boolean => Math.abs(o.quantity * o.multiplier) <= shares + 1e-9;
+		const covers = (o: StructureLeg): boolean =>
+			Math.abs(o.quantity * o.multiplier) <= shares + 1e-9;
 		if (options.length === 1) {
 			const o = options[0];
 			if (!o || !covers(o)) return 'custom';
@@ -116,7 +319,8 @@ export function detectStrategy(input: readonly StructureLeg[]): StrategyKind {
 	}
 
 	const sorted = [...options].sort(
-		(a, b) => (a.expiration ?? '').localeCompare(b.expiration ?? '') || (a.strike ?? 0) - (b.strike ?? 0)
+		(a, b) =>
+			(a.expiration ?? '').localeCompare(b.expiration ?? '') || (a.strike ?? 0) - (b.strike ?? 0)
 	);
 	const expirations = new Set(sorted.map((o) => o.expiration));
 	const calls = sorted.filter((o) => o.kind === 'call');

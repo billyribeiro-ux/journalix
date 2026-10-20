@@ -18,12 +18,15 @@ export function windowFor(
 	timeframe: Timeframe,
 	now: number = Date.now()
 ): { from: number; to: number } {
-	const end = closedAt ?? now;
+	const end = Math.max(closedAt ?? now, openedAt);
 	const span = Math.max(0, end - openedAt);
 	const barMs = TIMEFRAME_SECONDS[timeframe] * 1000;
 	const minPadBars = timeframe === '1D' ? 40 : timeframe === '1W' ? 30 : 60;
 	const pad = Math.max(span * 0.35, barMs * minPadBars);
-	return { from: Math.floor(openedAt - pad), to: Math.min(now, Math.ceil(end + pad)) };
+	// Clamp to `now`, but always keep at least one bar after the last fill so the window is valid
+	// even when fills are timestamped ahead of this clock (a wrong time zone, or clock skew).
+	const to = Math.max(Math.min(now, Math.ceil(end + pad)), Math.ceil(end) + barMs);
+	return { from: Math.floor(openedAt - pad), to };
 }
 
 /** Floors an instant to its bar's open time for the given timeframe (UTC seconds). */
@@ -40,7 +43,14 @@ export function bucketStart(timeSeconds: number, timeframe: Timeframe): number {
 /** Aggregates finer bars into a coarser timeframe. Input must be sorted by time. */
 export function resample(bars: readonly Bar[], timeframe: Timeframe): Bar[] {
 	const out: Bar[] = [];
-	let current: { time: number; open: number; high: number; low: number; close: number; volume: number } | null = null;
+	let current: {
+		time: number;
+		open: number;
+		high: number;
+		low: number;
+		close: number;
+		volume: number;
+	} | null = null;
 	for (const b of bars) {
 		const t = bucketStart(b.time, timeframe);
 		if (current && current.time === t) {
@@ -50,7 +60,14 @@ export function resample(bars: readonly Bar[], timeframe: Timeframe): Bar[] {
 			current.volume += b.volume;
 		} else {
 			if (current) out.push(current);
-			current = { time: t, open: b.open, high: b.high, low: b.low, close: b.close, volume: b.volume };
+			current = {
+				time: t,
+				open: b.open,
+				high: b.high,
+				low: b.low,
+				close: b.close,
+				volume: b.volume
+			};
 		}
 	}
 	if (current) out.push(current);

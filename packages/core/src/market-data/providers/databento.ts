@@ -1,6 +1,13 @@
 import { formatOcc } from '../../options/occ.ts';
 import { resample } from '../timeframes.ts';
-import { errorFromResponse, ProviderError, requireSecret, type Bar, type MarketDataProvider, type Timeframe } from '../types.ts';
+import {
+	errorFromResponse,
+	ProviderError,
+	requireSecret,
+	type Bar,
+	type MarketDataProvider,
+	type Timeframe
+} from '../types.ts';
 
 /**
  * Databento Historical HTTP API, `timeseries.get_range` with JSON encoding.
@@ -33,9 +40,12 @@ interface DbnOhlcv {
 
 const FIXED = 1e-9;
 
-/** DBN JSON prints prices either as fixed-point integers or (pretty) decimals. */
+/**
+ * JSON encoding without pretty prices (the default) carries fixed-point integers in units of
+ * 1e-9, as strings (exact) or numbers. A decimal string is only accepted defensively.
+ */
 function price(value: Num): number {
-	if (typeof value === 'number') return Number.isInteger(value) && Math.abs(value) > 1e6 ? value * FIXED : value;
+	if (typeof value === 'number') return value * FIXED;
 	return value.includes('.') ? Number(value) : Number(BigInt(value)) * FIXED;
 }
 
@@ -81,13 +91,17 @@ export const databento: MarketDataProvider = {
 			choices: [{ value: 'OPRA.PILLAR', label: 'OPRA.PILLAR — US options' }]
 		}
 	],
-	notice: 'Databento bills per request. Bars are cached after the first fetch, so each window is paid for once.',
+	notice:
+		'Databento bills per request. Bars are cached after the first fetch, so each window is paid for once.',
 	async fetchBars(req, ctx) {
 		const key = requireSecret(ctx, 'apiKey', 'Databento');
 		const plan = NATIVE[req.timeframe];
 		const isOption = req.instrument.type === 'option';
-		const dataset = isOption ? (ctx.options['optionsDataset'] ?? 'OPRA.PILLAR') : (ctx.options['dataset'] ?? 'EQUS.MINI');
-		const symbol = req.instrument.type === 'equity' ? req.instrument.symbol : formatOcc(req.instrument.contract);
+		const dataset = isOption
+			? (ctx.options['optionsDataset'] ?? 'OPRA.PILLAR')
+			: (ctx.options['dataset'] ?? 'EQUS.MINI');
+		const symbol =
+			req.instrument.type === 'equity' ? req.instrument.symbol : formatOcc(req.instrument.contract);
 		const body = new URLSearchParams({
 			dataset,
 			symbols: symbol,

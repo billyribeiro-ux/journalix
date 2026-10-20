@@ -30,8 +30,12 @@ export interface PositionGreeks {
 	readonly averageIv: number;
 }
 
-function isOption(leg: Leg): leg is Leg & { kind: 'call' | 'put'; strike: number; expiration: string } {
-	return (leg.kind === 'call' || leg.kind === 'put') && leg.strike !== null && leg.expiration !== null;
+function isOption(
+	leg: Leg
+): leg is Leg & { kind: 'call' | 'put'; strike: number; expiration: string } {
+	return (
+		(leg.kind === 'call' || leg.kind === 'put') && leg.strike !== null && leg.expiration !== null
+	);
 }
 
 function legGreeksAt(leg: Leg, fill: Execution, rate: number): LegGreeks | null {
@@ -47,8 +51,32 @@ function legGreeksAt(leg: Leg, fill: Execution, rate: number): LegGreeks | null 
 		price: fill.price
 	});
 	if (iv === null) return null;
-	const g = blackScholes({ right: leg.kind, spot: fill.underlyingPrice, strike: leg.strike, years, rate, volatility: iv });
-	return { legId: leg.id, iv, delta: g.delta, gamma: g.gamma, theta: g.theta, vega: g.vega };
+	const g = blackScholes({
+		right: leg.kind,
+		spot: fill.underlyingPrice,
+		strike: leg.strike,
+		years,
+		rate,
+		volatility: iv
+	});
+	// Theta as the value lost over the next calendar day (or until expiry, if sooner). The
+	// analytic rate ÷ 365 overstates decay near expiry, where it can exceed the option's value.
+	const step = Math.min(1 / 365, years);
+	const later =
+		years - step > 0
+			? blackScholes({
+					right: leg.kind,
+					spot: fill.underlyingPrice,
+					strike: leg.strike,
+					years: years - step,
+					rate,
+					volatility: iv
+				}).price
+			: leg.kind === 'call'
+				? Math.max(0, fill.underlyingPrice - leg.strike)
+				: Math.max(0, leg.strike - fill.underlyingPrice);
+	const theta = years > 1 / 365 ? g.theta : later - g.price;
+	return { legId: leg.id, iv, delta: g.delta, gamma: g.gamma, theta, vega: g.vega };
 }
 
 /** Position Greeks from the first opening fill of every option leg. */
@@ -161,6 +189,7 @@ export function attributePnl(view: TradeView, rate: number): PnlAttribution | nu
 /** Share of the maximum credit kept, for credit trades (e.g. 0.5 = closed at 50% of max profit). */
 export function premiumCaptured(view: TradeView): number | null {
 	const { metrics } = view;
-	if (metrics.status !== 'closed' || metrics.entryType !== 'credit' || metrics.openingCashflow <= 0) return null;
+	if (metrics.status !== 'closed' || metrics.entryType !== 'credit' || metrics.openingCashflow <= 0)
+		return null;
 	return metrics.grossPnl / metrics.openingCashflow;
 }

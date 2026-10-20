@@ -14,7 +14,10 @@ interface Call {
 	init: RequestInit | undefined;
 }
 
-function mockFetch(responses: (string | object)[], status = 200): { fetch: FetchLike; calls: Call[] } {
+function mockFetch(
+	responses: (string | object)[],
+	status = 200
+): { fetch: FetchLike; calls: Call[] } {
 	const calls: Call[] = [];
 	let i = 0;
 	const fetch: FetchLike = async (url, init) => {
@@ -35,11 +38,17 @@ const req = {
 describe('provider adapters', () => {
 	it('Massive: builds the aggregates URL, follows next_url and maps fields', async () => {
 		const { fetch, calls } = mockFetch([
-			{ status: 'OK', results: [{ t: 1_759_325_400_000, o: 1, h: 2, l: 0.5, c: 1.5, v: 10 }], next_url: 'https://api.massive.com/v2/aggs/next?cursor=abc' },
+			{
+				status: 'OK',
+				results: [{ t: 1_759_325_400_000, o: 1, h: 2, l: 0.5, c: 1.5, v: 10 }],
+				next_url: 'https://api.massive.com/v2/aggs/next?cursor=abc'
+			},
 			{ status: 'OK', results: [{ t: 1_759_325_700_000, o: 1.5, h: 2, l: 1, c: 1.8, v: 5 }] }
 		]);
 		const bars = await massive.fetchBars(req, { secret: { apiKey: 'k' }, options: {}, fetch });
-		expect(calls[0]?.url).toMatch(/^https:\/\/api\.massive\.com\/v2\/aggs\/ticker\/SPY\/range\/5\/minute\/\d+\/\d+\?.*apiKey=k/);
+		expect(calls[0]?.url).toMatch(
+			/^https:\/\/api\.massive\.com\/v2\/aggs\/ticker\/SPY\/range\/5\/minute\/\d+\/\d+\?.*apiKey=k/
+		);
 		expect(calls[1]?.url).toContain('cursor=abc');
 		expect(calls[1]?.url).toContain('apiKey=k');
 		expect(bars).toEqual([
@@ -48,10 +57,43 @@ describe('provider adapters', () => {
 		]);
 	});
 
+	it('Massive: never sends the key to a next_url on another host', async () => {
+		const { fetch, calls } = mockFetch([
+			{ status: 'OK', results: [], next_url: 'https://evil.example/v2/aggs/next?cursor=abc' }
+		]);
+		await expect(
+			massive.fetchBars(req, { secret: { apiKey: 'k' }, options: {}, fetch })
+		).rejects.toMatchObject({ code: 'upstream' });
+		expect(calls).toHaveLength(1);
+	});
+
+	it('Massive: fails instead of returning a truncated window', async () => {
+		const { fetch, calls } = mockFetch([
+			{ status: 'OK', results: [], next_url: 'https://api.massive.com/v2/aggs/next?cursor=more' }
+		]);
+		await expect(
+			massive.fetchBars(req, { secret: { apiKey: 'k' }, options: {}, fetch })
+		).rejects.toMatchObject({ code: 'invalid_request' });
+		expect(calls).toHaveLength(20);
+	});
+
+	it('Alpaca: fails instead of returning a truncated window', async () => {
+		const { fetch } = mockFetch([{ bars: { SPY: [] }, next_page_token: 'more' }]);
+		await expect(
+			alpaca.fetchBars(req, { secret: { apiKey: 'k', apiSecret: 's' }, options: {}, fetch })
+		).rejects.toMatchObject({ code: 'invalid_request' });
+	});
+
 	it('Massive: prefixes option tickers with O:', async () => {
 		const { fetch, calls } = mockFetch([{ status: 'OK', results: [] }]);
 		await massive.fetchBars(
-			{ ...req, instrument: { type: 'option', contract: { underlying: 'SPY', expiration: '2026-12-18', kind: 'put', strike: 600 } } },
+			{
+				...req,
+				instrument: {
+					type: 'option',
+					contract: { underlying: 'SPY', expiration: '2026-12-18', kind: 'put', strike: 600 }
+				}
+			},
 			{ secret: { apiKey: 'k' }, options: {}, fetch }
 		);
 		expect(calls[0]?.url).toContain('/ticker/O%3ASPY261218P00600000/');
@@ -59,10 +101,20 @@ describe('provider adapters', () => {
 
 	it('Alpaca: sends key headers and paginates', async () => {
 		const { fetch, calls } = mockFetch([
-			{ bars: { SPY: [{ t: '2026-10-01T13:30:00Z', o: 1, h: 2, l: 1, c: 2, v: 9 }] }, next_page_token: 'p2' },
-			{ bars: { SPY: [{ t: '2026-10-01T13:35:00Z', o: 2, h: 3, l: 2, c: 3, v: 4 }] }, next_page_token: null }
+			{
+				bars: { SPY: [{ t: '2026-10-01T13:30:00Z', o: 1, h: 2, l: 1, c: 2, v: 9 }] },
+				next_page_token: 'p2'
+			},
+			{
+				bars: { SPY: [{ t: '2026-10-01T13:35:00Z', o: 2, h: 3, l: 2, c: 3, v: 4 }] },
+				next_page_token: null
+			}
 		]);
-		const bars = await alpaca.fetchBars(req, { secret: { apiKey: 'id', apiSecret: 'sec' }, options: { feed: 'iex' }, fetch });
+		const bars = await alpaca.fetchBars(req, {
+			secret: { apiKey: 'id', apiSecret: 'sec' },
+			options: { feed: 'iex' },
+			fetch
+		});
 		const headers = calls[0]?.init?.headers as Record<string, string>;
 		expect(headers['APCA-API-KEY-ID']).toBe('id');
 		expect(headers['APCA-API-SECRET-KEY']).toBe('sec');
@@ -74,7 +126,9 @@ describe('provider adapters', () => {
 	});
 
 	it('Tiingo: uses the IEX endpoint with a Token header', async () => {
-		const { fetch, calls } = mockFetch([[{ date: '2026-10-01T13:30:00.000Z', open: 1, high: 2, low: 1, close: 2, volume: 3 }]]);
+		const { fetch, calls } = mockFetch([
+			[{ date: '2026-10-01T13:30:00.000Z', open: 1, high: 2, low: 1, close: 2, volume: 3 }]
+		]);
 		const bars = await tiingo.fetchBars(req, { secret: { apiKey: 'tok' }, options: {}, fetch });
 		expect(calls[0]?.url).toContain('https://api.tiingo.com/iex/spy/prices?');
 		expect(calls[0]?.url).toContain('resampleFreq=5min');
@@ -84,27 +138,51 @@ describe('provider adapters', () => {
 
 	it('Databento: posts with Basic auth and decodes fixed-point JSON lines', async () => {
 		const lines = [
-			{ hd: { ts_event: '1759325400000000000', rtype: 33 }, open: '1000000000', high: '2000000000', low: '500000000', close: '1500000000', volume: '7' },
-			{ hd: { ts_event: '1759325460000000000', rtype: 33 }, open: '1500000000', high: '2500000000', low: '1000000000', close: '2000000000', volume: '3' }
+			{
+				hd: { ts_event: '1759325400000000000', rtype: 33 },
+				open: '1000000000',
+				high: '2000000000',
+				low: '500000000',
+				close: '1500000000',
+				volume: '7'
+			},
+			{
+				hd: { ts_event: '1759325460000000000', rtype: 33 },
+				open: '1500000000',
+				high: '2500000000',
+				low: '1000000000',
+				close: '2000000000',
+				volume: '3'
+			}
 		]
 			.map((l) => JSON.stringify(l))
 			.join('\n');
 		const { fetch, calls } = mockFetch([lines]);
-		const bars = await databento.fetchBars(req, { secret: { apiKey: 'db-key' }, options: {}, fetch });
+		const bars = await databento.fetchBars(req, {
+			secret: { apiKey: 'db-key' },
+			options: {},
+			fetch
+		});
 		expect(calls[0]?.url).toBe('https://hist.databento.com/v0/timeseries.get_range');
 		expect(calls[0]?.init?.method).toBe('POST');
-		expect((calls[0]?.init?.headers as Record<string, string>)['Authorization']).toBe(`Basic ${btoa('db-key:')}`);
+		expect((calls[0]?.init?.headers as Record<string, string>)['Authorization']).toBe(
+			`Basic ${btoa('db-key:')}`
+		);
 		const body = new URLSearchParams(String(calls[0]?.init?.body));
 		expect(body.get('schema')).toBe('ohlcv-1m');
 		expect(body.get('dataset')).toBe('EQUS.MINI');
 		expect(body.get('encoding')).toBe('json');
 		// Two 1-minute bars resampled into one 5-minute bar.
-		expect(bars).toEqual([{ time: 1_759_325_400, open: 1, high: 2.5, low: 0.5, close: 2, volume: 10 }]);
+		expect(bars).toEqual([
+			{ time: 1_759_325_400, open: 1, high: 2.5, low: 0.5, close: 2, volume: 10 }
+		]);
 	});
 
 	it('maps HTTP 401 to an unauthorized provider error', async () => {
 		const { fetch } = mockFetch([{ message: 'bad key' }], 401);
-		await expect(massive.fetchBars(req, { secret: { apiKey: 'x' }, options: {}, fetch })).rejects.toMatchObject({ code: 'unauthorized' });
+		await expect(
+			massive.fetchBars(req, { secret: { apiKey: 'x' }, options: {}, fetch })
+		).rejects.toMatchObject({ code: 'unauthorized' });
 	});
 
 	it('simulated bars pass through anchors and are deterministic', async () => {
@@ -112,8 +190,14 @@ describe('provider adapters', () => {
 			{ time: Date.parse('2026-10-01T14:02:00Z'), price: 600 },
 			{ time: Date.parse('2026-10-01T17:31:00Z'), price: 606 }
 		];
-		const a = await simulated.fetchBars({ ...req, anchors }, { secret: {}, options: {}, fetch: globalThis.fetch });
-		const b = await simulated.fetchBars({ ...req, anchors }, { secret: {}, options: {}, fetch: globalThis.fetch });
+		const a = await simulated.fetchBars(
+			{ ...req, anchors },
+			{ secret: {}, options: {}, fetch: globalThis.fetch }
+		);
+		const b = await simulated.fetchBars(
+			{ ...req, anchors },
+			{ secret: {}, options: {}, fetch: globalThis.fetch }
+		);
 		expect(a).toEqual(b);
 		const at = a.find((x) => x.time === Date.parse('2026-10-01T14:00:00Z') / 1000);
 		expect(at?.close).toBeCloseTo(600, 6);
@@ -132,6 +216,11 @@ describe('timeframes', () => {
 		const w = windowFor(1_000_000, 2_000_000, '1m', 2_100_000);
 		expect(w.from).toBeLessThan(1_000_000);
 		expect(w.to).toBe(2_100_000);
+	});
+	it('keeps a valid window when fills are ahead of the clock', () => {
+		const w = windowFor(5_000_000, null, '1m', 4_000_000);
+		expect(w.to).toBeGreaterThan(w.from);
+		expect(w.to).toBeGreaterThanOrEqual(5_000_000 + 60_000);
 	});
 	it('resamples OHLCV correctly', () => {
 		const out = resample(
@@ -176,8 +265,15 @@ describe('bars service', () => {
 				store.set(JSON.stringify(key), bars);
 			}
 		};
-		const { fetch, calls } = mockFetch([{ status: 'OK', results: [{ t: req.from, o: 1, h: 1, l: 1, c: 1, v: 1 }] }]);
-		const svc = createBarsService({ resolve: async () => ({ config, secret: { apiKey: 'k' } }), cache, fetch, now: () => req.to + 86_400_000 });
+		const { fetch, calls } = mockFetch([
+			{ status: 'OK', results: [{ t: req.from, o: 1, h: 1, l: 1, c: 1, v: 1 }] }
+		]);
+		const svc = createBarsService({
+			resolve: async () => ({ config, secret: { apiKey: 'k' } }),
+			cache,
+			fetch,
+			now: () => req.to + 86_400_000
+		});
 		const first = await svc.get(req);
 		const second = await svc.get(req);
 		expect(first.status === 'ok' && first.cached).toBe(false);
@@ -187,7 +283,10 @@ describe('bars service', () => {
 
 	it('returns a typed error instead of throwing', async () => {
 		const { fetch } = mockFetch(['nope'], 500);
-		const svc = createBarsService({ resolve: async () => ({ config, secret: { apiKey: 'k' } }), fetch });
+		const svc = createBarsService({
+			resolve: async () => ({ config, secret: { apiKey: 'k' } }),
+			fetch
+		});
 		const result = await svc.get(req);
 		expect(result.status).toBe('error');
 	});

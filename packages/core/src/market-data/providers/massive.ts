@@ -1,5 +1,13 @@
 import { formatOccCompact } from '../../options/occ.ts';
-import { errorFromResponse, ProviderError, requireSecret, type Bar, type MarketDataProvider, type Timeframe } from '../types.ts';
+import {
+	errorFromResponse,
+	ProviderError,
+	requireSecret,
+	tooManyBars,
+	type Bar,
+	type MarketDataProvider,
+	type Timeframe
+} from '../types.ts';
 
 /** Massive (formerly Polygon.io) aggregates API. Docs: https://massive.com/docs/rest/stocks/aggregates/custom-bars */
 const SPANS: Readonly<Record<Timeframe, readonly [number, string]>> = {
@@ -32,6 +40,20 @@ interface MassiveResponse {
 
 const MAX_PAGES = 20;
 
+/** Follows `next_url` only on the configured API host, so the key is never sent elsewhere. */
+function nextUrl(next: string | null | undefined, base: string): string | null {
+	if (!next) return null;
+	let parsed: URL;
+	try {
+		parsed = new URL(next, base);
+	} catch {
+		throw new ProviderError('parse', 'Massive returned an invalid next page link');
+	}
+	if (parsed.origin !== base)
+		throw new ProviderError('upstream', 'Massive returned a next page link on another host');
+	return parsed.toString();
+}
+
 export const massive: MarketDataProvider = {
 	id: 'massive',
 	name: 'Massive (Polygon.io)',
@@ -41,7 +63,13 @@ export const massive: MarketDataProvider = {
 	supportsOptions: true,
 	timeframes: ['1m', '5m', '15m', '30m', '1h', '4h', '1D', '1W'],
 	fields: [
-		{ name: 'apiKey', label: 'API key', kind: 'secret', required: true, placeholder: 'Your Massive API key' },
+		{
+			name: 'apiKey',
+			label: 'API key',
+			kind: 'secret',
+			required: true,
+			placeholder: 'Your Massive API key'
+		},
 		{
 			name: 'baseUrl',
 			label: 'API host',
@@ -57,8 +85,14 @@ export const massive: MarketDataProvider = {
 	notice: 'Options bars need a plan that includes options data.',
 	async fetchBars(req, ctx) {
 		const apiKey = requireSecret(ctx, 'apiKey', 'Massive');
-		const base = ctx.options['baseUrl'] === 'https://api.polygon.io' ? 'https://api.polygon.io' : 'https://api.massive.com';
-		const ticker = req.instrument.type === 'equity' ? req.instrument.symbol : `O:${formatOccCompact(req.instrument.contract)}`;
+		const base =
+			ctx.options['baseUrl'] === 'https://api.polygon.io'
+				? 'https://api.polygon.io'
+				: 'https://api.massive.com';
+		const ticker =
+			req.instrument.type === 'equity'
+				? req.instrument.symbol
+				: `O:${formatOccCompact(req.instrument.contract)}`;
 		const [mult, span] = SPANS[req.timeframe];
 		const params = new URLSearchParams({ adjusted: 'false', sort: 'asc', limit: '50000' });
 		let url: string | null =
@@ -75,12 +109,22 @@ export const massive: MarketDataProvider = {
 			} catch {
 				throw new ProviderError('parse', 'Massive returned an unreadable response');
 			}
-			if (body.status === 'ERROR') throw new ProviderError('upstream', body.error ?? body.message ?? 'Massive error');
+			if (body.status === 'ERROR')
+				throw new ProviderError('upstream', body.error ?? body.message ?? 'Massive error');
 			for (const a of body.results ?? []) {
-				bars.push({ time: Math.floor(a.t / 1000), open: a.o, high: a.h, low: a.l, close: a.c, volume: a.v ?? 0 });
+				bars.push({
+					time: Math.floor(a.t / 1000),
+					open: a.o,
+					high: a.h,
+					low: a.l,
+					close: a.c,
+					volume: a.v ?? 0
+				});
 			}
-			url = body.next_url ?? null;
+			url = nextUrl(body.next_url, base);
 		}
+		// Returning a partial window would be cached as complete; fail instead.
+		if (url) throw tooManyBars('Massive');
 		return bars;
 	}
 };

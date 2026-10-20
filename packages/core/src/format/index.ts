@@ -31,7 +31,10 @@ export function formatMoney(
 
 export function formatNumber(value: number | null | undefined, digits = 2): string {
 	if (value === null || value === undefined || !Number.isFinite(value)) return '—';
-	const s = value.toLocaleString('en-US', { minimumFractionDigits: digits, maximumFractionDigits: digits });
+	const s = value.toLocaleString('en-US', {
+		minimumFractionDigits: digits,
+		maximumFractionDigits: digits
+	});
 	return value < 0 ? `−${s.slice(1)}` : s;
 }
 
@@ -44,7 +47,11 @@ export function formatPrice(value: number | null | undefined): string {
 	});
 }
 
-export function formatPercent(value: number | null | undefined, digits = 1, signed = false): string {
+export function formatPercent(
+	value: number | null | undefined,
+	digits = 1,
+	signed = false
+): string {
 	if (value === null || value === undefined || !Number.isFinite(value)) return '—';
 	const s = `${Math.abs(value * 100).toFixed(digits)}%`;
 	if (value < 0 && Math.abs(value) * 100 >= 0.5 * 10 ** -digits) return `−${s}`;
@@ -57,7 +64,11 @@ export function formatR(value: number | null | undefined, digits = 2): string {
 	return value < 0 ? `−${s}` : value > 0 ? `+${s}` : s;
 }
 
-export function formatRatio(value: number | null | undefined, digits = 2, infiniteWhenNull = false): string {
+export function formatRatio(
+	value: number | null | undefined,
+	digits = 2,
+	infiniteWhenNull = false
+): string {
 	if (value === null || value === undefined) return infiniteWhenNull ? '∞' : '—';
 	if (!Number.isFinite(value)) return '∞';
 	return value.toFixed(digits);
@@ -100,7 +111,13 @@ export function formatDateTime(
 						? { month: 'short', day: 'numeric' }
 						: style === 'month'
 							? { year: 'numeric', month: 'long' }
-							: { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
+							: {
+									year: 'numeric',
+									month: 'short',
+									day: 'numeric',
+									hour: 'numeric',
+									minute: '2-digit'
+								};
 		f = new Intl.DateTimeFormat('en-US', { timeZone, ...opts });
 		dateTimeFormatters.set(key, f);
 	}
@@ -112,7 +129,9 @@ export function formatDayKey(day: string, style: 'long' | 'short' = 'short'): st
 	const d = new Date(`${day}T12:00:00Z`);
 	return d.toLocaleDateString('en-US', {
 		timeZone: 'UTC',
-		...(style === 'long' ? { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' } : { month: 'short', day: 'numeric' })
+		...(style === 'long'
+			? { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }
+			: { month: 'short', day: 'numeric' })
 	});
 }
 
@@ -136,7 +155,14 @@ export function fromLocalInput(value: string, timeZone: string): string {
 	const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(value);
 	if (!m) throw new RangeError(`Invalid local datetime: ${value}`);
 	const [, y, mo, d, h, mi, s] = m;
-	const asUtc = Date.UTC(Number(y), Number(mo) - 1, Number(d), Number(h), Number(mi), Number(s ?? 0));
+	const asUtc = Date.UTC(
+		Number(y),
+		Number(mo) - 1,
+		Number(d),
+		Number(h),
+		Number(mi),
+		Number(s ?? 0)
+	);
 	// Two passes resolve the offset correctly across DST transitions.
 	let guess = asUtc;
 	for (let i = 0; i < 2; i++) {

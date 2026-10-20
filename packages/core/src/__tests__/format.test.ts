@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { formatDuration, formatMoney, formatPercent, formatR, fromLocalInput, toLocalInput } from '../format/index.ts';
+import {
+	formatDuration,
+	formatMoney,
+	formatPercent,
+	formatR,
+	fromLocalInput,
+	toLocalInput
+} from '../format/index.ts';
 import { newId } from '../util/id.ts';
 import { sum } from '../util/math.ts';
 
@@ -15,7 +22,11 @@ describe('formatting', () => {
 	});
 
 	it('round-trips local datetime inputs across DST', () => {
-		for (const iso of ['2026-03-09T14:30:00.000Z', '2026-11-02T15:05:00.000Z', '2026-07-01T13:30:00.000Z']) {
+		for (const iso of [
+			'2026-03-09T14:30:00.000Z',
+			'2026-11-02T15:05:00.000Z',
+			'2026-07-01T13:30:00.000Z'
+		]) {
 			expect(fromLocalInput(toLocalInput(iso, 'America/New_York'), 'America/New_York')).toBe(iso);
 		}
 		expect(fromLocalInput('2026-07-01T09:30', 'America/New_York')).toBe('2026-07-01T13:30:00.000Z');

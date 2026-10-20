@@ -61,7 +61,12 @@ describe('equity and drawdown', () => {
 	});
 	it('buckets by trading day and computes ratios', () => {
 		const days = dailyPnl(views, 'America/New_York');
-		expect(days.map((d) => d.date)).toEqual(['2026-10-01', '2026-10-02', '2026-10-05', '2026-10-06']);
+		expect(days.map((d) => d.date)).toEqual([
+			'2026-10-01',
+			'2026-10-02',
+			'2026-10-05',
+			'2026-10-06'
+		]);
 		expect(days[1]?.pnl).toBeCloseTo(-150, 10);
 		const ra = riskAdjusted(days, 10_000, 0, dd.maxDrawdownPct);
 		expect(ra.greenDays).toBe(2);
@@ -81,6 +86,67 @@ describe('breakdowns', () => {
 		expect(pnlHistogram(views).reduce((a, b) => a + b.count, 0)).toBe(5);
 	});
 	it('filters by date range', () => {
-		expect(applyFilter(views, { ...EMPTY_FILTER, from: '2026-10-02', to: '2026-10-05' }, 'America/New_York')).toHaveLength(3);
+		expect(
+			applyFilter(
+				views,
+				{ ...EMPTY_FILTER, from: '2026-10-02', to: '2026-10-05' },
+				'America/New_York'
+			)
+		).toHaveLength(3);
+	});
+});
+
+describe('risk-adjusted returns', () => {
+	it('counts idle weekdays as zero-return observations before annualising', () => {
+		const day = (date: string, pnl: number) => ({
+			date,
+			pnl,
+			trades: 1,
+			wins: pnl > 0 ? 1 : 0,
+			losses: pnl < 0 ? 1 : 0,
+			fees: 0,
+			tradeIds: []
+		});
+		// Two active days a week apart: Mon 2026-10-05 and Mon 2026-10-12, plus Tue 2026-10-13.
+		const sparse = [day('2026-10-05', 300), day('2026-10-12', -100), day('2026-10-13', 300)];
+		const result = riskAdjusted(sparse, 100_000, 0, -0.01);
+		// 7 weekdays from Oct 5 to Oct 13 inclusive are observations, not 3.
+		const dense = riskAdjusted(
+			[
+				day('2026-10-05', 300),
+				day('2026-10-06', 0),
+				day('2026-10-07', 0),
+				day('2026-10-08', 0),
+				day('2026-10-09', 0),
+				day('2026-10-12', -100),
+				day('2026-10-13', 300)
+			],
+			100_000,
+			0,
+			-0.01
+		);
+		expect(result.sharpe).not.toBeNull();
+		expect(result.sharpe).toBeCloseTo(dense.sharpe ?? 0, 10);
+		expect(result.tradingDays).toBe(3);
+	});
+
+	it('keeps weekend closes as their own observations', () => {
+		const day = (date: string, pnl: number) => ({
+			date,
+			pnl,
+			trades: 1,
+			wins: 1,
+			losses: 0,
+			fees: 0,
+			tradeIds: []
+		});
+		const withWeekend = riskAdjusted(
+			[day('2026-10-09', 100), day('2026-10-10', 200), day('2026-10-12', -50)],
+			10_000,
+			0,
+			-0.01
+		);
+		expect(withWeekend.sharpe).not.toBeNull();
+		expect(withWeekend.tradingDays).toBe(3);
 	});
 });

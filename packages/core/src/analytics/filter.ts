@@ -52,7 +52,11 @@ export function isFilterActive(filter: TradeFilter): boolean {
 	);
 }
 
-export function applyFilter(views: readonly TradeView[], filter: TradeFilter, timeZone: string): TradeView[] {
+export function applyFilter(
+	views: readonly TradeView[],
+	filter: TradeFilter,
+	timeZone: string
+): TradeView[] {
 	const needle = filter.search.trim().toUpperCase();
 	return views.filter(({ trade, metrics }) => {
 		const anchor = metrics.closedAt ?? metrics.openedAt ?? trade.createdAt;
@@ -63,7 +67,11 @@ export function applyFilter(views: readonly TradeView[], filter: TradeFilter, ti
 		if (filter.symbols.length && !filter.symbols.includes(trade.underlying)) return false;
 		if (filter.strategies.length && !filter.strategies.includes(metrics.strategy)) return false;
 		if (filter.tagIds.length && !filter.tagIds.some((t) => trade.tagIds.includes(t))) return false;
-		if (filter.playbookIds.length && (trade.playbookId === null || !filter.playbookIds.includes(trade.playbookId))) return false;
+		if (
+			filter.playbookIds.length &&
+			(trade.playbookId === null || !filter.playbookIds.includes(trade.playbookId))
+		)
+			return false;
 		if (filter.statuses.length && !filter.statuses.includes(metrics.status)) return false;
 		if (filter.outcomes.length && !filter.outcomes.includes(metrics.outcome)) return false;
 		if (filter.directions.length && !filter.directions.includes(metrics.direction)) return false;

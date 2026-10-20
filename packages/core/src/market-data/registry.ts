@@ -15,7 +15,13 @@ export const PROVIDERS: Readonly<Record<ProviderId, MarketDataProvider>> = {
 };
 
 /** Order shown in Settings: real data first, the simulator last. */
-export const PROVIDER_ORDER: readonly ProviderId[] = ['massive', 'alpaca', 'databento', 'tiingo', 'simulated'];
+export const PROVIDER_ORDER: readonly ProviderId[] = [
+	'massive',
+	'alpaca',
+	'databento',
+	'tiingo',
+	'simulated'
+];
 
 export function getProvider(id: ProviderId): MarketDataProvider {
 	return PROVIDERS[id];

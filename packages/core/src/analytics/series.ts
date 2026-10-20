@@ -59,7 +59,10 @@ export function equityCurve(views: readonly TradeView[], startingBalance: number
 	return points;
 }
 
-export function drawdownSummary(points: readonly EquityPoint[], startingBalance: number): DrawdownSummary {
+export function drawdownSummary(
+	points: readonly EquityPoint[],
+	startingBalance: number
+): DrawdownSummary {
 	let maxDd = 0;
 	let maxDdPct = 0;
 	let troughIdx = -1;
@@ -124,7 +127,10 @@ export interface DailyPnl {
 
 /** Closed P&L bucketed by trading day (close time) in the user's time zone. */
 export function dailyPnl(views: readonly TradeView[], timeZone: string): DailyPnl[] {
-	const map = new Map<string, { pnl: number[]; wins: number; losses: number; fees: number[]; ids: string[] }>();
+	const map = new Map<
+		string,
+		{ pnl: number[]; wins: number; losses: number; fees: number[]; ids: string[] }
+	>();
 	for (const v of closedViews(views)) {
 		const key = dayKey(v.metrics.closedAt ?? '', timeZone);
 		let bucket = map.get(key);
@@ -167,17 +173,41 @@ export interface RiskAdjustedStats {
 	readonly dailyVolatility: number | null;
 }
 
+/** Monday–Friday dates from `from` to `to` inclusive (YYYY-MM-DD). Exchange holidays are not excluded. */
+function weekdaysBetween(from: string | undefined, to: string | undefined): string[] {
+	if (!from || !to || from > to) return [];
+	const out: string[] = [];
+	for (
+		let t = Date.parse(`${from}T12:00:00Z`), end = Date.parse(`${to}T12:00:00Z`);
+		t <= end;
+		t += 86_400_000
+	) {
+		const day = new Date(t);
+		const dow = day.getUTCDay();
+		if (dow !== 0 && dow !== 6) out.push(day.toISOString().slice(0, 10));
+	}
+	return out;
+}
+
 export function riskAdjusted(
 	days: readonly DailyPnl[],
 	startingBalance: number,
 	riskFreeRate: number,
 	maxDrawdownPct: number
 ): RiskAdjustedStats {
+	// Annualising with √252 assumes one observation per trading day, so weekdays between the
+	// first and last active day with no closed trades count as zero-return days.
+	const byDate = new Map(days.map((d) => [d.date, d.pnl]));
 	const returns: number[] = [];
 	let equity = startingBalance;
-	for (const d of days) {
-		if (equity > 0) returns.push(d.pnl / equity);
-		equity += d.pnl;
+	// Days with closes on a weekend (crypto, futures) keep their own observation.
+	const dates = [
+		...new Set([...weekdaysBetween(days[0]?.date, days[days.length - 1]?.date), ...byDate.keys()])
+	].sort();
+	for (const date of dates) {
+		const pnl = byDate.get(date) ?? 0;
+		if (equity > 0) returns.push(pnl / equity);
+		equity += pnl;
 	}
 	const rfDaily = riskFreeRate / 252;
 	const excess = returns.map((r) => r - rfDaily);
@@ -191,15 +221,24 @@ export function riskAdjusted(
 	const lastDay = days[days.length - 1]?.date;
 	let calmar: number | null = null;
 	if (firstDay && lastDay && maxDrawdownPct < 0 && startingBalance > 0) {
-		const years = Math.max(1 / 252, (Date.parse(lastDay) - Date.parse(firstDay)) / (365.25 * 86_400_000));
+		const years = Math.max(
+			1 / 252,
+			(Date.parse(lastDay) - Date.parse(firstDay)) / (365.25 * 86_400_000)
+		);
 		const annual = 1 + totalReturn > 0 ? (1 + totalReturn) ** (1 / years) - 1 : -1;
 		calmar = annual / Math.abs(maxDrawdownPct);
 	}
 
 	const green = days.filter((d) => d.pnl > 0);
 	const red = days.filter((d) => d.pnl < 0);
-	const best = days.reduce<DailyPnl | null>((acc, d) => (acc === null || d.pnl > acc.pnl ? d : acc), null);
-	const worst = days.reduce<DailyPnl | null>((acc, d) => (acc === null || d.pnl < acc.pnl ? d : acc), null);
+	const best = days.reduce<DailyPnl | null>(
+		(acc, d) => (acc === null || d.pnl > acc.pnl ? d : acc),
+		null
+	);
+	const worst = days.reduce<DailyPnl | null>(
+		(acc, d) => (acc === null || d.pnl < acc.pnl ? d : acc),
+		null
+	);
 
 	return {
 		tradingDays: days.length,

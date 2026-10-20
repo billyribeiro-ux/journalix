@@ -1,11 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { blackScholes, expiryInstant, impliedVolatility, normCdf } from '../options/black-scholes.ts';
+import {
+	blackScholes,
+	expiryInstant,
+	impliedVolatility,
+	normCdf
+} from '../options/black-scholes.ts';
 import { describeContract, formatOcc, formatOccCompact, parseOcc } from '../options/occ.ts';
 import { detectStrategy, type StructureLeg } from '../options/strategy.ts';
 import { payoffProfile, pnlAtExpiry } from '../options/payoff.ts';
 
 const E = '2026-11-20';
-const L = (kind: StructureLeg['kind'], strike: number | null, quantity: number, expiration: string | null = E): StructureLeg => ({
+const L = (
+	kind: StructureLeg['kind'],
+	strike: number | null,
+	quantity: number,
+	expiration: string | null = E
+): StructureLeg => ({
 	kind,
 	strike,
 	expiration: kind === 'stock' ? null : expiration,
@@ -85,13 +95,19 @@ describe('strategy detection', () => {
 		['long_straddle', [L('call', 100, 1), L('put', 100, 1)]],
 		['short_strangle', [L('call', 110, -1), L('put', 90, -1)]],
 		['iron_condor', [L('put', 85, 1), L('put', 90, -1), L('call', 110, -1), L('call', 115, 1)]],
-		['reverse_iron_condor', [L('put', 85, -1), L('put', 90, 1), L('call', 110, 1), L('call', 115, -1)]],
+		[
+			'reverse_iron_condor',
+			[L('put', 85, -1), L('put', 90, 1), L('call', 110, 1), L('call', 115, -1)]
+		],
 		['iron_butterfly', [L('put', 90, 1), L('put', 100, -1), L('call', 100, -1), L('call', 110, 1)]],
 		['long_call_butterfly', [L('call', 95, 1), L('call', 100, -2), L('call', 105, 1)]],
 		['short_put_butterfly', [L('put', 95, -1), L('put', 100, 2), L('put', 105, -1)]],
 		['call_calendar', [L('call', 100, -1, '2026-11-20'), L('call', 100, 1, '2026-12-18')]],
 		['put_diagonal', [L('put', 100, -1, '2026-11-20'), L('put', 95, 1, '2026-12-18')]],
-		['futures_long', [{ kind: 'future', strike: null, expiration: null, quantity: 2, multiplier: 50 }]],
+		[
+			'futures_long',
+			[{ kind: 'future', strike: null, expiration: null, quantity: 2, multiplier: 50 }]
+		],
 		['custom', [L('call', 100, 1), L('put', 100, 1), L('call', 120, -1)]]
 	];
 	it.each(cases)('detects %s', (expected, legs) => {
@@ -112,11 +128,15 @@ describe('payoff profile', () => {
 	});
 
 	it('reports unlimited upside for a long call and unlimited loss for a short call', () => {
-		const long = payoffProfile([{ kind: 'call', strike: 100, quantity: 1, multiplier: 100, entryPrice: 2 }]);
+		const long = payoffProfile([
+			{ kind: 'call', strike: 100, quantity: 1, multiplier: 100, entryPrice: 2 }
+		]);
 		expect(long.maxProfit).toBeNull();
 		expect(long.maxLoss).toBeCloseTo(-200, 10);
 		expect(long.breakevens).toEqual([102]);
-		const short = payoffProfile([{ kind: 'call', strike: 100, quantity: -1, multiplier: 100, entryPrice: 2 }]);
+		const short = payoffProfile([
+			{ kind: 'call', strike: 100, quantity: -1, multiplier: 100, entryPrice: 2 }
+		]);
 		expect(short.maxLoss).toBeNull();
 		expect(short.maxProfit).toBeCloseTo(200, 10);
 	});

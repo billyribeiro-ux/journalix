@@ -53,7 +53,8 @@ function isRegularSession(timeSec: number, intraday: boolean): boolean {
 export const simulated: MarketDataProvider = {
 	id: 'simulated',
 	name: 'Simulated (demo)',
-	description: 'Synthetic candles that pass through your fills. For demos and testing — not market data.',
+	description:
+		'Synthetic candles that pass through your fills. For demos and testing — not market data.',
 	website: '',
 	docs: '',
 	supportsOptions: true,
@@ -65,7 +66,10 @@ export const simulated: MarketDataProvider = {
 		const intraday = step < 86_400;
 		const start = bucketStart(Math.floor(req.from / 1000), req.timeframe);
 		const end = Math.floor(req.to / 1000);
-		const key = req.instrument.type === 'equity' ? req.instrument.symbol : `${req.instrument.contract.underlying}${req.instrument.contract.strike}${req.instrument.contract.kind}`;
+		const key =
+			req.instrument.type === 'equity'
+				? req.instrument.symbol
+				: `${req.instrument.contract.underlying}${req.instrument.contract.strike}${req.instrument.contract.kind}`;
 		const rand = mulberry32(hash(`${key}:${req.timeframe}:${start}`));
 
 		const anchors = [...(req.anchors ?? [])].sort((a, b) => a.time - b.time);

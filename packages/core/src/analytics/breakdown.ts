@@ -47,7 +47,20 @@ export interface DimensionContext {
 }
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTH_LABELS = [
+	'Jan',
+	'Feb',
+	'Mar',
+	'Apr',
+	'May',
+	'Jun',
+	'Jul',
+	'Aug',
+	'Sep',
+	'Oct',
+	'Nov',
+	'Dec'
+];
 
 interface Bucket {
 	readonly key: string;
@@ -93,20 +106,43 @@ function bucketsFor(view: TradeView, dimension: Dimension, ctx: DimensionContext
 		case 'month': {
 			const p = zonedParts(metrics.closedAt ?? '', ctx.timeZone);
 			const key = `${p.year}-${String(p.month).padStart(2, '0')}`;
-			return [{ key, label: `${MONTH_LABELS[p.month - 1]} ${String(p.year).slice(2)}`, order: p.year * 12 + p.month }];
+			return [
+				{
+					key,
+					label: `${MONTH_LABELS[p.month - 1]} ${String(p.year).slice(2)}`,
+					order: p.year * 12 + p.month
+				}
+			];
 		}
 		case 'direction':
-			return [{ key: metrics.direction, label: metrics.direction === 'long' ? 'Long' : 'Short', order: metrics.direction === 'long' ? 0 : 1 }];
+			return [
+				{
+					key: metrics.direction,
+					label: metrics.direction === 'long' ? 'Long' : 'Short',
+					order: metrics.direction === 'long' ? 0 : 1
+				}
+			];
 		case 'entryType':
 			return [
 				{
 					key: metrics.entryType,
-					label: metrics.entryType === 'credit' ? 'Credit' : metrics.entryType === 'debit' ? 'Debit' : 'Even',
+					label:
+						metrics.entryType === 'credit'
+							? 'Credit'
+							: metrics.entryType === 'debit'
+								? 'Debit'
+								: 'Even',
 					order: metrics.entryType === 'debit' ? 0 : metrics.entryType === 'credit' ? 1 : 2
 				}
 			];
 		case 'assetClass':
-			return [{ key: trade.assetClass, label: trade.assetClass[0]?.toUpperCase() + trade.assetClass.slice(1), order: 0 }];
+			return [
+				{
+					key: trade.assetClass,
+					label: trade.assetClass[0]?.toUpperCase() + trade.assetClass.slice(1),
+					order: 0
+				}
+			];
 		case 'dte': {
 			if (metrics.dteAtEntry === null) return [];
 			const idx = DTE_BUCKETS.findIndex((b) => (metrics.dteAtEntry ?? 0) <= b.max);
@@ -125,9 +161,19 @@ function bucketsFor(view: TradeView, dimension: Dimension, ctx: DimensionContext
 			return [{ key: id, label: ctx.playbookNames.get(id) ?? 'Unknown playbook', order: 0 }];
 		}
 		case 'tag':
-			return trade.tagIds.map((id) => ({ key: id, label: ctx.tagNames.get(id) ?? 'Unknown tag', order: 0 }));
+			return trade.tagIds.map((id) => ({
+				key: id,
+				label: ctx.tagNames.get(id) ?? 'Unknown tag',
+				order: 0
+			}));
 		case 'bias':
-			return [{ key: metrics.bias, label: metrics.bias[0]?.toUpperCase() + metrics.bias.slice(1), order: 0 }];
+			return [
+				{
+					key: metrics.bias,
+					label: metrics.bias[0]?.toUpperCase() + metrics.bias.slice(1),
+					order: 0
+				}
+			];
 		case 'outcomeAtExpiry': {
 			if (!trade.legs.some((l) => l.kind === 'call' || l.kind === 'put')) return [];
 			if (metrics.assigned) return [{ key: 'assigned', label: 'Assigned / exercised', order: 2 }];
@@ -137,9 +183,22 @@ function bucketsFor(view: TradeView, dimension: Dimension, ctx: DimensionContext
 	}
 }
 
-const ORDINAL: ReadonlySet<Dimension> = new Set(['weekday', 'hour', 'month', 'dte', 'hold', 'direction', 'entryType', 'outcomeAtExpiry']);
+const ORDINAL: ReadonlySet<Dimension> = new Set([
+	'weekday',
+	'hour',
+	'month',
+	'dte',
+	'hold',
+	'direction',
+	'entryType',
+	'outcomeAtExpiry'
+]);
 
-export function groupBy(views: readonly TradeView[], dimension: Dimension, ctx: DimensionContext): GroupStats[] {
+export function groupBy(
+	views: readonly TradeView[],
+	dimension: Dimension,
+	ctx: DimensionContext
+): GroupStats[] {
 	const groups = new Map<string, { bucket: Bucket; views: TradeView[] }>();
 	for (const view of closedViews(views)) {
 		for (const bucket of bucketsFor(view, dimension, ctx)) {
@@ -184,7 +243,12 @@ export interface HistogramBin {
 }
 
 /** Fixed-width histogram of R-multiples, clamped to [min, max] with open-ended edge bins. */
-export function rHistogram(views: readonly TradeView[], width = 0.5, min = -4, max = 6): HistogramBin[] {
+export function rHistogram(
+	views: readonly TradeView[],
+	width = 0.5,
+	min = -4,
+	max = 6
+): HistogramBin[] {
 	const bins: { x0: number; x1: number; ids: string[] }[] = [];
 	for (let x = min; x < max - 1e-9; x += width) bins.push({ x0: x, x1: x + width, ids: [] });
 	for (const v of closedViews(views)) {
@@ -210,7 +274,11 @@ export function pnlHistogram(views: readonly TradeView[], targetBins = 24): Hist
 	const step = [1, 2, 2.5, 5, 10].map((m) => m * magnitude).find((s) => s >= raw) ?? raw;
 	const start = Math.floor(lo / step) * step;
 	const count = Math.max(1, Math.ceil((hi - start) / step + 1e-9));
-	const bins = Array.from({ length: count }, (_, i) => ({ x0: start + i * step, x1: start + (i + 1) * step, ids: [] as string[] }));
+	const bins = Array.from({ length: count }, (_, i) => ({
+		x0: start + i * step,
+		x1: start + (i + 1) * step,
+		ids: [] as string[]
+	}));
 	for (const v of closed) {
 		const idx = Math.min(count - 1, Math.floor((v.metrics.netPnl - start) / step));
 		bins[idx]?.ids.push(v.trade.id);
@@ -235,5 +303,10 @@ export function weekdayHourMatrix(views: readonly TradeView[], timeZone: string)
 		cell.pnl.push(v.metrics.netPnl);
 		map.set(key, cell);
 	}
-	return [...map.values()].map((c) => ({ weekday: c.weekday, hour: c.hour, pnl: sum(c.pnl), trades: c.pnl.length }));
+	return [...map.values()].map((c) => ({
+		weekday: c.weekday,
+		hour: c.hour,
+		pnl: sum(c.pnl),
+		trades: c.pnl.length
+	}));
 }

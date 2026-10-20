@@ -136,7 +136,9 @@ export const PriceLevelSchema = v.object({
 });
 export type PriceLevel = v.InferOutput<typeof PriceLevelSchema>;
 
-export const RatingSchema = v.nullable(v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(5)));
+export const RatingSchema = v.nullable(
+	v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(5))
+);
 
 export const TradeSchema = v.pipe(
 	v.object({
@@ -148,7 +150,11 @@ export const TradeSchema = v.pipe(
 		strategy: v.nullable(StrategyKindSchema),
 		playbookId: v.nullable(IdSchema),
 		tagIds: v.pipe(v.array(IdSchema), v.maxLength(64)),
-		legs: v.pipe(v.array(LegSchema), v.minLength(1, 'A trade needs at least one leg'), v.maxLength(16)),
+		legs: v.pipe(
+			v.array(LegSchema),
+			v.minLength(1, 'A trade needs at least one leg'),
+			v.maxLength(16)
+		),
 		executions: v.pipe(v.array(ExecutionSchema), v.maxLength(2000)),
 		levels: v.pipe(v.array(PriceLevelSchema), v.maxLength(500)),
 		/** Dollar risk planned at entry. Takes precedence over stop- or structure-based risk. */
@@ -163,17 +169,18 @@ export const TradeSchema = v.pipe(
 		createdAt: IsoDateTimeSchema,
 		updatedAt: IsoDateTimeSchema
 	}),
-	v.check(
-		(t) => {
-			const legIds = new Set(t.legs.map((l) => l.id));
-			return t.executions.every((e) => legIds.has(e.legId));
-		},
-		'Every execution must reference a leg of the same trade'
-	),
+	v.check((t) => {
+		const legIds = new Set(t.legs.map((l) => l.id));
+		return t.executions.every((e) => legIds.has(e.legId));
+	}, 'Every execution must reference a leg of the same trade'),
 	v.check(
 		(t) => t.legs.every((l) => l.underlying === t.underlying),
 		'Every leg must be on the trade underlying'
-	)
+	),
+	v.check((t) => {
+		const ids = [...t.legs, ...t.executions, ...t.levels].map((x) => x.id);
+		return new Set(ids).size === ids.length;
+	}, 'Legs, executions and levels must have unique ids')
 );
 export type Trade = v.InferOutput<typeof TradeSchema>;
 
@@ -269,7 +276,13 @@ export const DEFAULT_SETTINGS: UserSettings = {
 	weekStartsOn: 1
 };
 
-export const ProviderIdSchema = v.picklist(['massive', 'alpaca', 'tiingo', 'databento', 'simulated']);
+export const ProviderIdSchema = v.picklist([
+	'massive',
+	'alpaca',
+	'tiingo',
+	'databento',
+	'simulated'
+]);
 export type ProviderId = v.InferOutput<typeof ProviderIdSchema>;
 
 /** Non-secret provider options (dataset, feed, …). Secrets are stored separately. */

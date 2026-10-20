@@ -72,9 +72,9 @@ export interface PayoffProfile {
  * so extremes occur at 0, at a strike, or at +∞ (decided by the upside slope).
  */
 export function payoffProfile(legs: readonly PayoffLeg[]): PayoffProfile {
-	const strikes = [...new Set(legs.filter((l) => l.strike !== null).map((l) => l.strike as number))].sort(
-		(a, b) => a - b
-	);
+	const strikes = [
+		...new Set(legs.filter((l) => l.strike !== null).map((l) => l.strike as number))
+	].sort((a, b) => a - b);
 	const points = [0, ...strikes];
 	const values = points.map((s) => pnlAtExpiry(legs, s));
 
@@ -104,14 +104,20 @@ export function payoffProfile(legs: readonly PayoffLeg[]): PayoffProfile {
 	const lastX = points[points.length - 1] as number;
 	const lastY = values[values.length - 1] as number;
 	if (Math.abs(lastY) < eps && points.length > 1) breakevens.push(lastX);
-	if (Math.abs(upsideSlope) > eps && Math.sign(lastY) !== Math.sign(upsideSlope) && Math.abs(lastY) > eps) {
+	if (
+		Math.abs(upsideSlope) > eps &&
+		Math.sign(lastY) !== Math.sign(upsideSlope) &&
+		Math.abs(lastY) > eps
+	) {
 		breakevens.push(lastX - lastY / upsideSlope);
 	}
 
 	return {
 		maxProfit,
 		maxLoss: maxLoss === null ? null : Math.min(0, maxLoss),
-		breakevens: [...new Set(breakevens.map((b) => Math.round(b * 10_000) / 10_000))].sort((a, b) => a - b),
+		breakevens: [...new Set(breakevens.map((b) => Math.round(b * 10_000) / 10_000))].sort(
+			(a, b) => a - b
+		),
 		upsideSlope
 	};
 }
@@ -126,7 +132,11 @@ export interface PayoffPoint {
 export function payoffCurve(
 	legs: readonly PayoffLeg[],
 	range: { readonly min: number; readonly max: number },
-	options: { readonly samples?: number; readonly rate?: number; readonly includeTheoretical?: boolean } = {}
+	options: {
+		readonly samples?: number;
+		readonly rate?: number;
+		readonly includeTheoretical?: boolean;
+	} = {}
 ): PayoffPoint[] {
 	const samples = Math.max(16, options.samples ?? 241);
 	const min = Math.max(0, range.min);
@@ -136,7 +146,10 @@ export function payoffCurve(
 	for (let i = 0; i < samples; i++) xs.add(min + ((max - min) * i) / (samples - 1));
 	const canPrice =
 		options.includeTheoretical === true &&
-		legs.every((l) => (l.kind !== 'call' && l.kind !== 'put') || ((l.years ?? 0) > 0 && (l.volatility ?? 0) > 0));
+		legs.every(
+			(l) =>
+				(l.kind !== 'call' && l.kind !== 'put') || ((l.years ?? 0) > 0 && (l.volatility ?? 0) > 0)
+		);
 	return [...xs]
 		.sort((a, b) => a - b)
 		.map((price) => ({
@@ -147,7 +160,10 @@ export function payoffCurve(
 }
 
 /** Sensible chart range centred on the strikes and the reference price. */
-export function payoffRange(legs: readonly PayoffLeg[], reference: number | null): { min: number; max: number } {
+export function payoffRange(
+	legs: readonly PayoffLeg[],
+	reference: number | null
+): { min: number; max: number } {
 	const anchors = legs.filter((l) => l.strike !== null).map((l) => l.strike as number);
 	if (reference !== null && reference > 0) anchors.push(reference);
 	if (anchors.length === 0) {

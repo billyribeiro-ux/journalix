@@ -54,7 +54,13 @@ describe('trade metrics', () => {
 				fill(s, 'buy', 100, 200, '2026-10-01T14:00:00.000Z', { fees: 1 }),
 				fill(s, 'sell', 100, 206, '2026-10-01T15:00:00.000Z', { fees: 1 })
 			],
-			{ underlying: 'AAPL', levels: [level('stop', 197, '2026-10-01T14:00:00.000Z'), level('target', 209, '2026-10-01T14:00:00.000Z')] }
+			{
+				underlying: 'AAPL',
+				levels: [
+					level('stop', 197, '2026-10-01T14:00:00.000Z'),
+					level('target', 209, '2026-10-01T14:00:00.000Z')
+				]
+			}
 		);
 		expect(v.safeParse(TradeSchema, t).success).toBe(true);
 		const m = computeTradeMetrics(t, ENGINE);
@@ -75,7 +81,10 @@ describe('trade metrics', () => {
 		const s = leg({ kind: 'stock' });
 		const t = trade(
 			[s],
-			[fill(s, 'buy', 10, 100, '2026-10-01T14:00:00.000Z'), fill(s, 'sell', 10, 99, '2026-10-01T14:05:00.000Z')],
+			[
+				fill(s, 'buy', 10, 100, '2026-10-01T14:00:00.000Z'),
+				fill(s, 'sell', 10, 99, '2026-10-01T14:05:00.000Z')
+			],
 			{ plannedRisk: 50, levels: [level('stop', 95, '2026-10-01T14:00:00.000Z')] }
 		);
 		const m = computeTradeMetrics(t, ENGINE);
@@ -144,9 +153,95 @@ describe('trade metrics', () => {
 
 	it('honours an explicit strategy override', () => {
 		const s = leg({ kind: 'stock' });
-		const t = trade([s], [fill(s, 'buy', 1, 1, '2026-10-01T14:00:00.000Z')], { strategy: 'custom' });
+		const t = trade([s], [fill(s, 'buy', 1, 1, '2026-10-01T14:00:00.000Z')], {
+			strategy: 'custom'
+		});
 		const m = computeTradeMetrics(t, ENGINE);
 		expect(m.strategy).toBe('custom');
 		expect(m.detectedStrategy).toBe('shares_long');
+	});
+});
+
+describe('execution roles', () => {
+	it('labels opens, adds, reductions, closes and flips', async () => {
+		const { classifyExecutions } = await import('../engine/position.ts');
+		const s = leg({ kind: 'stock' });
+		const e = [
+			fill(s, 'buy', 100, 10, '2026-10-01T14:00:00.000Z'),
+			fill(s, 'buy', 50, 11, '2026-10-01T14:01:00.000Z'),
+			fill(s, 'sell', 50, 12, '2026-10-01T14:02:00.000Z'),
+			fill(s, 'sell', 100, 12, '2026-10-01T14:03:00.000Z'),
+			fill(s, 'sell', 10, 12, '2026-10-01T14:04:00.000Z'),
+			fill(s, 'buy', 20, 12, '2026-10-01T14:05:00.000Z')
+		];
+		const roles = classifyExecutions(s, e);
+		expect(e.map((x) => roles.get(x.id))).toEqual([
+			'open',
+			'add',
+			'reduce',
+			'close',
+			'open',
+			'flip'
+		]);
+	});
+});
+
+describe('initial risk with adds and flips', () => {
+	it('measures 1R on the position held when the initial stop was set, not after adds', () => {
+		const s = leg({ kind: 'stock' });
+		const t = trade(
+			[s],
+			[
+				fill(s, 'buy', 100, 50, '2026-10-01T14:00:00.000Z'),
+				fill(s, 'buy', 100, 55, '2026-10-01T15:00:00.000Z'),
+				fill(s, 'sell', 200, 56, '2026-10-01T16:00:00.000Z')
+			],
+			{ levels: [level('stop', 48, '2026-10-01T14:00:00.000Z')] }
+		);
+		const m = computeTradeMetrics(t, ENGINE);
+		expect(m.netPnl).toBeCloseTo(700, 9);
+		expect(m.initialRisk).toBeCloseTo(200, 9);
+		expect(m.rMultiple).toBeCloseTo(3.5, 9);
+	});
+
+	it('includes scale-in fills made before the stop was placed', () => {
+		const s = leg({ kind: 'stock' });
+		const t = trade(
+			[s],
+			[
+				fill(s, 'buy', 50, 50, '2026-10-01T14:00:00.000Z'),
+				fill(s, 'buy', 50, 52, '2026-10-01T14:01:00.000Z'),
+				fill(s, 'sell', 100, 55, '2026-10-01T16:00:00.000Z')
+			],
+			{ levels: [level('stop', 49, '2026-10-01T14:01:00.000Z')] }
+		);
+		const m = computeTradeMetrics(t, ENGINE);
+		expect(m.initialRisk).toBeCloseTo(200, 9); // (51 - 49) × 100
+	});
+
+	it('keeps flip-opened size out of the average entry and the risk', () => {
+		const s = leg({ kind: 'stock' });
+		const t = trade(
+			[s],
+			[
+				fill(s, 'buy', 100, 50, '2026-10-01T14:00:00.000Z'),
+				fill(s, 'sell', 200, 55, '2026-10-01T15:00:00.000Z'),
+				fill(s, 'buy', 100, 53, '2026-10-01T16:00:00.000Z')
+			],
+			{ levels: [level('stop', 48, '2026-10-01T14:00:00.000Z')] }
+		);
+		const m = computeTradeMetrics(t, ENGINE);
+		expect(m.averageEntry).toBeCloseTo(50, 9);
+		expect(m.initialRisk).toBeCloseTo(200, 9);
+		expect(m.netPnl).toBeCloseTo(700, 9); // +500 long, +200 short
+	});
+});
+
+describe('trade schema', () => {
+	it('rejects duplicate child ids', () => {
+		const s = leg({ kind: 'stock' });
+		const a = fill(s, 'buy', 1, 1, '2026-10-01T14:00:00.000Z');
+		const t = trade([s], [a, { ...a }]);
+		expect(v.safeParse(TradeSchema, t).success).toBe(false);
 	});
 });

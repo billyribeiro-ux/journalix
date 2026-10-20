@@ -113,7 +113,8 @@ export function blackScholes(input: PricingInput): Greeks {
 		const Nd1 = normCdf(d1);
 		const Nd2 = normCdf(d2);
 		const price = S * dfQ * Nd1 - K * dfR * Nd2;
-		const thetaYear = (-S * dfQ * pdf * sigma) / (2 * sqrtT) - r * K * dfR * Nd2 + q * S * dfQ * Nd1;
+		const thetaYear =
+			(-S * dfQ * pdf * sigma) / (2 * sqrtT) - r * K * dfR * Nd2 + q * S * dfQ * Nd1;
 		return {
 			price,
 			delta: dfQ * Nd1,
@@ -127,7 +128,8 @@ export function blackScholes(input: PricingInput): Greeks {
 	const Nmd1 = normCdf(-d1);
 	const Nmd2 = normCdf(-d2);
 	const price = K * dfR * Nmd2 - S * dfQ * Nmd1;
-	const thetaYear = (-S * dfQ * pdf * sigma) / (2 * sqrtT) + r * K * dfR * Nmd2 - q * S * dfQ * Nmd1;
+	const thetaYear =
+		(-S * dfQ * pdf * sigma) / (2 * sqrtT) + r * K * dfR * Nmd2 - q * S * dfQ * Nmd1;
 	return {
 		price,
 		delta: -dfQ * Nmd1,
@@ -163,8 +165,15 @@ export function impliedVolatility(input: ImpliedVolInput, tolerance = 1e-8): num
 	if (price < lower - 1e-10 || price >= upper) return null;
 
 	const priceAt = (sigma: number): number =>
-		blackScholes({ right, spot: S, strike: K, years: T, rate: r, dividendYield: q, volatility: sigma })
-			.price;
+		blackScholes({
+			right,
+			spot: S,
+			strike: K,
+			years: T,
+			rate: r,
+			dividendYield: q,
+			volatility: sigma
+		}).price;
 
 	let lo = IV_MIN;
 	let hi = IV_MAX;
