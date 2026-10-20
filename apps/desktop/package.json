@@ -1,0 +1,42 @@
+{
+	"name": "@strikebook/desktop",
+	"private": true,
+	"version": "0.1.0",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
+		"test": "vitest run --project server",
+		"tauri": "tauri"
+	},
+	"dependencies": {
+		"@strikebook/core": "workspace:*",
+		"@strikebook/ui": "workspace:*",
+		"@tauri-apps/api": "catalog:",
+		"@tauri-apps/plugin-http": "catalog:",
+		"phosphor-svelte": "catalog:",
+		"valibot": "catalog:"
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-static": "catalog:",
+		"@sveltejs/kit": "catalog:",
+		"@sveltejs/vite-plugin-svelte": "catalog:",
+		"@tauri-apps/cli": "catalog:",
+		"@types/node": "catalog:",
+		"@vitest/browser-playwright": "catalog:",
+		"playwright": "catalog:",
+		"svelte": "catalog:",
+		"svelte-check": "catalog:",
+		"typescript": "catalog:",
+		"vite": "catalog:",
+		"vitest": "catalog:",
+		"vitest-browser-svelte": "catalog:"
+	},
+	"imports": {
+		"#lib": "./src/lib/index.ts",
+		"#lib/*": "./src/lib/*"
+	}
+}
