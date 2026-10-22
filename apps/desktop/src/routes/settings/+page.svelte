@@ -6,4 +6,6 @@
 	const section = $derived(settingsSection(page.url.searchParams.get('section')));
 </script>
 
+<svelte:head><title>Settings — Journalix</title></svelte:head>
+
 <SettingsScreen {section} />

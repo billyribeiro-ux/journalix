@@ -6,14 +6,108 @@
  * strike-sheet yellow — reserved for selection, focus and the primary action.
  * Gain/loss and chart palettes were validated for colour-vision deficiency
  * (OKLab ΔE ≥ 8 adjacent, contrast ≥ 3:1 against the surface) in both modes.
+ *
+ * ── HOVER-INTENT DELAY ─────────────────────────────────────────────────────────
+ * Hover that reveals or tints something waits a beat, so a cursor flying across a list does not
+ * flash every row, while a cursor that RESTS gets the response. Rules (all enforced by
+ * styles/interaction.css, which is the one place to copy the pattern from):
+ *   1. Only on real hover devices: `@media (hover: hover) and (pointer: fine)`. Touch never waits.
+ *   2. Delay on ENTER only. `transition-delay` lives on the `:hover` rule, so leaving is instant.
+ *   3. `:focus-visible` and `:active` set `transition-delay: 0s` — keyboard and press are immediate.
+ *   4. Never delay data truth: chart crosshairs, scrub readouts, validation, selection are instant.
+ *   5. Reduced motion collapses every delay to 0 (see the block at the end of this file).
+ *
+ *   --hover-delay-tint      50ms   Background/colour tint on buttons, nav items, rows, menu items.
+ *                                  Long enough to ignore a fly-by (a pointer crossing a 36px row at
+ *                                  ~1 m/s spends ~40ms on it), short enough to feel instant at rest.
+ *   --hover-delay-reveal   150ms   Secondary affordances that APPEAR on hover (row actions, copy
+ *                                  buttons). Longer than a tint because appearing UI is more
+ *                                  distracting than a colour change.
+ *   --hover-delay-overlay  200ms   Hover-opened overlays (hover cards, hover menus). Not used by
+ *                                  click-opened Menu / MultiSelect / Dialog.
+ *   --hover-delay-tooltip  450ms   First tooltip. Within --hover-warm-window of the previous one
+ *                                  closing, the next opens at 0ms ("warm"), so scanning a toolbar
+ *                                  is not a sequence of waits. Tooltips close with no delay.
+ *   --hover-warm-window    900ms   How long the "warm" state lasts after the last tooltip left.
+ *
+ *   Use: add class `hover-tint` (any control), `row-hover` (+ `hover-reveal` on children) or
+ *   `data-tip="Label"` / `{@attach tip("Label")}` (tooltip, see primitives/tooltip.ts) — or, inside a component, copy:
+ *     transition: background-color var(--duration-fast) var(--ease-out);
+ *     @media (hover: hover) and (pointer: fine) {
+ *       .thing:hover { background: var(--color-hover); transition-delay: var(--hover-delay-tint); }
+ *     }
+ *     .thing:focus-visible, .thing:active { transition-delay: 0s; }
+ *
+ * ── MOTION ─────────────────────────────────────────────────────────────────────
+ * Animate transform, opacity and colour only. Pick by intent, not by feel:
+ *   --duration-instant  80ms   Press feedback (`:active` scale/darken).
+ *   --duration-fast    120ms   Hover tint, focus ring, checkbox/switch state, tooltips.
+ *   --duration-base    200ms   Popovers, menus, drawers, toasts entering.
+ *   --duration-slow    320ms   Dialogs and other large surfaces entering.
+ *   --ease-out          decelerate; DEFAULT for anything entering or responding to input.
+ *   --ease-out-strong   a longer, softer landing for overlays (dialog, drawer, toast).
+ *   --ease-in           accelerate; for things LEAVING (exits are ~60% of the entrance time).
+ *   --ease-in-out       symmetric; for things that move between two resting places (switch thumb).
+ *   --rise              8px entrance travel for overlays.
+ * Reduced motion shortens every duration to ~0 (base.css) and removes the hover delays.
+ *
+ * ── SURFACES ───────────────────────────────────────────────────────────────────
+ * Radius: controls (--radius-sm) < panels (--radius-md) < overlays (--radius-lg).
+ * Elevation: flat panels (hairline only) < --shadow-pop (menus, popovers, tooltips)
+ *            < --shadow-overlay (dialogs, toasts, drawer).
+ * Control height on the 4px grid: --control-sm 28 · --control-dense 32 · --control 36;
+ *   coarse pointers get --control-touch (44) via the shared control/button rules.
+ *
+ * ── COLOUR ROLES (added for accessibility; evidence in the report) ─────────────
+ *   --color-control-line  Border of an interactive control (input, select, checkbox, switch
+ *                         track). ≥ 3:1 against its surface (WCAG 1.4.11); --color-line-strong is
+ *                         for decorative dividers only and is ~1.8:1.
+ *   --color-gain-text / --color-loss-text   Gain/loss as TEXT (≥ 4.5:1 on surface, tint and
+ *                         *-soft). Use the plain --color-gain / --color-loss for fills, strokes
+ *                         and chart marks.
+ *   --color-signal-fg     The signal colour as a foreground (stars, small glyphs) — 5.2:1 in light.
+ *   --color-hover / --color-pressed  Interactive surface tints (hover, active).
+ *   --color-scrim         Modal/drawer backdrop.
  */
+/*
+ * Metric-matched fallback for IBM Plex Sans. The web font swaps in after first paint; without this
+ * the system fallback is a different width, so every wrapped paragraph reflows when it lands
+ * (measured on the marketing site: 0.012 to 0.025 CLS on the blog, about and privacy pages).
+ * size-adjust scales Arial to Plex's average advance, measured with canvas.measureText over a
+ * 200-character sample: 400 weight 9786 / 9609 = 101.8%; 600 weight 10124 / 10350 = 97.8%. Ascent
+ * and descent follow Plex's hhea metrics (1.02 / 0.27 em), divided by the size-adjust applied.
+ */
+@font-face {
+	font-family: 'Journalix Plex Fallback';
+	src: local('Arial'), local('ArialMT'), local('Liberation Sans'), local('Helvetica');
+	font-weight: 100 500;
+	size-adjust: 101.8%;
+	ascent-override: 100.2%;
+	descent-override: 26.5%;
+	line-gap-override: 0%;
+}
+
+@font-face {
+	font-family: 'Journalix Plex Fallback';
+	src:
+		local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold'),
+		local('Helvetica Bold');
+	font-weight: 600 900;
+	size-adjust: 97.8%;
+	ascent-override: 104.3%;
+	descent-override: 27.6%;
+	line-gap-override: 0%;
+}
+
 :root {
+	/* Follows the OS until the user picks a theme (see the data-theme rules below), so native
+	   controls, scrollbars and the date picker never disagree with the page. */
 	color-scheme: light dark;
 
 	/* Type */
 	--font-sans:
-		'IBM Plex Sans Variable', 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
-		sans-serif;
+		'IBM Plex Sans Variable', 'IBM Plex Sans', 'Journalix Plex Fallback', ui-sans-serif, system-ui,
+		-apple-system, 'Segoe UI', sans-serif;
 	--font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
 	--text-2xs: 0.6875rem; /* 11 */
 	--text-xs: 0.75rem; /* 12 */
@@ -59,10 +153,38 @@
 	--content-max: 1440px;
 	--prose-max: 68ch;
 
+	/* Control heights (4px grid) */
+	--control-sm: 28px;
+	--control-dense: 32px;
+	--control: 36px;
+	--control-touch: 44px;
+
 	/* Motion */
 	--ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+	--ease-out-strong: cubic-bezier(0.16, 1, 0.3, 1);
+	--ease-in: cubic-bezier(0.4, 0, 1, 1);
+	--ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+	--duration-instant: 80ms;
 	--duration-fast: 120ms;
 	--duration-base: 200ms;
+	--duration-slow: 320ms;
+	--rise: 8px;
+
+	/* Hover intent (see header) */
+	--hover-delay-tint: 50ms;
+	--hover-delay-reveal: 150ms;
+	--hover-delay-overlay: 200ms;
+	--hover-delay-tooltip: 450ms;
+	--hover-warm-window: 900ms;
+
+	/* Focus ring (outline, so forced-colors and radius-following work) */
+	--focus-ring-width: 2px;
+	--focus-ring-offset: 2px;
+
+	/* Interactive tints, shared by every control */
+	--color-hover: var(--color-surface-2);
+	--color-pressed: var(--color-surface-3);
+	--color-scrim: rgb(6 12 22 / 55%);
 
 	/* Z layers */
 	--z-sticky: 10;
@@ -82,8 +204,9 @@
 	--color-line-strong: #b9c4d4;
 	--color-ink: #0f1b2d;
 	--color-ink-2: #3a4a61;
-	--color-ink-3: #64748b;
+	--color-ink-3: #566579;
 	--color-ink-inverse: #f6f8fb;
+	--color-control-line: #76849a;
 
 	--color-signal: #f2c14e;
 	--color-signal-ink: #0f1b2d;
@@ -92,9 +215,13 @@
 	--chart-entry: #9a6f00;
 	--color-focus: #2459d6;
 
+	--color-signal-fg: #8f6600;
+
 	--color-gain: #008a7e;
+	--color-gain-text: #00756a;
 	--color-gain-soft: #dcf1ee;
 	--color-loss: #ba2d1f;
+	--color-loss-text: #ba2d1f;
 	--color-loss-soft: #f8e1dd;
 	--color-neutral: #7b8798;
 	--color-warning: #9a6f00;
@@ -106,12 +233,22 @@
 	--series-4: #8b5fb9;
 	--series-5: #ba5530;
 
+	/* Chart chrome, measured on the real chart surfaces (white panel, #f6f8fb page, #eef2f7 cell,
+	   #e3e9f1 chip): --chart-text 5.55 / 5.22 / 4.94 / 4.54 : 1 (was #64748b, 4.76 on white but
+	   4.47 on the page and 4.23 on a cell). --chart-grid / --chart-axis are decorative hairlines;
+	   --chart-baseline is the zero/baseline rule a bar's direction is read against (>= 3 : 1). */
 	--chart-grid: #e3e9f1;
 	--chart-axis: #b9c4d4;
-	--chart-text: #64748b;
+	--chart-baseline: #76849a;
+	--chart-text: #586a7f;
 	--chart-crosshair: #3a4a61;
 
+	--shadow-pop: 0 6px 20px rgb(15 27 45 / 12%), 0 1px 3px rgb(15 27 45 / 8%);
 	--shadow-overlay: 0 12px 32px rgb(15 27 45 / 14%), 0 2px 6px rgb(15 27 45 / 8%);
+}
+
+:root[data-theme='light'] {
+	color-scheme: light;
 }
 
 /* ---------- Dark: ink navy ---------- */
@@ -125,8 +262,9 @@
 		--color-line-strong: #33496a;
 		--color-ink: #e7edf5;
 		--color-ink-2: #b4c1d3;
-		--color-ink-3: #8193ab;
+		--color-ink-3: #8b9cb3;
 		--color-ink-inverse: #0f1b2d;
+		--color-control-line: #667d9f;
 
 		--color-signal: #f2c14e;
 		--color-signal-ink: #0f1b2d;
@@ -135,9 +273,13 @@
 		--chart-entry: #f2c14e;
 		--color-focus: #f2c14e;
 
+		--color-signal-fg: #f2c14e;
+
 		--color-gain: #00a99c;
+		--color-gain-text: #00a99c;
 		--color-gain-soft: #0f3433;
 		--color-loss: #dd503f;
+		--color-loss-text: #f0705e;
 		--color-loss-soft: #3a1f22;
 		--color-neutral: #7d8ea6;
 		--color-warning: #d6a73a;
@@ -148,16 +290,20 @@
 		--series-4: #a377d3;
 		--series-5: #d56e49;
 
+		/* Dark: --chart-text 6.33 / 6.65 / 5.72 / 5.01 : 1 on surface / page / cell / chip. */
 		--chart-grid: #1a2a41;
 		--chart-axis: #2b3f5d;
-		--chart-text: #8193ab;
+		--chart-baseline: #667d9f;
+		--chart-text: #8d9eb5;
 		--chart-crosshair: #b4c1d3;
 
+		--shadow-pop: 0 8px 24px rgb(0 0 0 / 40%), 0 1px 3px rgb(0 0 0 / 30%);
 		--shadow-overlay: 0 16px 40px rgb(0 0 0 / 45%), 0 2px 8px rgb(0 0 0 / 30%);
 	}
 }
 
 :root[data-theme='dark'] {
+	color-scheme: dark;
 	--color-bg: #0b1626;
 	--color-surface: #0f1b2d;
 	--color-surface-2: #15243a;
@@ -166,8 +312,9 @@
 	--color-line-strong: #33496a;
 	--color-ink: #e7edf5;
 	--color-ink-2: #b4c1d3;
-	--color-ink-3: #8193ab;
+	--color-ink-3: #8b9cb3;
 	--color-ink-inverse: #0f1b2d;
+	--color-control-line: #667d9f;
 
 	--color-signal: #f2c14e;
 	--color-signal-ink: #0f1b2d;
@@ -176,9 +323,13 @@
 	--chart-entry: #f2c14e;
 	--color-focus: #f2c14e;
 
+	--color-signal-fg: #f2c14e;
+
 	--color-gain: #00a99c;
+	--color-gain-text: #00a99c;
 	--color-gain-soft: #0f3433;
 	--color-loss: #dd503f;
+	--color-loss-text: #f0705e;
 	--color-loss-soft: #3a1f22;
 	--color-neutral: #7d8ea6;
 	--color-warning: #d6a73a;
@@ -191,8 +342,42 @@
 
 	--chart-grid: #1a2a41;
 	--chart-axis: #2b3f5d;
-	--chart-text: #8193ab;
+	--chart-baseline: #667d9f;
+	--chart-text: #8d9eb5;
 	--chart-crosshair: #b4c1d3;
 
+	--shadow-pop: 0 8px 24px rgb(0 0 0 / 40%), 0 1px 3px rgb(0 0 0 / 30%);
 	--shadow-overlay: 0 16px 40px rgb(0 0 0 / 45%), 0 2px 8px rgb(0 0 0 / 30%);
+}
+
+/* ---------- Higher contrast on request ---------- */
+@media (prefers-contrast: more) {
+	:root:root:root {
+		--color-line: var(--color-control-line);
+		--color-line-strong: var(--color-ink-3);
+		--color-control-line: var(--color-ink-3);
+		--color-ink-3: var(--color-ink-2);
+		--focus-ring-width: 3px;
+	}
+}
+
+/* ---------- Charts under prefers-contrast: more ---------- */
+@media (prefers-contrast: more) {
+	:root:root:root {
+		--chart-text: var(--color-ink);
+		--chart-grid: var(--color-line-strong);
+		--chart-axis: var(--color-control-line);
+		--chart-baseline: var(--color-ink-2);
+	}
+}
+
+/* ---------- No hover-intent wait when motion is reduced ---------- */
+@media (prefers-reduced-motion: reduce) {
+	:root {
+		--hover-delay-tint: 0ms;
+		--hover-delay-reveal: 0ms;
+		--hover-delay-overlay: 0ms;
+		--hover-delay-tooltip: 0ms;
+		--hover-warm-window: 0ms;
+	}
 }

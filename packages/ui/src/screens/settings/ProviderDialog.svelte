@@ -160,7 +160,7 @@
 	{#if step === 'choose'}
 		<ul class="choices" role="list">
 			{#each PROVIDER_ORDER as pid (pid)}
-				{@const p = PROVIDERS[pid]}
+				{const p = PROVIDERS[pid]}
 				<li>
 					<button type="button" class="choice" onclick={() => choose(pid)}>
 						<span class="choice-head">
@@ -280,13 +280,27 @@
 		color: inherit;
 	}
 
-	.choice:hover {
-		border-color: var(--color-line-strong);
-		background: var(--color-surface-2);
+	.choice {
+		transition:
+			background-color var(--duration-fast) var(--ease-out),
+			border-color var(--duration-fast) var(--ease-out);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.choice:hover {
+			border-color: var(--color-line-strong);
+			background: var(--color-hover);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	.choice:focus-visible,
+	.choice:active {
+		transition-delay: 0s;
 	}
 
 	.choice:focus-visible {
-		outline: 2px solid var(--color-focus);
+		outline: var(--focus-ring-width) solid var(--color-focus);
 		outline-offset: 2px;
 	}
 

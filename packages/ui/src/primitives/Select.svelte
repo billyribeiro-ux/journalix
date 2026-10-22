@@ -58,16 +58,24 @@
 
 	select {
 		appearance: none;
-		padding-right: calc(var(--space-3) + 16px);
+		padding-inline-end: calc(var(--space-3) + 16px);
 		cursor: pointer;
+	}
+
+	select:disabled {
+		cursor: not-allowed;
 	}
 
 	.chevron {
 		position: absolute;
-		right: var(--space-3);
+		inset-inline-end: var(--space-3);
 		top: 50%;
 		transform: translateY(-50%);
 		color: var(--color-ink-3);
 		pointer-events: none;
+	}
+
+	.wrap:has(select:disabled) .chevron {
+		opacity: 0.55;
 	}
 </style>

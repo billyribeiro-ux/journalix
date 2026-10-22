@@ -195,8 +195,8 @@
 			</thead>
 			<tbody>
 				{#each rows as row (row.account.id)}
-					{@const c = row.account.currency}
-					<tr class:archived={row.account.archived}>
+					{const c = $derived(row.account.currency)}
+					<tr class={['row-hover', { archived: row.account.archived }]}>
 						<th scope="row">
 							<span class="name">{row.account.name}</span>
 							{#if row.account.broker}<span class="broker">{row.account.broker}</span>{/if}
@@ -274,7 +274,7 @@
 	</form>
 	{#snippet footer()}
 		{#if !isNew}
-			{@const row = rows.find((r) => r.account.id === draft.id)}
+			{const row = $derived(rows.find((r) => r.account.id === draft.id))}
 			{#if row}<Button variant="danger" onclick={() => askDelete(row)}>Delete</Button>{/if}
 		{/if}
 		<span class="grow"></span>
@@ -309,10 +309,35 @@
 
 <style>
 	.table-wrap {
+		/* Contains the visually-hidden "Actions" header, which would otherwise widen the page. */
+		position: relative;
 		overflow-x: auto;
 		background: var(--color-surface);
 		border: 1px solid var(--color-line);
 		border-radius: var(--radius-md);
+	}
+
+	/* On a narrow screen the account name stays put while the figures scroll beneath it. */
+	tbody th[scope='row'] {
+		position: sticky;
+		inset-inline-start: 0;
+		z-index: 1;
+		background: var(--color-surface);
+		transition: background-color var(--duration-fast) var(--ease-out);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		tbody tr:hover th[scope='row'] {
+			background: var(--color-hover);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	thead th:first-child {
+		position: sticky;
+		inset-inline-start: 0;
+		z-index: 1;
+		background: var(--color-surface);
 	}
 
 	table {

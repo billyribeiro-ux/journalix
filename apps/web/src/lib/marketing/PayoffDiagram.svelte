@@ -14,6 +14,9 @@
 
 	let { legs, range, spot, rate = 0.04, title, description }: Props = $props();
 
+	// Unique per instance, so several diagrams on one page never share ids.
+	const uid = $props.id();
+
 	const W = 560;
 	const H = 280;
 	const PAD = { top: 20, right: 16, bottom: 36, left: 64 };
@@ -67,7 +70,8 @@
 		const ticks: number[] = [0];
 		if (profile.maxProfit !== null) ticks.push(profile.maxProfit);
 		if (profile.maxLoss !== null) ticks.push(profile.maxLoss);
-		return ticks;
+		// A payoff that never loses (or never gains) repeats the zero line; keys must stay unique.
+		return [...new Set(ticks)];
 	});
 
 	const strikes = $derived([
@@ -76,9 +80,9 @@
 </script>
 
 <figure class="payoff">
-	<svg viewBox="0 0 {W} {H}" role="img" aria-labelledby="payoff-title payoff-desc">
-		<title id="payoff-title">{title}</title>
-		<desc id="payoff-desc">{description}</desc>
+	<svg viewBox="0 0 {W} {H}" role="img" aria-labelledby="{uid}-title {uid}-desc">
+		<title id="{uid}-title">{title}</title>
+		<desc id="{uid}-desc">{description}</desc>
 
 		<path class="zone gain" d={zone(1)} />
 		<path class="zone loss" d={zone(-1)} />
@@ -117,6 +121,7 @@
 		display: grid;
 		gap: var(--space-3);
 		min-width: 0;
+		container-type: inline-size;
 	}
 
 	svg {
@@ -154,9 +159,19 @@
 		stroke-width: 1;
 	}
 
+	/* ink-3 (5.9:1 on the white panel, 6.2:1 in dark) rather than the chart token (4.8:1 light): these
+	   are the only numbers on the diagram, so they get the more comfortable margin. */
 	.tick {
-		fill: var(--chart-text);
+		fill: var(--color-ink-3);
 		font-size: 12px;
+	}
+
+	/* The drawing scales with its container, so 12 user units fall to about 7px on a phone. Grow the
+	   labels in user units as the box narrows to keep them near 9 to 10 rendered pixels. */
+	@container (max-width: 480px) {
+		.tick {
+			font-size: 16px;
+		}
 	}
 
 	.expiry {

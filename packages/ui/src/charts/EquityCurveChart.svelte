@@ -7,7 +7,7 @@
 	import ChartTooltip from './ChartTooltip.svelte';
 	import ScrubSurface from './ScrubSurface.svelte';
 	import type { AxisTick, TableRow, TooltipRow } from './chart-utils.ts';
-	import { compactMoney, textWidth, tickCount } from './chart-utils.ts';
+	import { compactMoney, moneyTickLabels, textWidth, tickCount } from './chart-utils.ts';
 
 	interface Props {
 		points: readonly EquityPoint[];
@@ -67,7 +67,7 @@
 	});
 
 	const yTicksRaw = $derived(yScaleRaw.ticks(tickCount(mainHeight - 24, 44)));
-	const yTickLabels = $derived(yTicksRaw.map((t) => compactMoney(t, currency)));
+	const yTickLabels = $derived(moneyTickLabels(yTicksRaw, currency));
 
 	const ddDomainMin = $derived.by(() => {
 		let lo = 0;
@@ -343,7 +343,7 @@
 							/>
 						{/if}
 						{#if ddLabel}
-							<text class="annotation" x={ddLabel.x} y={10}>{ddLabel.text}</text>
+							<text class="annotation halo" x={ddLabel.x} y={10}>{ddLabel.text}</text>
 						{/if}
 
 						<g clip-path="url(#{clipId})">
@@ -489,7 +489,7 @@
 	}
 
 	.axis {
-		stroke: var(--chart-axis);
+		stroke: var(--chart-baseline);
 		stroke-width: 1;
 		shape-rendering: crispEdges;
 	}
@@ -521,7 +521,7 @@
 	}
 
 	.baseline {
-		stroke: var(--chart-axis);
+		stroke: var(--chart-baseline);
 		stroke-width: 1;
 		shape-rendering: crispEdges;
 	}

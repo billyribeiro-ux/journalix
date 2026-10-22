@@ -85,8 +85,8 @@
 		<circle
 			cx={end.x}
 			cy={end.y}
-			r="2.5"
-			fill={accentLast ? 'var(--color-signal)' : stroke}
+			r="3"
+			fill={accentLast ? 'var(--color-signal-fg)' : stroke}
 			stroke="var(--color-surface)"
 			stroke-width="2"
 			paint-order="stroke"

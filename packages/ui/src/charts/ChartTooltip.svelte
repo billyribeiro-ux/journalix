@@ -18,18 +18,33 @@
 
 	let w = $state(0);
 	let h = $state(0);
+	/**
+	 * Widest the card has been while this tooltip stayed mounted. Scrubbing changes the text but the
+	 * card never narrows, so its edge (and the side it flipped to) does not jitter under the pointer.
+	 */
+	let widest = $state(0);
+
+	/** A finger covers what it touches, so on touch the card sits above the anchor instead of beside it. */
+	const coarse = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+
+	const cardW = $derived(Math.max(w, widest));
 
 	const left = $derived.by(() => {
 		if (w === 0) return x + offset;
+		if (coarse) return Math.max(0, Math.min(boundsWidth - cardW, x - cardW / 2));
 		const right = x + offset;
-		if (right + w <= boundsWidth) return right;
-		const leftSide = x - offset - w;
+		if (right + cardW <= boundsWidth) return right;
+		const leftSide = x - offset - cardW;
 		if (leftSide >= 0) return leftSide;
-		return Math.max(0, Math.min(boundsWidth - w, x - w / 2));
+		return Math.max(0, Math.min(boundsWidth - cardW, x - cardW / 2));
 	});
 
 	const top = $derived.by(() => {
 		if (h === 0) return y;
+		if (coarse) {
+			const above = y - h - 20;
+			return above >= 0 ? above : Math.min(Math.max(0, boundsHeight - h), y + 20);
+		}
 		const centred = y - h / 2;
 		return Math.max(0, Math.min(Math.max(0, boundsHeight - h), centred));
 	});
@@ -41,9 +56,16 @@
 	style:left="{left}px"
 	style:top="{top}px"
 	style:max-width="{Math.max(140, Math.min(260, boundsWidth))}px"
+	style:min-width="{Math.max(132, widest)}px"
 	style:visibility={w === 0 ? 'hidden' : 'visible'}
-	bind:clientWidth={w}
-	bind:clientHeight={h}
+	bind:offsetWidth={
+		() => w,
+		(v) => {
+			w = v;
+			if (v > widest) widest = Math.ceil(v);
+		}
+	}
+	bind:offsetHeight={h}
 >
 	<p class="title">{title}</p>
 	{#if rows.length > 0}
@@ -67,7 +89,6 @@
 		position: absolute;
 		z-index: var(--z-overlay);
 		pointer-events: none;
-		min-width: 132px;
 		padding: var(--space-2) var(--space-3);
 		background: var(--color-surface);
 		border: 1px solid var(--color-line-strong);
@@ -77,9 +98,20 @@
 		line-height: var(--leading-snug);
 		color: var(--color-ink);
 		white-space: nowrap;
+		/* Size to the content, not to the room left of the anchor: measuring happens before placement. */
+		width: max-content;
+		font-variant-numeric: tabular-nums;
+	}
+
+	@media (forced-colors: active) {
+		.tooltip {
+			border-color: CanvasText;
+			box-shadow: none;
+		}
 	}
 
 	.title {
+		white-space: nowrap;
 		font-weight: 600;
 		color: var(--color-ink);
 		overflow: hidden;
@@ -105,9 +137,11 @@
 		color: var(--color-ink-3);
 	}
 
+	/* Values lead: the reader has the series and wants the number, so it is the strong element. */
 	dd {
 		margin: 0;
 		color: var(--color-ink);
+		font-weight: 600;
 		font-variant-numeric: tabular-nums;
 		text-align: right;
 	}
@@ -117,5 +151,6 @@
 		height: 8px;
 		border-radius: 2px;
 		flex: none;
+		forced-color-adjust: none;
 	}
 </style>

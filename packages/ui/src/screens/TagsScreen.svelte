@@ -173,7 +173,12 @@
 		{#each grouped as group (group.value)}
 			<Panel title={group.label} subtitle={group.help} flush>
 				{#snippet actions()}
-					<Button size="sm" variant="ghost" onclick={() => create(group.value)}>Add</Button>
+					<Button
+						size="sm"
+						variant="ghost"
+						aria-label="Add a tag to {group.label}"
+						onclick={() => create(group.value)}>Add</Button
+					>
 				{/snippet}
 				{#if group.tags.length}
 					<table>
@@ -190,8 +195,8 @@
 						</thead>
 						<tbody>
 							{#each group.tags as tag (tag.id)}
-								{@const s = stats.get(tag.id)}
-								<tr>
+								{const s = $derived(stats.get(tag.id))}
+								<tr class="row-hover">
 									<th scope="row">
 										<button
 											type="button"
@@ -202,6 +207,13 @@
 											<span class="dot" style:background={tag.color} aria-hidden="true"
 											></span>{tag.name}
 										</button>
+										<span class="sub"
+											>{usage.get(tag.id) ?? 0}
+											{(usage.get(tag.id) ?? 0) === 1 ? 'trade' : 'trades'} · {formatPercent(
+												s?.winRate ?? null
+											)}
+											win · {formatR(s?.averageR ?? null)}</span
+										>
 									</th>
 									<td class="num">{usage.get(tag.id) ?? 0}</td>
 									<td class="num">{formatPercent(s?.winRate ?? null)}</td>
@@ -211,25 +223,34 @@
 											>{/if}</td
 									>
 									<td class="row-actions">
-										<IconButton label="Edit {tag.name}" size="sm" onclick={() => edit(tag)}
-											><PencilSimpleIcon size={16} /></IconButton
-										>
-										<IconButton
-											label="Delete {tag.name}"
-											size="sm"
-											tone="danger"
-											onclick={() => {
-												pendingDelete = tag;
-												confirmOpen = true;
-											}}><TrashIcon size={16} /></IconButton
-										>
+										<span class="hover-reveal actions">
+											<IconButton
+												label="Edit {tag.name}"
+												size="sm"
+												data-tip-pos="end"
+												onclick={() => edit(tag)}><PencilSimpleIcon size={16} /></IconButton
+											>
+											<IconButton
+												label="Delete {tag.name}"
+												size="sm"
+												tone="danger"
+												data-tip-pos="end"
+												onclick={() => {
+													pendingDelete = tag;
+													confirmOpen = true;
+												}}><TrashIcon size={16} /></IconButton
+											>
+										</span>
 									</td>
 								</tr>
 							{/each}
 						</tbody>
 					</table>
 				{:else}
-					<p class="none">No {group.label.toLowerCase()} yet.</p>
+					<div class="none">
+						<p>No {group.label.toLowerCase()} yet.</p>
+						<Button size="sm" onclick={() => create(group.value)}>Add the first one</Button>
+					</div>
 				{/if}
 			</Panel>
 		{/each}
@@ -267,8 +288,11 @@
 <ConfirmDialog
 	bind:open={confirmOpen}
 	title="Delete {pendingDelete?.name ?? 'tag'}?"
-	message="The tag is removed from {usage.get(pendingDelete?.id ?? '') ??
-		0} trades. Their fills and P&L are unchanged."
+	message="The tag is removed from {usage.get(pendingDelete?.id ?? '') ?? 0} {(usage.get(
+		pendingDelete?.id ?? ''
+	) ?? 0) === 1
+		? 'trade'
+		: 'trades'}. Their fills and P&L are unchanged."
 	confirmLabel="Delete tag"
 	tone="danger"
 	onconfirm={remove}
@@ -291,6 +315,71 @@
 		width: 100%;
 		border-collapse: collapse;
 		font-size: var(--text-sm);
+		/* The same column widths in every category, so the four tables read as one grid. */
+		table-layout: fixed;
+		/* Contains the visually-hidden "Actions" header, which would otherwise widen the page. */
+		position: relative;
+	}
+
+	thead th {
+		white-space: nowrap;
+	}
+
+	th:nth-child(2) {
+		width: 4.5rem;
+	}
+
+	th:nth-child(3) {
+		width: 5.5rem;
+	}
+
+	th:nth-child(4) {
+		width: 4.5rem;
+	}
+
+	th:nth-child(5) {
+		width: 7.5rem;
+	}
+
+	th:nth-child(6) {
+		width: 5.25rem;
+	}
+
+	tbody th {
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.sub {
+		display: none;
+		margin-top: 2px;
+		font-size: var(--text-xs);
+		font-weight: 400;
+		color: var(--color-ink-3);
+	}
+
+	/* On a phone the figures drop under the tag name and only Net P&L keeps a column. */
+	@media (max-width: 640px) {
+		th:nth-child(2),
+		td:nth-child(2),
+		th:nth-child(3),
+		td:nth-child(3),
+		th:nth-child(4),
+		td:nth-child(4) {
+			display: none;
+		}
+
+		.sub {
+			display: block;
+		}
+
+		th:nth-child(5) {
+			width: 6.5rem;
+		}
+
+		th:nth-child(6) {
+			width: 5.5rem;
+		}
 	}
 
 	th,
@@ -322,8 +411,19 @@
 		text-align: left;
 	}
 
+	.tag-link {
+		min-height: 24px;
+	}
+
+	@media (pointer: coarse) {
+		.tag-link {
+			min-height: var(--control-touch);
+		}
+	}
+
 	.tag-link:hover {
 		text-decoration: underline;
+		cursor: pointer;
 	}
 
 	.tag-link:focus-visible {
@@ -339,15 +439,26 @@
 	}
 
 	.row-actions {
-		width: 1%;
 		white-space: nowrap;
 		text-align: right;
+		padding-inline: var(--space-2);
+	}
+
+	.actions {
+		display: inline-flex;
 	}
 
 	.none {
+		display: grid;
+		justify-items: start;
+		gap: var(--space-2);
 		padding: var(--space-4);
 		color: var(--color-ink-3);
 		font-size: var(--text-sm);
+	}
+
+	.none p {
+		margin: 0;
 	}
 
 	.form {

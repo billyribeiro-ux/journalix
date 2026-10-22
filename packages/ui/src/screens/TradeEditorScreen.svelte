@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
+	import { tick, untrack } from 'svelte';
 	import {
+		formatMoney,
 		newId,
 		STRATEGIES,
 		STRATEGY_KINDS,
@@ -45,6 +46,32 @@
 		duplicate: untrack(() => duplicateOf !== undefined),
 		accountId: journal.filter.accountIds[0] ?? journal.activeAccounts[0]?.id ?? ''
 	});
+
+	/**
+	 * What the form holds, as one comparable string. `$state.snapshot` makes the draft's nested
+	 * state plain data; the id and creation time are fixed at construction, so they are not part of it.
+	 */
+	const signature = (): string =>
+		JSON.stringify(
+			$state.snapshot([
+				draft.accountId,
+				draft.assetClass,
+				draft.underlying,
+				draft.strategy,
+				draft.playbookId,
+				draft.tagIds,
+				draft.plannedRisk,
+				draft.thesis,
+				draft.review,
+				draft.rating,
+				draft.confidence,
+				draft.legs,
+				draft.executions,
+				draft.levels
+			])
+		);
+	const pristine = untrack(signature);
+	const dirty = $derived(signature() !== pristine);
 
 	let issues = $state<ReadonlyMap<string, string>>(new Map());
 	let saving = $state(false);
@@ -136,6 +163,9 @@
 			issues = result.issues;
 			const first = [...result.issues.entries()][0];
 			toaster.error('Check the highlighted fields', first ? first[1] : undefined);
+			// Take the keyboard to the first problem instead of leaving it on the Save button.
+			await tick();
+			document.querySelector<HTMLElement>('form.layout [aria-invalid="true"]')?.focus();
 			return;
 		}
 		issues = new Map();
@@ -158,6 +188,24 @@
 		}
 	}
 
+	// Closing the tab or window with edits that were never saved asks first. In-app navigation is
+	// the host router's business and is not intercepted here.
+	function onbeforeunload(event: BeforeUnloadEvent): void {
+		if (dirty && !saving) event.preventDefault();
+	}
+
+	const netLabel = $derived(
+		metrics
+			? formatMoney(metrics.status === 'closed' ? metrics.netPnl : metrics.grossPnl, {
+					currency,
+					signed: true
+				})
+			: null
+	);
+	const netTone = $derived(
+		!metrics ? '' : metrics.netPnl > 0 ? 'gain' : metrics.netPnl < 0 ? 'loss' : ''
+	);
+
 	const title = editing
 		? 'Edit trade'
 		: untrack(() => duplicateOf)
@@ -168,7 +216,7 @@
 	);
 </script>
 
-<svelte:window {onkeydown} />
+<svelte:window {onkeydown} {onbeforeunload} />
 
 {#if missing}
 	<EmptyState
@@ -330,24 +378,37 @@
 			</Panel>
 
 			<div class="footer-actions">
+				<p class={['status', { dirty }]} aria-live="polite">
+					{#if dirty}
+						<span class="dot" aria-hidden="true"></span>Unsaved changes
+					{:else}
+						<span class="hint">Ctrl or Cmd + S saves</span>
+					{/if}
+				</p>
+				{#if netLabel}
+					<p class={['net', 'num', netTone]}>
+						<span class="net-label">{metrics?.status === 'closed' ? 'Net' : 'Realized'}</span>
+						{netLabel}
+					</p>
+				{/if}
 				<Button href={cancelHref} variant="ghost">Cancel</Button>
 				<Button type="submit" variant="primary" busy={saving}
 					>{editing ? 'Save changes' : 'Save trade'}</Button
 				>
 			</div>
 		</div>
+		{#if issues.size > 0}
+			<div class="issues" role="alert">
+				<h2>Fix before saving</h2>
+				<ul>
+					{#each [...issues.entries()].slice(0, 8) as [key, message] (key)}
+						<li>{message}</li>
+					{/each}
+				</ul>
+			</div>
+		{/if}
 		<div class="side">
 			<SummaryPanel {metrics} {currency} />
-			{#if issues.size > 0}
-				<div class="issues" role="alert">
-					<h2>Fix before saving</h2>
-					<ul>
-						{#each [...issues.entries()].slice(0, 8) as [key, message] (key)}
-							<li>{message}</li>
-						{/each}
-					</ul>
-				</div>
-			{/if}
 		</div>
 	</form>
 {/if}
@@ -356,15 +417,25 @@
 	.layout {
 		display: grid;
 		gap: var(--space-5);
+		grid-template-areas:
+			'issues'
+			'main'
+			'side';
+	}
+
+	.issues {
+		grid-area: issues;
 	}
 
 	.main {
+		grid-area: main;
 		display: grid;
 		gap: var(--space-5);
 		min-width: 0;
 	}
 
 	.side {
+		grid-area: side;
 		display: grid;
 		gap: var(--space-4);
 		align-content: start;
@@ -434,11 +505,30 @@
 		gap: 6px;
 		height: 28px;
 		padding: 0 var(--space-3);
-		border: 1px solid var(--color-line-strong);
+		border: 1px solid var(--color-control-line);
 		border-radius: var(--radius-pill);
 		background: var(--color-surface);
 		color: var(--color-ink-2);
 		font-size: var(--text-sm);
+		transition: background-color var(--duration-fast) var(--ease-out);
+	}
+
+	@media (pointer: coarse) {
+		.chip {
+			height: var(--control-touch);
+		}
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.chip:hover:not([aria-pressed='true']) {
+			background: var(--color-hover);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	.chip:focus-visible,
+	.chip:active {
+		transition-delay: 0s;
 	}
 
 	.chip[aria-pressed='true'] {
@@ -470,14 +560,72 @@
 		gap: var(--space-1);
 	}
 
+	/* Stays within reach while the long form scrolls: save, cancel, and what is unsaved. */
 	.footer-actions {
+		position: sticky;
+		bottom: max(var(--space-3), env(safe-area-inset-bottom));
+		z-index: var(--z-sticky);
 		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
 		justify-content: flex-end;
+		gap: var(--space-2) var(--space-3);
+		padding: var(--space-2) var(--space-3);
+		border: 1px solid var(--color-line-strong);
+		border-radius: var(--radius-md);
+		background: var(--color-surface);
+		box-shadow: var(--shadow-pop);
+	}
+
+	.status {
+		margin: 0 auto 0 0;
+		display: inline-flex;
+		align-items: center;
 		gap: var(--space-2);
+		font-size: var(--text-sm);
+		color: var(--color-ink-3);
+	}
+
+	.status.dirty {
+		color: var(--color-ink);
+		font-weight: 500;
+	}
+
+	.status .dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--color-signal);
+		box-shadow: 0 0 0 1px var(--color-signal-fg);
+	}
+
+	.hint {
+		display: none;
+	}
+
+	.net {
+		margin: 0;
+		font-size: var(--text-sm);
+		font-weight: 600;
+	}
+
+	.net-label {
+		margin-inline-end: var(--space-1);
+		font-weight: 500;
+		color: var(--color-ink-3);
+	}
+
+	.net.gain {
+		color: var(--color-gain-text);
+	}
+
+	.net.loss {
+		color: var(--color-loss-text);
 	}
 
 	.issues {
 		padding: var(--space-4);
+		scroll-margin-top: var(--space-6);
 		border: 1px solid color-mix(in oklab, var(--color-loss) 50%, transparent);
 		border-radius: var(--radius-md);
 		background: var(--color-loss-soft);
@@ -498,12 +646,26 @@
 	@media (min-width: 1180px) {
 		.layout {
 			grid-template-columns: minmax(0, 1fr) 320px;
+			grid-template-areas:
+				'main issues'
+				'main side'
+				'main .';
+			grid-template-rows: auto auto 1fr;
 			align-items: start;
 		}
 
 		.side {
 			position: sticky;
 			top: calc(var(--space-6));
+		}
+
+		/* The summary is beside the form here, so the bar drops its duplicate of the figure. */
+		.net {
+			display: none;
+		}
+
+		.hint {
+			display: inline;
 		}
 	}
 </style>

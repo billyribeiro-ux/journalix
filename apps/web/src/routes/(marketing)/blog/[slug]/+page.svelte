@@ -14,6 +14,9 @@
 	const post = $derived(data.post);
 	const path = $derived(`/blog/${post.slug}`);
 	const others = $derived(POSTS.filter((p) => p.slug !== post.slug));
+	const headings = $derived(
+		post.body.flatMap((block) => (block.type === 'h2' ? [{ id: block.id, text: block.text }] : []))
+	);
 
 	const jsonLd = $derived([
 		{
@@ -50,7 +53,20 @@
 		</p>
 	</header>
 
-	<PostBody blocks={post.body} />
+	<div class="doc-grid">
+		<PostBody blocks={post.body} />
+
+		{#if headings.length > 1}
+			<nav class="doc-toc" aria-labelledby="toc-title">
+				<h2 id="toc-title">On this page</h2>
+				<ol role="list">
+					{#each headings as heading (heading.id)}
+						<li><a href="#{heading.id}">{heading.text}</a></li>
+					{/each}
+				</ol>
+			</nav>
+		{/if}
+	</div>
 
 	<aside class="post-cta" aria-labelledby="post-cta-title">
 		<h2 id="post-cta-title">Measure your own trades this way</h2>
@@ -91,27 +107,26 @@
 	}
 
 	.back a {
+		display: inline-flex;
+		align-items: center;
+		min-height: 28px;
 		color: var(--color-ink-3);
 		font-size: var(--text-sm);
 		font-weight: 500;
+		text-underline-offset: 0.22em;
+	}
+
+	@media (pointer: coarse) {
+		.back a {
+			min-height: var(--control-touch);
+		}
 	}
 
 	h1 {
 		font-size: clamp(var(--text-2xl), 5vw, var(--text-4xl));
 		line-height: 1.08;
 		letter-spacing: var(--tracking-display);
-	}
-
-	.lede {
-		max-width: 60ch;
-	}
-
-	.meta {
-		display: flex;
-		flex-wrap: wrap;
-		gap: var(--space-4);
-		color: var(--color-ink-3);
-		font-size: var(--text-sm);
+		text-wrap: balance;
 	}
 
 	.post-cta {
@@ -156,6 +171,16 @@
 	}
 
 	.more a {
+		display: inline-flex;
+		align-items: center;
+		min-height: 28px;
 		font-weight: 500;
+		text-underline-offset: 0.22em;
+	}
+
+	@media (pointer: coarse) {
+		.more a {
+			min-height: var(--control-touch);
+		}
 	}
 </style>

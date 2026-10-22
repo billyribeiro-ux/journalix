@@ -4,6 +4,7 @@
 	import Button from '../../primitives/Button.svelte';
 	import IconButton from '../../primitives/IconButton.svelte';
 	import NumberInput from '../../primitives/NumberInput.svelte';
+	import '../../primitives/control.css';
 	import type { TradeDraft } from './draft.svelte.ts';
 
 	interface Props {
@@ -42,14 +43,14 @@
 						<span>Set at</span>
 						<input
 							type="datetime-local"
-							class="dt"
+							class="control"
 							bind:value={level.setAt}
 							aria-label="{level.kind} set at"
 						/>
 					</label>
 					<label class="note">
 						<span>Note</span>
-						<input type="text" class="text" bind:value={level.note} maxlength="1000" />
+						<input type="text" class="control" bind:value={level.note} maxlength="1000" />
 					</label>
 					<IconButton
 						label="Remove {level.kind}"
@@ -79,7 +80,7 @@
 
 	.row {
 		display: grid;
-		grid-template-columns: 64px minmax(100px, 140px) minmax(170px, 210px) minmax(120px, 1fr) auto;
+		grid-template-columns: 64px minmax(100px, 140px) minmax(210px, 240px) minmax(120px, 1fr) auto;
 		align-items: end;
 		gap: var(--space-3);
 		padding: var(--space-2) var(--space-3);
@@ -108,17 +109,6 @@
 		font-size: var(--text-xs);
 		color: var(--color-ink-3);
 		min-width: 0;
-	}
-
-	.dt,
-	.text {
-		min-height: 36px;
-		padding: 0 var(--space-2);
-		border: 1px solid var(--color-line-strong);
-		border-radius: var(--radius-sm);
-		background: var(--color-surface);
-		width: 100%;
-		font-size: var(--text-sm);
 	}
 
 	.actions {

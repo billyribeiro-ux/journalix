@@ -63,37 +63,71 @@
 	button {
 		position: relative;
 		border: 0;
+		border-radius: var(--radius-xs);
 		background: transparent;
 		padding: var(--space-3) 0;
 		color: var(--color-ink-3);
 		font-size: var(--text-base);
 		font-weight: 500;
+		line-height: var(--leading-snug);
 		white-space: nowrap;
 		display: inline-flex;
 		align-items: center;
 		gap: var(--space-2);
+		transition: color var(--duration-fast) var(--ease-out);
 	}
 
-	button:hover {
-		color: var(--color-ink);
+	@media (pointer: coarse) {
+		button {
+			min-height: var(--control-touch);
+		}
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		button:hover {
+			color: var(--color-ink);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	button:focus-visible,
+	button:active {
+		transition-delay: 0s;
+	}
+
+	/* The tab strip scrolls, so the ring sits inside it rather than being clipped. */
+	button:focus-visible {
+		outline-offset: -2px;
 	}
 
 	button[aria-selected='true'] {
 		color: var(--color-ink);
 	}
 
-	button[aria-selected='true']::after {
+	button::after {
 		content: '';
 		position: absolute;
-		left: 0;
-		right: 0;
+		inset-inline: 0;
 		bottom: -1px;
 		height: 2px;
 		background: var(--color-signal);
+		transform: scaleX(0);
+		transition: transform var(--duration-base) var(--ease-out-strong);
+	}
+
+	button[aria-selected='true']::after {
+		transform: scaleX(1);
 	}
 
 	.count {
 		font-size: var(--text-xs);
 		color: var(--color-ink-3);
+	}
+
+	@media (forced-colors: active) {
+		button::after {
+			forced-color-adjust: none;
+			background: Highlight;
+		}
 	}
 </style>

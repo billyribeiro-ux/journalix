@@ -1,12 +1,30 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import { Button, Field, TextInput } from '@journalix/ui';
 	import AuthCard from '#lib/auth/AuthCard.svelte';
+	import PasswordField from '#lib/auth/PasswordField.svelte';
 	import type { PageProps } from './$types';
 
 	let { form, data }: PageProps = $props();
 	let busy = $state(false);
+	let password = $state('');
+
+	const MIN_PASSWORD = 15;
+	// A live count instead of a rule the person has to remember; the rule text returns once met.
+	const passwordHelp = $derived(
+		password.length === 0
+			? 'At least 15 characters. A short phrase is easier to remember and harder to guess.'
+			: password.length < MIN_PASSWORD
+				? `${password.length} of ${MIN_PASSWORD} characters. A short phrase works well.`
+				: `${password.length} characters. That length is fine.`
+	);
+	// A rejection that was about length goes away once the length is fixed, instead of lingering
+	// until the next submit.
+	const passwordError = $derived(
+		form?.field === 'password' && password.length < MIN_PASSWORD ? form.message : null
+	);
 	const planName = $derived(data.plan ? data.plan[0]?.toUpperCase() + data.plan.slice(1) : null);
 </script>
 
@@ -23,14 +41,21 @@
 	subtitle={planName
 		? `${planName} plan — every feature is free during early access.`
 		: 'Every feature is free during early access.'}
+	error={form?.message && !form.field ? form.message : null}
 >
 	<form
 		method="POST"
+		novalidate
 		use:enhance={() => {
 			busy = true;
-			return async ({ update }) => {
+			return async ({ result, update }) => {
 				await update({ reset: false });
 				busy = false;
+				if (result.type === 'failure') {
+					// Move to the first field the server rejected.
+					await tick();
+					document.querySelector<HTMLElement>('form [aria-invalid="true"]')?.focus();
+				}
 			};
 		}}
 	>
@@ -55,25 +80,17 @@
 				invalid={form?.field === 'email'}
 			/>
 		</Field>
-		<Field
+		<PasswordField
 			label="Password"
-			for="password"
-			help="At least 15 characters. A short phrase is easier to remember and harder to guess."
-			error={form?.field === 'password' ? form.message : null}
-		>
-			<TextInput
-				id="password"
-				name="password"
-				type="password"
-				autocomplete="new-password"
-				minlength={15}
-				maxlength={128}
-				required
-				invalid={form?.field === 'password'}
-				describedBy="password-help"
-			/>
-		</Field>
-		{#if form?.message && !form.field}<p class="error" role="alert">{form.message}</p>{/if}
+			id="password"
+			name="password"
+			autocomplete="new-password"
+			minlength={MIN_PASSWORD}
+			maxlength={128}
+			bind:value={password}
+			help={passwordHelp}
+			error={passwordError}
+		/>
 		<Button type="submit" variant="primary" {busy}>Create account</Button>
 	</form>
 	{#snippet footer()}
@@ -85,10 +102,5 @@
 	form {
 		display: grid;
 		gap: var(--space-4);
-	}
-
-	.error {
-		color: var(--color-loss);
-		font-size: var(--text-sm);
 	}
 </style>

@@ -56,42 +56,40 @@
 		onchange?.(values);
 	}
 
-	$effect(() => {
-		if (!open) return;
-		const onpointer = (event: PointerEvent): void => {
-			if (root && !root.contains(event.target as Node)) open = false;
-		};
-		const onkey = (event: KeyboardEvent): void => {
-			if (event.key === 'Escape') {
-				open = false;
-				root?.querySelector<HTMLButtonElement>('.trigger')?.focus();
-			}
-		};
-		document.addEventListener('pointerdown', onpointer);
-		document.addEventListener('keydown', onkey);
-		return () => {
-			document.removeEventListener('pointerdown', onpointer);
-			document.removeEventListener('keydown', onkey);
-		};
-	});
+	// Dismiss on outside press, Escape, or focus moving to a real target outside the popover.
+	function onpointerdown(event: PointerEvent): void {
+		if (open && root && !root.contains(event.target as Node)) open = false;
+	}
+
+	function onkeydown(event: KeyboardEvent): void {
+		if (open && event.key === 'Escape') {
+			open = false;
+			root?.querySelector<HTMLButtonElement>('.trigger')?.focus();
+		}
+	}
+
+	function onfocusout(event: FocusEvent): void {
+		const next = event.relatedTarget;
+		if (open && next instanceof Node && root && !root.contains(next)) open = false;
+	}
 </script>
 
-<div class="multi" bind:this={root}>
+<svelte:document {onpointerdown} {onkeydown} />
+
+<div class="multi" bind:this={root} role="presentation" {onfocusout}>
 	<button
 		type="button"
-		class="trigger"
-		class:active={values.length > 0}
-		aria-haspopup="listbox"
+		class={['trigger', values.length > 0 && 'active']}
 		aria-expanded={open}
-		aria-controls="{id}-list"
+		aria-controls={open ? `${id}-popover` : undefined}
 		aria-label="{label}: {summary}"
 		onclick={() => (open = !open)}
 	>
 		<span class="summary">{summary}</span>
-		<CaretDownIcon size={12} />
+		<span class="caret" aria-hidden="true"><CaretDownIcon size={12} /></span>
 	</button>
 	{#if open}
-		<div class="popover">
+		<div class="popover" id="{id}-popover" role="group" aria-label={label}>
 			{#if searchable}
 				<input
 					class="search"
@@ -101,12 +99,18 @@
 					aria-label="Search {label}"
 				/>
 			{/if}
-			<ul id="{id}-list" role="listbox" aria-multiselectable="true" aria-label={label}>
+			<ul role="list">
 				{#each visible as option (option.value)}
-					<li role="option" aria-selected={values.includes(option.value)}>
-						<button type="button" onclick={() => toggle(option.value)}>
+					{const selected = $derived(values.includes(option.value))}
+					<li>
+						<button
+							type="button"
+							role="checkbox"
+							aria-checked={selected}
+							onclick={() => toggle(option.value)}
+						>
 							<span class="box" aria-hidden="true">
-								{#if values.includes(option.value)}<CheckIcon size={12} weight="bold" />{/if}
+								{#if selected}<CheckIcon size={12} weight="bold" />{/if}
 							</span>
 							{#if option.color}<span class="dot" style:background={option.color} aria-hidden="true"
 								></span>{/if}
@@ -133,20 +137,48 @@
 		display: inline-flex;
 		align-items: center;
 		gap: var(--space-2);
-		height: 32px;
+		height: var(--control-dense);
 		max-width: 220px;
 		padding: 0 var(--space-3);
-		border: 1px solid var(--color-line-strong);
+		border: 1px solid var(--color-control-line);
 		border-radius: var(--radius-sm);
 		background: var(--color-surface);
 		color: var(--color-ink-2);
 		font-size: var(--text-sm);
+		transition:
+			background-color var(--duration-fast) var(--ease-out),
+			border-color var(--duration-fast) var(--ease-out),
+			color var(--duration-fast) var(--ease-out);
+	}
+
+	@media (pointer: coarse) {
+		.trigger {
+			height: var(--control-touch);
+			font-size: max(16px, var(--text-sm));
+		}
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.trigger:hover {
+			border-color: var(--color-ink-3);
+			color: var(--color-ink);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	.trigger:focus-visible,
+	.trigger:active {
+		transition-delay: 0s;
 	}
 
 	.trigger.active {
-		border-color: var(--color-signal);
+		border-color: var(--color-signal-fg);
 		color: var(--color-ink);
 		background: var(--color-signal-soft);
+	}
+
+	.trigger[aria-expanded='true'] {
+		border-color: var(--color-ink-3);
 	}
 
 	.summary {
@@ -155,28 +187,52 @@
 		white-space: nowrap;
 	}
 
+	.caret {
+		display: inline-flex;
+		flex: none;
+		transition: transform var(--duration-base) var(--ease-out);
+	}
+
+	.trigger[aria-expanded='true'] .caret {
+		transform: rotate(180deg);
+	}
+
 	.popover {
 		position: absolute;
-		top: calc(100% + 4px);
-		left: 0;
+		top: calc(100% + var(--space-1));
+		inset-inline-start: 0;
 		z-index: var(--z-overlay);
 		min-width: 220px;
-		max-width: 320px;
+		max-width: min(320px, calc(100vw - 2 * var(--space-4)));
 		padding: var(--space-1);
 		background: var(--color-surface);
 		border: 1px solid var(--color-line-strong);
 		border-radius: var(--radius-md);
-		box-shadow: var(--shadow-overlay);
+		box-shadow: var(--shadow-pop);
+		transform-origin: top left;
+		animation: pop var(--duration-base) var(--ease-out-strong);
+	}
+
+	@keyframes pop {
+		from {
+			opacity: 0;
+			transform: translateY(-4px) scale(0.98);
+		}
 	}
 
 	.search {
 		width: 100%;
-		height: 32px;
+		height: var(--control-dense);
 		margin-bottom: var(--space-1);
 		padding: 0 var(--space-2);
-		border: 1px solid var(--color-line);
+		border: 1px solid var(--color-control-line);
 		border-radius: var(--radius-sm);
 		background: var(--color-surface-2);
+		font-size: var(--text-sm);
+	}
+
+	.search:focus-visible {
+		outline-offset: 0;
 	}
 
 	ul {
@@ -185,6 +241,7 @@
 		padding: 0;
 		max-height: 280px;
 		overflow: auto;
+		overscroll-behavior: contain;
 	}
 
 	li button {
@@ -192,16 +249,47 @@
 		align-items: center;
 		gap: var(--space-2);
 		width: 100%;
-		padding: 6px var(--space-2);
+		min-height: var(--control-dense);
+		padding: 0 var(--space-2);
 		border: 0;
 		border-radius: var(--radius-xs);
 		background: transparent;
-		text-align: left;
+		text-align: start;
 		font-size: var(--text-sm);
+		transition: background-color var(--duration-fast) var(--ease-out);
 	}
 
-	li button:hover {
-		background: var(--color-surface-2);
+	@media (pointer: coarse) {
+		li button {
+			min-height: var(--control-touch);
+		}
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		li button:hover {
+			background: var(--color-hover);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	/* The list scrolls, so the ring sits inside it rather than being clipped. */
+	li button:focus-visible,
+	.clear:focus-visible {
+		background: var(--color-hover);
+		outline-offset: -2px;
+		transition-delay: 0s;
+	}
+
+	li button:active {
+		background: var(--color-pressed);
+		transition-delay: 0s;
+	}
+
+	.text {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.box {
@@ -209,14 +297,17 @@
 		place-items: center;
 		width: 16px;
 		height: 16px;
-		border: 1px solid var(--color-line-strong);
+		border: 1px solid var(--color-control-line);
 		border-radius: var(--radius-xs);
 		flex: none;
+		transition:
+			background-color var(--duration-fast) var(--ease-out),
+			border-color var(--duration-fast) var(--ease-out);
 	}
 
-	[aria-selected='true'] .box {
+	[aria-checked='true'] .box {
 		background: var(--color-signal);
-		border-color: var(--color-signal);
+		border-color: var(--color-signal-fg);
 		color: var(--color-signal-ink);
 	}
 
@@ -235,16 +326,31 @@
 
 	.clear {
 		width: 100%;
+		min-height: var(--control-dense);
 		margin-top: var(--space-1);
-		padding: 6px;
+		padding: 0 var(--space-2);
 		border: 0;
 		border-top: 1px solid var(--color-line);
+		border-radius: 0 0 var(--radius-xs) var(--radius-xs);
 		background: transparent;
 		color: var(--color-ink-3);
 		font-size: var(--text-sm);
+		transition: color var(--duration-fast) var(--ease-out);
 	}
 
-	.clear:hover {
-		color: var(--color-ink);
+	@media (hover: hover) and (pointer: fine) {
+		.clear:hover {
+			color: var(--color-ink);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	@media (forced-colors: active) {
+		[aria-checked='true'] .box {
+			forced-color-adjust: none;
+			background: Highlight;
+			border-color: Highlight;
+			color: HighlightText;
+		}
 	}
 </style>

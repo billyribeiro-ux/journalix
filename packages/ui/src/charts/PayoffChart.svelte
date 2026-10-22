@@ -8,7 +8,7 @@
 	import ChartTooltip from './ChartTooltip.svelte';
 	import ScrubSurface from './ScrubSurface.svelte';
 	import type { AxisTick, LegendItem, TableRow, TooltipRow } from './chart-utils.ts';
-	import { compactMoney, priceLabel, spaceTicks, textWidth, tickCount } from './chart-utils.ts';
+	import { moneyTickLabels, priceLabel, spaceTicks, textWidth, tickCount } from './chart-utils.ts';
 
 	interface Props {
 		legs: readonly PayoffLeg[];
@@ -58,6 +58,18 @@
 			: payoffCurve(legs, range, { samples: 241, rate, includeTheoretical: showTheoretical })
 	);
 	const hasTheoretical = $derived(showTheoretical && curve.some((p) => p.theoretical !== null));
+
+	// Legend toggles. Hiding a line never rescales the axes, so the other line keeps its place.
+	let hiddenKeys = $state<ReadonlySet<string>>(new Set());
+	const showExpiry = $derived(!hiddenKeys.has('expiry'));
+	const showToday = $derived(hasTheoretical && !hiddenKeys.has('today'));
+
+	function toggleKey(key: string): void {
+		const next = new Set(hiddenKeys);
+		if (next.has(key)) next.delete(key);
+		else next.add(key);
+		hiddenKeys = next;
+	}
 	const profile = $derived(legs.length === 0 ? null : payoffProfile(legs));
 	const bes = $derived(
 		(breakevens ?? profile?.breakevens ?? []).filter((b) => b >= range.min && b <= range.max)
@@ -78,7 +90,7 @@
 	});
 
 	const yTickValues = $derived(yRaw.ticks(tickCount(height - 60, 44)));
-	const yLabels = $derived(yTickValues.map((t) => compactMoney(t, currency)));
+	const yLabels = $derived(moneyTickLabels(yTickValues, currency));
 
 	const margin = $derived({
 		top: 22,
@@ -214,14 +226,14 @@
 	const tooltipRows = $derived.by((): TooltipRow[] => {
 		const p = activePoint;
 		if (!p) return [];
-		const rows: TooltipRow[] = [
-			{
+		const rows: TooltipRow[] = [];
+		if (showExpiry)
+			rows.push({
 				label: 'At expiry',
 				value: formatMoney(p.expiry, { currency, signed: true }),
 				swatch: 'var(--color-ink-2)'
-			}
-		];
-		if (hasTheoretical && p.theoretical !== null)
+			});
+		if (showToday && p.theoretical !== null)
 			rows.push({
 				label: 'Today',
 				value: formatMoney(p.theoretical, { currency, signed: true }),
@@ -234,10 +246,13 @@
 		const p = activePoint;
 		if (!p) return '';
 		const today =
-			hasTheoretical && p.theoretical !== null
-				? `, today ${formatMoney(p.theoretical, { currency, signed: true })}`
+			showToday && p.theoretical !== null
+				? `today ${formatMoney(p.theoretical, { currency, signed: true })}`
 				: '';
-		return `Underlying ${priceLabel(p.price, currency)}: at expiry ${formatMoney(p.expiry, { currency, signed: true })}${today}`;
+		const expiry = showExpiry
+			? `at expiry ${formatMoney(p.expiry, { currency, signed: true })}`
+			: '';
+		return `Underlying ${priceLabel(p.price, currency)}: ${[expiry, today].filter(Boolean).join(', ')}`;
 	});
 
 	const legend = $derived.by((): LegendItem[] =>
@@ -279,7 +294,7 @@
 		<ChartEmpty message="Add legs to see the payoff" {height} />
 	{:else}
 		<div class="head">
-			<ChartLegend items={legend} />
+			<ChartLegend items={legend} hidden={hiddenKeys} ontoggle={toggleKey} />
 			<p class="extremes">
 				<span>{extremes.profit}</span>
 				<span>{extremes.loss}</span>
@@ -332,8 +347,10 @@
 							>
 						{/each}
 
-						<path class="fill-gain" d={expiryArea} clip-path="url(#{clipAbove})" />
-						<path class="fill-loss" d={expiryArea} clip-path="url(#{clipBelow})" />
+						{#if showExpiry}
+							<path class="fill-gain" d={expiryArea} clip-path="url(#{clipAbove})" />
+							<path class="fill-loss" d={expiryArea} clip-path="url(#{clipBelow})" />
+						{/if}
 						<line
 							class="zero"
 							x1={0}
@@ -353,18 +370,19 @@
 						{/each}
 						{#each vLabels as v (v.key)}
 							<text
-								class="ref-label halo"
-								class:strong={v.kind === 'spot'}
+								class={['ref-label halo', v.kind === 'spot' && 'strong']}
 								x={v.x}
 								y={-8 - v.row * 14}
 								text-anchor={v.anchor}>{v.text}</text
 							>
 						{/each}
 
-						{#if theoreticalPath}
+						{#if theoreticalPath && showToday}
 							<path class="theoretical" d={theoreticalPath} />
 						{/if}
-						<path class="expiry" d={expiryPath} />
+						{#if showExpiry}
+							<path class="expiry" d={expiryPath} />
+						{/if}
 
 						{#each beLabels as be (be.key)}
 							<circle class="be-dot" cx={be.x} cy={zeroY} r={4} />
@@ -383,13 +401,15 @@
 								y1={0}
 								y2={innerHeight}
 							/>
-							<circle
-								class="hover-dot ink"
-								cx={x(activePoint.price)}
-								cy={y(activePoint.expiry)}
-								r={4}
-							/>
-							{#if hasTheoretical && activePoint.theoretical !== null}
+							{#if showExpiry}
+								<circle
+									class="hover-dot ink"
+									cx={x(activePoint.price)}
+									cy={y(activePoint.expiry)}
+									r={4}
+								/>
+							{/if}
+							{#if showToday && activePoint.theoretical !== null}
 								<circle
 									class="hover-dot series"
 									cx={x(activePoint.price)}
@@ -415,7 +435,13 @@
 				{#if activePoint}
 					<ChartTooltip
 						x={margin.left + x(activePoint.price)}
-						y={margin.top + topPad + y(activePoint.expiry)}
+						y={margin.top +
+							topPad +
+							y(
+								!showExpiry && showToday && activePoint.theoretical !== null
+									? activePoint.theoretical
+									: activePoint.expiry
+							)}
 						boundsWidth={width}
 						boundsHeight={height + topPad}
 						title="Underlying {priceLabel(activePoint.price, currency)}"
@@ -456,7 +482,7 @@
 	}
 
 	.zero {
-		stroke: var(--chart-axis);
+		stroke: var(--chart-baseline);
 		stroke-width: 1;
 		shape-rendering: crispEdges;
 	}

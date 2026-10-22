@@ -13,6 +13,7 @@
 	import IconButton from '../../primitives/IconButton.svelte';
 	import NumberInput from '../../primitives/NumberInput.svelte';
 	import Select from '../../primitives/Select.svelte';
+	import '../../primitives/control.css';
 	import type { DraftExecution, TradeDraft } from './draft.svelte.ts';
 
 	interface Props {
@@ -95,10 +96,15 @@
 	{:else}
 		<div class="rows" role="list">
 			{#each sorted as e (e.id)}
-				{@const err = (field: string) => issues.get(`exec:${e.id}:${field}`)}
+				{const err = (field: string) => issues.get(`exec:${e.id}:${field}`)}
 				<div class="row" role="listitem">
 					<div class="role">
 						<span class="tag">{roles.get(e.id) ?? 'New fill'}</span>
+						<IconButton
+							label="Remove fill"
+							tone="danger"
+							onclick={() => draft.removeExecution(e.id)}><TrashIcon size={16} /></IconButton
+						>
 					</div>
 					{#if multiLeg}
 						<label class="leg">
@@ -149,7 +155,7 @@
 						<span>Time</span>
 						<input
 							type="datetime-local"
-							class="dt"
+							class="control"
 							bind:value={e.executedAt}
 							aria-invalid={!!err('executedAt') || undefined}
 							aria-label="Execution time"
@@ -165,18 +171,11 @@
 							/>
 						</label>
 					{/if}
-					<div class="del">
-						<IconButton
-							label="Remove fill"
-							tone="danger"
-							onclick={() => draft.removeExecution(e.id)}><TrashIcon size={16} /></IconButton
-						>
-					</div>
 					<label class="note">
 						<span class="visually-hidden">Note</span>
 						<input
 							type="text"
-							class="note-input"
+							class="control"
 							placeholder="Note (optional)"
 							bind:value={e.note}
 							maxlength="2000"
@@ -258,6 +257,8 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		/* The row's delete button sits on the title line, so it can never wrap onto a line of its own. */
+		margin-block: calc(var(--space-1) * -1);
 	}
 
 	.tag {
@@ -278,26 +279,6 @@
 		grid-column: span 2;
 	}
 
-	.dt,
-	.note-input {
-		min-height: 36px;
-		padding: 0 var(--space-2);
-		border: 1px solid var(--color-line-strong);
-		border-radius: var(--radius-sm);
-		background: var(--color-surface);
-		width: 100%;
-		font-size: var(--text-sm);
-	}
-
-	.dt[aria-invalid='true'] {
-		border-color: var(--color-loss);
-	}
-
-	.del {
-		display: flex;
-		justify-content: flex-end;
-	}
-
 	.note {
 		grid-column: 1 / -1;
 	}
@@ -305,7 +286,7 @@
 	.err {
 		grid-column: 1 / -1;
 		font-size: var(--text-xs);
-		color: var(--color-loss);
+		color: var(--color-loss-text);
 	}
 
 	.actions {

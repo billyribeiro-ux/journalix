@@ -79,7 +79,13 @@
 		days.filter((d) => d.date.startsWith(month)).reduce((a, d) => a + d.pnl, 0)
 	);
 	const filtered = $derived(isFilterActive(journal.filter));
+
+	// The equity chart matches the height of the Outcomes list beside it where they sit side by side.
+	let viewportWidth = $state(1280);
+	const equityHeight = $derived(viewportWidth >= 1100 ? 372 : 280);
 </script>
+
+<svelte:window bind:innerWidth={viewportWidth} />
 
 <PageHeader
 	title="Dashboard"
@@ -181,7 +187,7 @@
 				{currency}
 				timeZone={tz}
 				{xMode}
-				height={300}
+				height={equityHeight}
 			/>
 		</Panel>
 		<Panel title="Outcomes">
@@ -263,10 +269,13 @@
 
 	<div class="row two">
 		<Panel title="Recent closed trades" flush>
+			{#snippet actions()}
+				<a class="more head-link" href={env.href({ name: 'trades' })}>All trades</a>
+			{/snippet}
 			<ul class="list" role="list">
 				{#each recent as v (v.trade.id)}
 					<li>
-						<a href={env.href({ name: 'trade', id: v.trade.id })}>
+						<a class="row-hover" href={env.href({ name: 'trade', id: v.trade.id })}>
 							<span class="sym">{v.trade.underlying}</span>
 							<span class="strat">{STRATEGIES[v.metrics.strategy].label}</span>
 							<span class="when muted">{formatDateTime(v.metrics.closedAt, tz, 'short')}</span>
@@ -274,7 +283,12 @@
 						</a>
 					</li>
 				{:else}
-					<li class="none">No closed trades in this range.</li>
+					<li class="none">
+						<p>No closed trades in this range.</p>
+						{#if filtered}<button type="button" class="link" onclick={() => journal.resetFilter()}
+								>Clear filters</button
+							>{/if}
+					</li>
 				{/each}
 			</ul>
 		</Panel>
@@ -282,7 +296,7 @@
 			<ul class="list" role="list">
 				{#each open as v (v.trade.id)}
 					<li>
-						<a href={env.href({ name: 'trade', id: v.trade.id })}>
+						<a class="row-hover" href={env.href({ name: 'trade', id: v.trade.id })}>
 							<span class="sym">{v.trade.underlying}</span>
 							<span class="strat">{STRATEGIES[v.metrics.strategy].label}</span>
 							<span class="when muted">since {formatDateTime(v.metrics.openedAt, tz, 'short')}</span
@@ -293,7 +307,9 @@
 						</a>
 					</li>
 				{:else}
-					<li class="none">No open positions.</li>
+					<li class="none">
+						<p>No open positions.</p>
+					</li>
 				{/each}
 			</ul>
 		</Panel>
@@ -337,17 +353,32 @@
 	}
 
 	.gain {
-		color: var(--color-gain);
+		color: var(--color-gain-text);
 	}
 
 	.loss {
-		color: var(--color-loss);
+		color: var(--color-loss-text);
 	}
 
 	.more {
 		display: inline-block;
 		margin-top: var(--space-3);
 		font-size: var(--text-sm);
+	}
+
+	.head-link {
+		margin-top: 0;
+	}
+
+	.link {
+		padding: 0;
+		border: 0;
+		background: transparent;
+		color: var(--color-link, var(--color-ink));
+		font: inherit;
+		font-size: var(--text-sm);
+		text-decoration: underline;
+		cursor: pointer;
 	}
 
 	.month-total {
@@ -374,10 +405,6 @@
 		color: inherit;
 	}
 
-	.list a:hover {
-		background: var(--color-surface-2);
-	}
-
 	.sym {
 		font-weight: 600;
 	}
@@ -402,8 +429,31 @@
 	}
 
 	.none {
+		display: grid;
+		justify-items: start;
+		gap: var(--space-2);
 		padding: var(--space-6) var(--space-5);
 		color: var(--color-ink-3);
+	}
+
+	.none p {
+		margin: 0;
+	}
+
+	.list a:focus-visible {
+		outline-offset: -2px;
+	}
+
+	@media (max-width: 520px) {
+		.list a {
+			grid-template-columns: 56px 1fr auto;
+			padding-inline: var(--space-4);
+		}
+
+		/* The date drops out on a phone; the trade page has it. */
+		.when {
+			display: none;
+		}
 	}
 
 	.onboarding {

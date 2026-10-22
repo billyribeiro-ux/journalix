@@ -84,30 +84,36 @@
 	});
 	const by = (d: Dimension) => groupBy(views, d, ctx);
 
-	const overview = $derived<MetricItem[]>([
+	const tone = (v: number): 'gain' | 'loss' | 'neutral' =>
+		v > 0 ? 'gain' : v < 0 ? 'loss' : 'neutral';
+
+	/** The same figures as before, grouped so each list is short enough to scan. */
+	const resultItems = $derived<MetricItem[]>([
 		{ label: 'Closed trades', value: String(stats.trades) },
 		{
 			label: 'Wins / losses / breakeven',
 			value: `${stats.wins} / ${stats.losses} / ${stats.breakevens}`
 		},
 		{ label: 'Win rate', value: formatPercent(stats.winRate) },
-		{
-			label: 'Net P&L',
-			value: money(stats.netPnl, true),
-			tone: stats.netPnl > 0 ? 'gain' : stats.netPnl < 0 ? 'loss' : 'neutral'
-		},
+		{ label: 'Net P&L', value: money(stats.netPnl, true), tone: tone(stats.netPnl) },
 		{ label: 'Gross P&L', value: money(stats.grossPnl, true) },
 		{ label: 'Fees and commissions', value: money(stats.fees) },
 		{ label: 'Gross profit', value: money(stats.grossProfit) },
 		{ label: 'Gross loss', value: money(stats.grossLoss) },
-		{ label: 'Profit factor', value: formatRatio(stats.profitFactor, 2, stats.grossProfit > 0) },
+		{ label: 'Profit factor', value: formatRatio(stats.profitFactor, 2, stats.grossProfit > 0) }
+	]);
+
+	const perTradeItems = $derived<MetricItem[]>([
 		{ label: 'Expectancy per trade', value: money(stats.expectancy, true) },
 		{ label: 'Median trade', value: money(stats.medianPnl, true) },
 		{ label: 'Average win', value: money(stats.averageWin, true) },
 		{ label: 'Average loss', value: money(stats.averageLoss, true) },
 		{ label: 'Payoff ratio', value: formatRatio(stats.payoffRatio) },
 		{ label: 'Largest win', value: money(stats.largestWin, true) },
-		{ label: 'Largest loss', value: money(stats.largestLoss, true) },
+		{ label: 'Largest loss', value: money(stats.largestLoss, true) }
+	]);
+
+	const qualityItems = $derived<MetricItem[]>([
 		{ label: 'Average R', value: formatR(stats.averageR) },
 		{ label: 'Total R', value: formatR(stats.totalR) },
 		{ label: 'Trades with R', value: String(stats.rTrades) },
@@ -120,7 +126,10 @@
 			label: 'Kelly fraction',
 			value: formatPercent(stats.kelly),
 			hint: 'W − (1 − W) ÷ payoff ratio. A ceiling, not a sizing recommendation.'
-		},
+		}
+	]);
+
+	const holdingItems = $derived<MetricItem[]>([
 		{ label: 'Average hold', value: formatDuration(stats.averageHoldMs) },
 		{ label: 'Average hold, winners', value: formatDuration(stats.averageHoldWinMs) },
 		{ label: 'Average hold, losers', value: formatDuration(stats.averageHoldLossMs) },
@@ -277,15 +286,31 @@
 			.sort((a, b) => b.netPnl - a.netPnl)
 	);
 
+	// Equity next to the Results list: match its height where they sit side by side.
+	let viewportWidth = $state(1280);
+	const equityHeight = $derived(viewportWidth >= 1100 ? 330 : 260);
+
 	const openTrade = (id: string): void => void env.navigate({ name: 'trade', id });
 </script>
+
+<svelte:window bind:innerWidth={viewportWidth} />
 
 <PageHeader title="Reports" description="Every report uses the filters at the top of the page." />
 
 <Tabs label="Report" value={current} tabs={TABS} onchange={selectTab} />
 
 <div class="tab-body" role="tabpanel" id="panel-{current}" aria-labelledby="tab-{current}">
-	{#if closed.length === 0}
+	{#if journal.trades.length === 0}
+		<EmptyState
+			title="No trades to report on yet"
+			message="Reports are computed from closed trades. Log a trade, or load the sample journal to see every report first."
+		>
+			{#snippet actions()}
+				<Button href={env.href({ name: 'trade-new' })} variant="primary">New trade</Button>
+				<Button href={env.href({ name: 'settings', section: 'data' })}>Load sample data</Button>
+			{/snippet}
+		</EmptyState>
+	{:else if closed.length === 0}
 		<EmptyState
 			title="No closed trades in this range"
 			message="Reports are computed from closed trades. Close a trade or widen the filters."
@@ -323,13 +348,32 @@
 					startingBalance={journal.startingBalance}
 					{currency}
 					timeZone={tz}
-					height={300}
+					height={equityHeight}
 				/>
 			</Panel>
-			<Panel title="All statistics">
-				<MetricList items={overview} columns={1} />
+			<Panel title="Results">
+				<MetricList items={resultItems} columns={1} />
 			</Panel>
 		</div>
+		<Panel
+			title="All statistics"
+			subtitle="Per-trade, R and holding statistics for the current filters."
+		>
+			<div class="stat-groups">
+				<section aria-labelledby="g-pertrade">
+					<h3 id="g-pertrade">Per trade</h3>
+					<MetricList items={perTradeItems} columns={1} />
+				</section>
+				<section aria-labelledby="g-quality">
+					<h3 id="g-quality">R and quality</h3>
+					<MetricList items={qualityItems} columns={1} />
+				</section>
+				<section aria-labelledby="g-holding">
+					<h3 id="g-holding">Holding and streaks</h3>
+					<MetricList items={holdingItems} columns={1} />
+				</section>
+			</div>
+		</Panel>
 		<div class="grid two-even">
 			<Panel title="R-multiple distribution" subtitle="Closed trades with a defined risk.">
 				<HistogramChart bins={rHistogram(views)} unit="R" {currency} />
@@ -593,6 +637,21 @@
 		.grid.two-even {
 			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 		}
+	}
+
+	.stat-groups {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+		gap: var(--space-5) var(--space-8);
+	}
+
+	.stat-groups h3 {
+		margin-bottom: var(--space-1);
+		font-size: var(--text-xs);
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--color-ink-3);
 	}
 
 	.spacer {

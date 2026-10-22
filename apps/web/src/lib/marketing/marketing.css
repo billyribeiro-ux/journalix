@@ -2,8 +2,22 @@
  * Shared layout and type for the public site. Everything is scoped under `.mk`, the class on the
  * marketing layout's root element, so nothing leaks into the app.
  */
+
+/* The metric-matched Plex fallback (size-adjust) now lives in @journalix/ui styles/tokens.css. */
+
+.mk,
+.auth-shell {
+	font-family: var(--font-sans);
+}
+
+/* Anchors and focus land below the 60px sticky header, not under it. */
+html:has(.mk) {
+	scroll-padding-top: 84px;
+}
+
 .mk {
 	--site-max: 1200px;
+	--measure: 58ch;
 	--site-gutter: var(--space-4);
 	--section-gap: var(--space-16);
 
@@ -25,6 +39,11 @@
 	flex: 1;
 }
 
+/* main is a programmatic focus target (skip link, route changes); a ring on a whole page is noise. */
+.mk main:focus {
+	outline: none;
+}
+
 .mk .container {
 	width: 100%;
 	max-width: var(--site-max);
@@ -40,15 +59,27 @@
 .mk .page-head {
 	padding-top: var(--space-16);
 	padding-bottom: var(--space-10);
-	border-bottom: 1px solid var(--color-line);
+	/* The rule runs the width of the text column, not of the padded container, so it lines up with
+	   the hairlines of the content below it. */
+	background: linear-gradient(var(--color-line), var(--color-line)) center bottom /
+		calc(100% - 2 * var(--site-gutter)) 1px no-repeat;
+}
+
+@media (forced-colors: active) {
+	/* Backgrounds are dropped in forced colours; a border keeps the rule. */
+	.mk .page-head {
+		background: none;
+		border-bottom: 1px solid CanvasText;
+	}
 }
 
 .mk .page-head h1 {
-	max-width: 22ch;
+	max-width: 13em; /* em, not ch: ch changes when the web font swaps in, and moves the line break */
 	font-size: clamp(var(--text-3xl), 6vw, var(--text-5xl));
 	font-weight: 600;
 	line-height: 1.04;
 	letter-spacing: var(--tracking-display);
+	text-wrap: balance;
 }
 
 .mk .page-head .lede {
@@ -57,6 +88,7 @@
 	color: var(--color-ink-2);
 	font-size: var(--text-lg);
 	line-height: var(--leading-normal);
+	text-wrap: pretty;
 }
 
 .mk .display {
@@ -70,14 +102,24 @@
 	color: var(--color-ink-2);
 	font-size: var(--text-lg);
 	line-height: var(--leading-normal);
+	text-wrap: pretty;
 }
 
-/* Long-form text: articles, legal documents. */
+/*
+ * Long-form text: articles, legal documents. 17px with 1.7 leading on a 58ch measure. Measured with
+ * Range.getClientRects over whole paragraphs: a 68ch measure at 17px (653px) set an average of 75 to 80
+ * characters per line (lines up to 88); 58ch at 17px (592px) brings it to an average of 70.
+ */
 .mk .prose {
-	max-width: var(--prose-max);
+	max-width: var(--measure);
 	color: var(--color-ink-2);
-	font-size: var(--text-md);
-	line-height: 1.65;
+	font-size: 1.0625rem;
+	line-height: 1.7;
+}
+
+.mk .prose p,
+.mk .prose li {
+	text-wrap: pretty;
 }
 
 .mk .prose > * + * {
@@ -88,6 +130,7 @@
 	margin-top: var(--space-12);
 	color: var(--color-ink);
 	font-size: var(--text-xl);
+	line-height: var(--leading-snug);
 	letter-spacing: var(--tracking-tight);
 }
 
@@ -95,6 +138,12 @@
 	margin-top: var(--space-8);
 	color: var(--color-ink);
 	font-size: var(--text-lg);
+	line-height: var(--leading-snug);
+}
+
+/* A heading belongs to the text after it: tighten the gap below it. */
+.mk .prose :is(h2, h3) + * {
+	margin-top: var(--space-3);
 }
 
 .mk .prose ul,
@@ -113,6 +162,94 @@
 
 .mk .prose a {
 	color: var(--color-ink);
+	text-decoration-color: var(--color-ink-3);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.22em;
+	transition: text-decoration-color var(--duration-fast) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.mk .prose a:hover {
+		text-decoration-color: currentColor;
+		text-decoration-thickness: 2px;
+		transition-delay: var(--hover-delay-tint);
+	}
+}
+
+/*
+ * Reading layout with a contents rail: the text keeps its 68ch measure and the list of sections sits
+ * in the spare column to its right (from 1180px; below that the list is hidden, the text is not).
+ * The rail column exists whether or not the list has rendered, so adding it never moves the text.
+ */
+.mk .doc-grid {
+	/* The same font size as .prose, so `ch` means the same in the column track and in the text. */
+	font-size: 1.0625rem;
+	display: grid;
+	/* minmax(0, ...) so a wide table or formula inside the text scrolls in its own box instead of
+	   stretching the column (an implicit `auto` column grows to its content's min-content width). */
+	grid-template-columns: minmax(0, 1fr);
+	gap: var(--space-10);
+}
+
+.mk .doc-toc {
+	display: none;
+}
+
+@media (min-width: 1180px) {
+	.mk .doc-grid {
+		grid-template-columns: minmax(0, var(--measure)) 15rem;
+		gap: var(--space-16);
+		align-items: start;
+	}
+
+	.mk .doc-toc {
+		position: sticky;
+		top: 84px;
+		display: grid;
+		gap: var(--space-3);
+		padding-left: var(--space-5);
+		border-left: 1px solid var(--color-line);
+	}
+
+	.mk .doc-toc h2 {
+		color: var(--color-ink-3);
+		font-size: var(--text-xs);
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+
+	.mk .doc-toc ol {
+		display: grid;
+		gap: var(--space-1);
+	}
+
+	.mk .doc-toc a {
+		display: block;
+		padding: var(--space-1) 0;
+		color: var(--color-ink-2);
+		font-size: var(--text-sm);
+		line-height: var(--leading-snug);
+		text-decoration: underline;
+		text-decoration-color: transparent;
+		text-underline-offset: 0.22em;
+		transition:
+			color var(--duration-fast) var(--ease-out),
+			text-decoration-color var(--duration-fast) var(--ease-out);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.mk .doc-toc a:hover {
+			color: var(--color-ink);
+			text-decoration-color: currentColor;
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	.mk .doc-toc a:focus-visible,
+	.mk .doc-toc a:active {
+		transition-delay: 0s;
+	}
 }
 
 /* Hairline-ruled definition list for dense reference content. */
@@ -136,12 +273,41 @@
 .mk .spec dd {
 	color: var(--color-ink-2);
 	max-width: 62ch;
+	text-wrap: pretty;
 }
 
 @media (min-width: 720px) {
 	.mk .spec > div {
 		grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
 		gap: var(--space-8);
+	}
+}
+
+/* "Read more" links at the end of a section: an arrow that nudges on intent, not on fly-by. */
+.mk p.more a {
+	display: inline-flex;
+	align-items: center;
+	min-height: 28px;
+	font-weight: 500;
+	text-underline-offset: 0.22em;
+}
+
+.mk p.more a::after {
+	content: '→' / '';
+	margin-left: var(--space-2);
+	transition: transform var(--duration-fast) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.mk p.more a:hover::after {
+		transform: translateX(3px);
+		transition-delay: var(--hover-delay-tint);
+	}
+}
+
+@media (pointer: coarse) {
+	.mk p.more a {
+		min-height: var(--control-touch);
 	}
 }
 
@@ -173,9 +339,16 @@
 	color: var(--color-signal-ink);
 	font-weight: 600;
 	border-radius: var(--radius-sm);
+	text-decoration: none;
 	transform: translateY(-200%);
 }
 
 .mk .skip-link:focus {
 	transform: none;
+}
+
+@media (forced-colors: active) {
+	.mk .skip-link {
+		border: 1px solid CanvasText;
+	}
 }

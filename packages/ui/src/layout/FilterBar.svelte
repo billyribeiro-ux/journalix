@@ -171,20 +171,36 @@
 		color: var(--color-ink-3);
 	}
 
-	.preset :global(select) {
-		min-height: 32px;
-		font-size: var(--text-sm);
-		min-width: 150px;
+	.preset :global {
+		select {
+			min-height: var(--control-dense);
+			font-size: var(--text-sm);
+			min-width: 150px;
+		}
 	}
 
 	.date input {
-		height: 32px;
+		height: var(--control-dense);
 		padding: 0 var(--space-2);
-		border: 1px solid var(--color-line-strong);
+		border: 1px solid var(--color-control-line);
 		border-radius: var(--radius-sm);
 		background: var(--color-surface);
 		font-size: var(--text-sm);
 		color-scheme: inherit;
+		transition: border-color var(--duration-fast) var(--ease-out);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.date input:hover:not(:focus-visible) {
+			border-color: var(--color-ink-3);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	.date input:focus-visible {
+		outline-offset: 0;
+		border-color: transparent;
+		transition-delay: 0s;
 	}
 
 	.to {
@@ -193,17 +209,38 @@
 	}
 
 	.reset {
-		height: 32px;
+		height: var(--control-dense);
 		padding: 0 var(--space-2);
 		border: 0;
+		border-radius: var(--radius-sm);
 		background: transparent;
 		color: var(--color-ink-2);
 		font-size: var(--text-sm);
 		text-decoration: underline;
 		text-underline-offset: 3px;
+		transition: color var(--duration-fast) var(--ease-out);
 	}
 
-	.reset:hover {
-		color: var(--color-ink);
+	@media (hover: hover) and (pointer: fine) {
+		.reset:hover {
+			color: var(--color-ink);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	.reset:focus-visible,
+	.reset:active {
+		transition-delay: 0s;
+	}
+
+	/* Touch: 44px targets and 16px text so focusing a field never zooms the page. */
+	@media (pointer: coarse) {
+		.date input,
+		.reset,
+		.preset :global(select) {
+			min-height: var(--control-touch);
+			height: var(--control-touch);
+			font-size: max(16px, var(--text-sm));
+		}
 	}
 </style>

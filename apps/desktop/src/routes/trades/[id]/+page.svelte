@@ -5,6 +5,8 @@
 	let { params }: PageProps = $props();
 </script>
 
+<svelte:head><title>Trade — Journalix</title></svelte:head>
+
 {#key params.id}
 	<TradeDetailScreen tradeId={params.id} />
 {/key}

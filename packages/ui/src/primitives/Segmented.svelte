@@ -53,6 +53,10 @@
 <style>
 	.segmented {
 		display: inline-flex;
+		/* Never stretch to a grid/flex cell's height or width (stretch only applies to `auto` sizes). */
+		width: fit-content;
+		height: fit-content;
+		max-width: 100%;
 		padding: 2px;
 		border: 1px solid var(--color-line);
 		border-radius: var(--radius-sm);
@@ -66,10 +70,15 @@
 		color: var(--color-ink-2);
 		border-radius: var(--radius-xs);
 		padding: 0 var(--space-3);
-		min-height: 30px;
+		min-height: var(--control-dense);
 		font-size: var(--text-sm);
 		font-weight: 500;
+		line-height: 1;
 		white-space: nowrap;
+		transition:
+			background-color var(--duration-fast) var(--ease-out),
+			color var(--duration-fast) var(--ease-out),
+			box-shadow var(--duration-fast) var(--ease-out);
 	}
 
 	.sm button {
@@ -78,13 +87,44 @@
 		font-size: var(--text-xs);
 	}
 
-	button:hover {
-		color: var(--color-ink);
+	@media (pointer: coarse) {
+		button,
+		.sm button {
+			min-height: var(--control-touch);
+		}
 	}
 
+	@media (hover: hover) and (pointer: fine) {
+		button:hover:not([aria-checked='true']) {
+			background: color-mix(in oklab, var(--color-surface) 55%, transparent);
+			color: var(--color-ink);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	button:focus-visible,
+	button:active {
+		transition-delay: 0s;
+	}
+
+	/* Selected: lifted onto the surface, ringed at control contrast so it never relies on tint alone. */
 	button[aria-checked='true'] {
 		background: var(--color-surface);
 		color: var(--color-ink);
-		box-shadow: 0 0 0 1px var(--color-line-strong);
+		box-shadow:
+			0 0 0 1px var(--color-control-line),
+			0 1px 2px rgb(15 27 45 / 8%);
+	}
+
+	button:focus-visible {
+		outline-offset: 0;
+	}
+
+	@media (forced-colors: active) {
+		button[aria-checked='true'] {
+			forced-color-adjust: none;
+			background: Highlight;
+			color: HighlightText;
+		}
 	}
 </style>

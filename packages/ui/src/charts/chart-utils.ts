@@ -48,7 +48,7 @@ export interface LegendItem {
 	readonly label: string;
 	/** CSS colour, normally a token reference. */
 	readonly color: string;
-	readonly shape?: 'line' | 'dot' | 'square';
+	readonly shape?: 'line' | 'dot' | 'square' | 'diamond' | 'ring';
 }
 
 /** An invisible, focusable hit area laid over a mark (pixels, relative to the chart wrapper). */
@@ -185,6 +185,20 @@ export function domainWithZero(values: readonly number[], pad = 0.06): [number, 
 export function compactMoney(value: number, currency: string): string {
 	if (Math.abs(value) < 1000) return formatMoney(value, { currency, digits: 0 });
 	return formatMoney(value, { currency, compact: true });
+}
+
+/**
+ * Axis labels for a run of money ticks. Compact first (`$1.2K`); when the span is so narrow that compact
+ * rounding makes neighbouring ticks read the same (a one-trade equity curve: `$75K`, `$75K`, `$74.9K`,
+ * `$74.9K`), widen to whole currency units, then to cents, until every tick is distinguishable.
+ */
+export function moneyTickLabels(values: readonly number[], currency: string): string[] {
+	const distinct = (labels: readonly string[]): boolean => new Set(labels).size === labels.length;
+	const compact = values.map((v) => compactMoney(v, currency));
+	if (distinct(compact)) return compact;
+	const whole = values.map((v) => formatMoney(v, { currency, digits: 0 }));
+	if (distinct(whole)) return whole;
+	return values.map((v) => formatMoney(v, { currency, digits: 2 }));
 }
 
 /** Compact signed currency for dense cells: `+$1.2K`, `−$80`. */

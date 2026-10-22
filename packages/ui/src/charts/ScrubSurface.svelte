@@ -43,7 +43,9 @@
 		onactive(fromPointer(event));
 	}
 
-	function onpointerleave(): void {
+	function onpointerleave(event: PointerEvent): void {
+		// A finger lifting is not the pointer leaving: on touch the readout stays until focus moves away.
+		if (event.pointerType === 'touch') return;
 		if (!focused) onactive(null);
 	}
 
@@ -98,8 +100,7 @@
 </script>
 
 <div
-	class="scrub"
-	class:pressable={onpress !== undefined}
+	class={['scrub', onpress !== undefined && 'pressable']}
 	role="slider"
 	tabindex="0"
 	aria-label={label}

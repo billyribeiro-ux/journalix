@@ -47,7 +47,8 @@
 
 	// ----- import -----
 	let fileInput = $state<HTMLInputElement | null>(null);
-	let pending = $state<{ data: JournalExport; name: string } | null>(null);
+	// The parsed export can hold the whole journal and is only ever replaced, never mutated.
+	let pending = $state.raw<{ data: JournalExport; name: string } | null>(null);
 	let importOpen = $state(false);
 	let importing = $state(false);
 	let applySettings = $state(false);
@@ -168,6 +169,15 @@
 		}
 	}
 
+	const isJournalEmpty = $derived(
+		journal.trades.length +
+			journal.accounts.length +
+			journal.notes.length +
+			journal.tags.length +
+			journal.playbooks.length ===
+			0
+	);
+
 	const counts = $derived({
 		trades: journal.trades.length,
 		accounts: journal.accounts.length,
@@ -218,21 +228,28 @@
 		<Button onclick={() => (sampleOpen = true)}>Load sample journal</Button>
 	</Panel>
 
-	<Panel title="Delete journal">
-		<p class="danger-copy">
-			Permanently deletes every account, trade, tag, playbook and note. Settings and market data
-			providers are kept. Export first if you might want it back.
-		</p>
-		<Button
-			variant="danger"
-			disabled={counts.trades + counts.accounts + counts.notes + counts.tags + counts.playbooks ===
-				0}
-			onclick={() => {
-				resetText = '';
-				resetOpen = true;
-			}}>Delete journal</Button
-		>
-	</Panel>
+	<section class="danger-zone" aria-labelledby="danger-title">
+		<h2 id="danger-title">Danger zone</h2>
+		<div class="danger-row">
+			<div>
+				<h3>Delete journal</h3>
+				<p class="danger-copy">
+					Permanently deletes every account, trade, tag, playbook and note on this computer.
+					Settings and market data providers are kept. There is no undo: export first if you might
+					want it back.
+				</p>
+			</div>
+			<Button
+				variant="danger"
+				disabled={isJournalEmpty}
+				onclick={() => {
+					resetText = '';
+					resetOpen = true;
+				}}>Delete journal</Button
+			>
+		</div>
+		{#if isJournalEmpty}<p class="danger-copy empty-note">The journal is already empty.</p>{/if}
+	</section>
 </div>
 
 <Dialog bind:open={importOpen} title="Import {pending?.name ?? 'journal'}?" size="sm">
@@ -285,6 +302,15 @@
 	description="This cannot be undone."
 	size="sm"
 >
+	<p class="reset-list">
+		This removes {counts.trades} trades, {counts.accounts} accounts, {counts.notes} notes, {counts.tags}
+		tags and {counts.playbooks} playbooks.
+	</p>
+	<p class="reset-list">
+		<button type="button" class="link" onclick={exportJournal} disabled={exporting}
+			>Export a backup first</button
+		>
+	</p>
 	<Field label={`Type "${RESET_PHRASE}" to confirm`} for="reset-confirm">
 		<TextInput id="reset-confirm" bind:value={resetText} autocomplete="off" spellcheck={false} />
 	</Field>
@@ -315,5 +341,70 @@
 
 	.spaced {
 		margin-top: var(--space-4);
+	}
+
+	/* Set apart from the routine panels above, and named for what it is. */
+	.danger-zone {
+		margin-top: var(--space-4);
+		padding: var(--space-5);
+		border: 1px solid color-mix(in oklab, var(--color-loss) 55%, var(--color-line));
+		border-radius: var(--radius-md);
+		background: var(--color-surface);
+	}
+
+	.danger-zone > h2 {
+		margin-bottom: var(--space-3);
+		font-size: var(--text-xs);
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--color-loss-text);
+	}
+
+	.danger-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: var(--space-4);
+	}
+
+	.danger-row > div {
+		flex: 1 1 320px;
+	}
+
+	.danger-row h3 {
+		font-size: var(--text-md);
+		margin-bottom: var(--space-1);
+	}
+
+	.danger-row .danger-copy {
+		margin-bottom: 0;
+	}
+
+	.empty-note {
+		margin: var(--space-3) 0 0;
+		color: var(--color-ink-3);
+	}
+
+	.reset-list {
+		margin-bottom: var(--space-3);
+		font-size: var(--text-sm);
+		color: var(--color-ink-2);
+	}
+
+	.link {
+		padding: 0;
+		border: 0;
+		background: transparent;
+		color: var(--color-ink);
+		font: inherit;
+		text-decoration: underline;
+		cursor: pointer;
+	}
+
+	.link:disabled {
+		color: var(--color-ink-3);
+		cursor: wait;
 	}
 </style>

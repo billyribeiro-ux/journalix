@@ -30,13 +30,21 @@
 	}
 
 	.icon {
-		font-size: 28px;
-		color: var(--color-ink-3);
+		display: grid;
+		place-items: center;
+		width: 48px;
+		height: 48px;
 		margin-bottom: var(--space-2);
+		border: 1px solid var(--color-line);
+		border-radius: var(--radius-md);
+		background: var(--color-surface-2);
+		font-size: 24px;
+		color: var(--color-ink-2);
 	}
 
 	h2 {
 		font-size: var(--text-md);
+		line-height: var(--leading-snug);
 	}
 
 	p {
@@ -50,5 +58,11 @@
 		justify-content: center;
 		gap: var(--space-2);
 		margin-top: var(--space-3);
+	}
+
+	@media (max-width: 480px) {
+		.empty {
+			padding: var(--space-8) var(--space-4);
+		}
 	}
 </style>

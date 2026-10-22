@@ -16,6 +16,39 @@ html {
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 	text-rendering: optimizeLegibility;
+	-webkit-tap-highlight-color: transparent;
+	tab-size: 4;
+	/* Thin, low-contrast-until-needed scrollbars (Chromium 121+, Safari 18.2+, Firefox). */
+	scrollbar-width: thin;
+	scrollbar-color: var(--color-line-strong) transparent;
+	/* A page that grows past the viewport after load (skeleton -> content) must not shift sideways. */
+	scrollbar-gutter: stable;
+}
+
+/* WebKit before 18.2 ignores scrollbar-color; give it the same quiet bar. */
+@supports not (scrollbar-color: auto) {
+	::-webkit-scrollbar {
+		width: 10px;
+		height: 10px;
+	}
+
+	::-webkit-scrollbar-thumb {
+		border: 3px solid transparent;
+		border-radius: var(--radius-pill);
+		background: var(--color-line-strong) padding-box;
+	}
+
+	::-webkit-scrollbar-thumb:hover {
+		background: var(--color-ink-3) padding-box;
+	}
+
+	::-webkit-scrollbar-corner {
+		background: transparent;
+	}
+}
+
+[hidden] {
+	display: none !important;
 }
 
 body {
@@ -85,6 +118,13 @@ select {
 	letter-spacing: inherit;
 }
 
+button,
+summary,
+[role='button'] {
+	/* No double-tap zoom delay on controls. */
+	touch-action: manipulation;
+}
+
 button {
 	cursor: pointer;
 }
@@ -99,14 +139,18 @@ table {
 }
 
 :focus-visible {
-	outline: 2px solid var(--color-focus);
-	outline-offset: 2px;
-	border-radius: var(--radius-xs);
+	outline: var(--focus-ring-width) solid var(--color-focus);
+	outline-offset: var(--focus-ring-offset);
 }
 
 ::selection {
 	background: var(--color-signal);
 	color: var(--color-signal-ink);
+}
+
+::placeholder {
+	color: var(--color-ink-3);
+	opacity: 1;
 }
 
 .visually-hidden {
@@ -130,12 +174,13 @@ table {
 	font-size: 0.95em;
 }
 
+/* Gain/loss as TEXT use the contrast-safe variants; fills and chart marks use --color-gain/-loss. */
 .gain {
-	color: var(--color-gain);
+	color: var(--color-gain-text);
 }
 
 .loss {
-	color: var(--color-loss);
+	color: var(--color-loss-text);
 }
 
 .muted {
@@ -149,6 +194,7 @@ table {
 		animation-duration: 0.01ms !important;
 		animation-iteration-count: 1 !important;
 		transition-duration: 0.01ms !important;
+		transition-delay: 0s !important;
 		scroll-behavior: auto !important;
 	}
 }
@@ -156,5 +202,10 @@ table {
 @media (forced-colors: active) {
 	:focus-visible {
 		outline-color: Highlight;
+	}
+
+	::selection {
+		background: Highlight;
+		color: HighlightText;
 	}
 }

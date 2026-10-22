@@ -13,7 +13,10 @@
 	let { title, subtitle, actions, children, flush = false, id }: Props = $props();
 </script>
 
-<section class="panel" class:flush aria-labelledby={title && id ? `${id}-title` : undefined}>
+<section
+	class={['panel', flush && 'flush']}
+	aria-labelledby={title && id ? `${id}-title` : undefined}
+>
 	{#if title || actions}
 		<header>
 			<div class="titles">
@@ -39,13 +42,14 @@
 		flex-wrap: wrap;
 		align-items: flex-start;
 		justify-content: space-between;
-		gap: var(--space-4);
+		gap: var(--space-3) var(--space-4);
 		padding: var(--space-4) var(--space-5) 0;
 	}
 
 	h2 {
 		font-size: var(--text-md);
 		font-weight: 600;
+		line-height: var(--leading-snug);
 		letter-spacing: -0.01em;
 	}
 
@@ -57,6 +61,7 @@
 	.titles p {
 		margin-top: 2px;
 		font-size: var(--text-sm);
+		line-height: var(--leading-snug);
 		color: var(--color-ink-3);
 	}
 
@@ -74,5 +79,15 @@
 
 	.flush .content {
 		padding: var(--space-3) 0 0;
+	}
+
+	@media (max-width: 480px) {
+		header {
+			padding-inline: var(--space-4);
+		}
+
+		.content {
+			padding-inline: var(--space-4);
+		}
 	}
 </style>

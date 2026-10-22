@@ -17,7 +17,7 @@
 		{#if back}<a class="back" href={back.href}>{back.label}</a>{/if}
 		<h1>{title}</h1>
 		{#if description}<p>{description}</p>{/if}
-		{#if children}{@render children()}{/if}
+		{@render children?.()}
 	</div>
 	{#if actions}<div class="actions">{@render actions()}</div>{/if}
 </header>
@@ -28,7 +28,7 @@
 		flex-wrap: wrap;
 		align-items: flex-end;
 		justify-content: space-between;
-		gap: var(--space-4);
+		gap: var(--space-3) var(--space-4);
 		margin-bottom: var(--space-6);
 	}
 
@@ -36,17 +36,28 @@
 		display: grid;
 		gap: var(--space-1);
 		min-width: 0;
+		/* Wraps its actions below before it gets squeezed under ~280px. */
+		flex: 1 1 280px;
 	}
 
 	.back {
+		justify-self: start;
 		font-size: var(--text-sm);
 		color: var(--color-ink-3);
 		text-decoration: none;
 		margin-bottom: var(--space-1);
+		transition: color var(--duration-fast) var(--ease-out);
 	}
 
-	.back:hover {
-		color: var(--color-ink);
+	@media (hover: hover) and (pointer: fine) {
+		.back:hover {
+			color: var(--color-ink);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	.back:focus-visible {
+		transition-delay: 0s;
 	}
 
 	.back::before {
@@ -54,8 +65,10 @@
 	}
 
 	h1 {
-		font-size: var(--text-2xl);
+		/* 23px on a phone, 28px from tablet up; long titles wrap and balance. */
+		font-size: clamp(var(--text-xl), 1.1rem + 1.1vw, var(--text-2xl));
 		letter-spacing: var(--tracking-display);
+		overflow-wrap: anywhere;
 	}
 
 	p {
@@ -66,6 +79,7 @@
 	.actions {
 		display: flex;
 		flex-wrap: wrap;
+		align-items: center;
 		gap: var(--space-2);
 	}
 </style>

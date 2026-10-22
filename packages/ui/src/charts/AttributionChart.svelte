@@ -8,7 +8,7 @@
 	import type { AxisTick, HitTarget, TableRow, TooltipRow } from './chart-utils.ts';
 	import {
 		columnPath,
-		compactMoney,
+		moneyTickLabels,
 		compactSignedMoney,
 		roundedRectPath,
 		textWidth,
@@ -101,7 +101,7 @@
 	});
 
 	const yTickValues = $derived(yRaw.ticks(tickCount(height - 50, 44)));
-	const yLabels = $derived(yTickValues.map((t) => compactMoney(t, currency)));
+	const yLabels = $derived(moneyTickLabels(yTickValues, currency));
 
 	const margin = $derived({
 		top: 14,
@@ -261,13 +261,11 @@
 						<path
 							d={bar.path}
 							fill={bar.fill}
-							class:dim={active !== null && active !== i}
-							class="bar"
+							class={['bar', active !== null && active !== i && 'dim']}
 						/>
 						<text class="value" x={bar.cx} y={bar.labelY} text-anchor="middle">{bar.label}</text>
 						<text
-							class="tick cat"
-							class:strong={bar.step.total}
+							class={['tick cat', bar.step.total && 'strong']}
 							x={bar.cx}
 							y={innerHeight + 16}
 							text-anchor="middle"
@@ -323,7 +321,7 @@
 	}
 
 	.zero {
-		stroke: var(--chart-axis);
+		stroke: var(--chart-baseline);
 		stroke-width: 1;
 		shape-rendering: crispEdges;
 	}

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Attachment } from 'svelte/attachments';
 	import type { DailyPnl } from '@journalix/core';
 	import { formatDayKey, formatMoney } from '@journalix/core';
 	import ChartTable from './ChartTable.svelte';
@@ -24,13 +25,17 @@
 
 	let { days, endDate, weekStartsOn, currency, onselect }: Props = $props();
 
+	const uid = $props.id();
+	const hatchId = `${uid}-loss`;
+
 	const GAP = 2;
 	const LEFT = 30;
 	const TOP = 18;
-	const MIN_CELL = 10;
+	/** Touch gets bigger cells (the row scrolls sideways instead): 14px + 2px gap is a 16px pitch. */
+	const coarse = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+	const MIN_CELL = coarse ? 14 : 10;
 	const MAX_CELL = 22;
 
-	let scroller = $state<HTMLDivElement>();
 	let svgEl = $state<SVGSVGElement>();
 	let active = $state<string | null>(null);
 	let focusedDay = $state<string | null>(null);
@@ -134,13 +139,13 @@
 	const actionable = $derived(cells.filter((c) => c.data !== null));
 	const tabStop = $derived(focusedDay ?? actionable[actionable.length - 1]?.date ?? null);
 
-	$effect(() => {
-		// Start scrolled to the most recent weeks.
-		if (scroller && width > 0) {
-			scroller.scrollLeft = scroller.scrollWidth;
-			scrollLeft = scroller.scrollLeft;
-		}
-	});
+	/**
+	 * Start scrolled to the most recent weeks. Re-runs when the plot width changes; the resulting
+	 * `scroll` event keeps `scrollLeft` (the tooltip anchor offset) in sync.
+	 */
+	const scrollToLatest: Attachment<HTMLDivElement> = (el) => {
+		if (width > 0) el.scrollLeft = el.scrollWidth;
+	};
 
 	function focusDate(date: string): void {
 		svgEl?.querySelector<SVGElement>(`[data-date="${date}"]`)?.focus();
@@ -214,6 +219,13 @@
 	);
 </script>
 
+<svelte:window
+	onpointerdown={(e) => {
+		if (active !== null && !(e.target instanceof Element && e.target.closest('[data-date]')))
+			active = null;
+	}}
+/>
+
 <figure class="heatmap" aria-label={summary}>
 	<figcaption class="visually-hidden">{summary}</figcaption>
 	<div class="wrap" bind:clientWidth={viewWidth} bind:clientHeight={viewHeight}>
@@ -226,8 +238,8 @@
 			class="scroller"
 			data-scroll
 			style:margin-left="{LEFT}px"
-			bind:this={scroller}
-			onscroll={() => (scrollLeft = scroller?.scrollLeft ?? 0)}
+			{@attach scrollToLatest}
+			onscroll={(e) => (scrollLeft = e.currentTarget.scrollLeft)}
 		>
 			<svg
 				bind:this={svgEl}
@@ -239,12 +251,17 @@
 				{#each monthLabels as m (m.key)}
 					<text class="label" x={m.x} y={10} aria-hidden="true">{m.label}</text>
 				{/each}
+				<defs>
+					<!-- Loss days carry a 45 degree hatch on top of the hue, so sign never rests on colour alone. -->
+					<pattern id={hatchId} width="4" height="4" patternUnits="userSpaceOnUse">
+						<path d="M-1 5L5 -1" class="hatch-line" />
+					</pattern>
+				</defs>
 				<g>
 					{#each cells as cell (cell.date)}
 						{#if cell.data}
 							<rect
-								class="cell active"
-								class:on={tipDate === cell.date}
+								class={['cell active', tipDate === cell.date && 'on']}
 								role="button"
 								tabindex={tabStop === cell.date ? 0 : -1}
 								data-date={cell.date}
@@ -260,12 +277,26 @@
 								rx={2}
 								fill={fillFor(cell)}
 								onpointerenter={() => (active = cell.date)}
-								onpointerleave={() => (active = null)}
+								onpointerleave={(e) => {
+									// Touch fires pointerleave on lift; keep the readout until the next tap elsewhere.
+									if (e.pointerType !== 'touch') active = null;
+								}}
 								onfocus={() => (focusedDay = cell.date)}
 								onblur={() => (focusedDay = null)}
 								onclick={() => onselect?.(cell.date)}
 								onkeydown={(e) => onkeydown(e, cell.date)}
 							/>
+							{#if cell.data.pnl < 0}
+								<rect
+									class="hatch"
+									x={cell.col * STEP}
+									y={TOP + cell.row * STEP}
+									width={CELL}
+									height={CELL}
+									rx={2}
+									fill="url(#{hatchId})"
+								/>
+							{/if}
 						{:else}
 							<rect
 								class="cell"
@@ -292,6 +323,11 @@
 			/>
 		{/if}
 	</div>
+	<p class="key">
+		<span class="swatch gain" aria-hidden="true"></span>Gain
+		<span class="swatch loss" aria-hidden="true"></span>Loss (hatched)
+		<span class="scale">Deeper colour, larger day</span>
+	</p>
 	<ChartTable
 		caption="Daily P&L, last 52 weeks"
 		columns={['Day', 'Net P&L', 'Trades']}
@@ -338,6 +374,58 @@
 
 	.cell {
 		stroke: none;
+	}
+
+	.hatch {
+		pointer-events: none;
+	}
+
+	.hatch-line {
+		stroke: var(--color-ink);
+		stroke-opacity: 0.4;
+		stroke-width: 1;
+		fill: none;
+	}
+
+	.key {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-1) var(--space-2);
+		margin: var(--space-2) 0 0;
+		font-size: var(--text-xs);
+		color: var(--color-ink-2);
+	}
+
+	.swatch {
+		width: 10px;
+		height: 10px;
+		border-radius: 2px;
+		margin-left: var(--space-2);
+		forced-color-adjust: none;
+	}
+
+	.swatch:first-child {
+		margin-left: 0;
+	}
+
+	.swatch.gain {
+		background: color-mix(in oklab, var(--color-gain) 45%, var(--color-surface));
+	}
+
+	.swatch.loss {
+		background:
+			repeating-linear-gradient(
+				135deg,
+				color-mix(in oklab, var(--color-ink) 40%, transparent) 0 1px,
+				transparent 1px 4px
+			),
+			color-mix(in oklab, var(--color-loss) 45%, var(--color-surface));
+	}
+
+	.scale {
+		margin-left: var(--space-3);
+		color: var(--color-ink-3);
 	}
 
 	.cell.active {

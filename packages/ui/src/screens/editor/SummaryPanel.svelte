@@ -29,7 +29,7 @@
 			<StatusBadge status={metrics.status} outcome={metrics.outcome} />
 			<span class="strategy">{STRATEGIES[metrics.strategy].label}</span>
 		</div>
-		<p class="pnl num" class:gain={metrics.netPnl > 0} class:loss={metrics.netPnl < 0}>
+		<p class={['pnl', 'num', { gain: metrics.netPnl > 0, loss: metrics.netPnl < 0 }]}>
 			{metrics.status === 'closed' ? money(metrics.netPnl, true) : money(metrics.grossPnl, true)}
 		</p>
 		<p class="pnl-label">
@@ -139,11 +139,11 @@
 	}
 
 	.gain {
-		color: var(--color-gain);
+		color: var(--color-gain-text);
 	}
 
 	.loss {
-		color: var(--color-loss);
+		color: var(--color-loss-text);
 	}
 
 	.pnl-label {

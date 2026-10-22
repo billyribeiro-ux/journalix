@@ -9,7 +9,7 @@
 	import type { AxisTick, HitTarget, TableRow, TooltipRow } from './chart-utils.ts';
 	import {
 		columnPath,
-		compactMoney,
+		moneyTickLabels,
 		domainWithZero,
 		pnlAcross,
 		textWidth,
@@ -40,7 +40,7 @@
 			.nice(tickCount(height, 48))
 	);
 	const yTickValues = $derived(yRaw.ticks(tickCount(height - 40, 44)));
-	const yLabels = $derived(yTickValues.map((t) => compactMoney(t, currency)));
+	const yLabels = $derived(moneyTickLabels(yTickValues, currency));
 
 	const margin = $derived({
 		top: 10,
@@ -185,8 +185,7 @@
 							<path
 								d={bar.path}
 								fill={bar.fill}
-								class="bar"
-								class:dim={active !== null && active !== i}
+								class={['bar', active !== null && active !== i && 'dim']}
 							/>
 						{/each}
 						<line class="zero" x1={0} x2={innerWidth} y1={zeroY} y2={zeroY} />
@@ -243,7 +242,7 @@
 	}
 
 	.zero {
-		stroke: var(--chart-axis);
+		stroke: var(--chart-baseline);
 		stroke-width: 1;
 		shape-rendering: crispEdges;
 	}

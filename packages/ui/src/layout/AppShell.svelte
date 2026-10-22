@@ -1,8 +1,11 @@
 <script lang="ts">
-	import { untrack, type Snippet } from 'svelte';
+	import { tick, untrack, type Snippet } from 'svelte';
+	import type { Attachment } from 'svelte/attachments';
+	import { MediaQuery } from 'svelte/reactivity';
 	import PlusIcon from 'phosphor-svelte/lib/PlusIcon';
 	import ListIcon from 'phosphor-svelte/lib/ListIcon';
 	import XIcon from 'phosphor-svelte/lib/XIcon';
+	import SidebarSimpleIcon from 'phosphor-svelte/lib/SidebarSimpleIcon';
 	import SignOutIcon from 'phosphor-svelte/lib/SignOutIcon';
 	import SunIcon from 'phosphor-svelte/lib/SunIcon';
 	import MoonIcon from 'phosphor-svelte/lib/MoonIcon';
@@ -15,7 +18,7 @@
 	import Logo from '../marketing/Logo.svelte';
 	import Toasts from '../primitives/Toasts.svelte';
 	import Button from '../primitives/Button.svelte';
-	import Spinner from '../primitives/Spinner.svelte';
+	import { installTooltips, tip } from '../primitives/tooltip.ts';
 	import FilterBar from './FilterBar.svelte';
 	import { FILTERED_ROUTES, PRIMARY_NAV, SECONDARY_NAV, type NavItem } from './nav.ts';
 	import { applyTheme, type ThemeChoice } from './theme.ts';
@@ -40,7 +43,15 @@
 		toaster
 	});
 
+	const SIDEBAR_KEY = 'journalix-sidebar';
+
 	let drawerOpen = $state(false);
+	/** Desktop icon rail. Remembered on this device; the mobile drawer is never collapsed. */
+	let collapsed = $state(false);
+	let menuButton = $state<HTMLButtonElement | null>(null);
+	let closeButton = $state<HTMLButtonElement | null>(null);
+	// Only needed to make the page behind an open drawer inert; layout itself is pure CSS.
+	const narrow = new MediaQuery('max-width: 1023.98px', false);
 	const active = $derived(env.activeRoute());
 	const showFilters = $derived(
 		FILTERED_ROUTES.has(active) && journal.status === 'ready' && journal.trades.length > 0
@@ -48,10 +59,17 @@
 	const secondary = $derived(
 		SECONDARY_NAV.filter((item) => !item.webOnly || env.platform === 'web')
 	);
+	const loading = $derived(journal.status === 'loading' || journal.status === 'idle');
+	const behindDrawer = $derived(drawerOpen && narrow.current);
+	/** The rail is a desktop-only state; below 1024px the drawer always shows labels. */
+	const rail = $derived(collapsed && !narrow.current);
 
 	$effect(() => {
 		void journal.load();
 	});
+
+	// Screens put `data-tip` on their own elements; one controller serves all of them.
+	$effect(() => installTooltips());
 
 	// Apply the saved theme once settings load, and whenever it changes.
 	$effect(() => {
@@ -63,6 +81,37 @@
 		void active;
 		drawerOpen = false;
 	});
+
+	// static/theme-init.js already put the saved rail state on <html> before first paint (so the
+	// CSS below is right from the first frame); mirror it into state for aria and tooltips. An
+	// attachment runs only in the browser, once, so SSR never reads `document`.
+	const mirrorRail: Attachment<HTMLElement> = () => {
+		collapsed = document.documentElement.dataset['sidebar'] === 'collapsed';
+	};
+
+	async function openDrawer(): Promise<void> {
+		drawerOpen = true;
+		await tick();
+		closeButton?.focus();
+	}
+
+	async function closeDrawer(): Promise<void> {
+		drawerOpen = false;
+		// The bar is `inert` while the drawer is open; wait for that to clear before focusing it.
+		await tick();
+		menuButton?.focus();
+	}
+
+	function toggleCollapsed(): void {
+		collapsed = !collapsed;
+		if (collapsed) document.documentElement.dataset['sidebar'] = 'collapsed';
+		else delete document.documentElement.dataset['sidebar'];
+		try {
+			localStorage.setItem(SIDEBAR_KEY, collapsed ? 'collapsed' : 'expanded');
+		} catch {
+			// Storage unavailable: the choice still applies for this session.
+		}
+	}
 
 	async function setTheme(choice: ThemeChoice): Promise<void> {
 		applyTheme(choice);
@@ -84,23 +133,62 @@
 	}
 
 	function onkeydown(event: KeyboardEvent): void {
-		if (event.key === 'Escape' && drawerOpen) drawerOpen = false;
+		if (event.key === 'Escape' && drawerOpen) void closeDrawer();
+	}
+
+	// Theme radios: one tab stop, arrow keys move and select (like Segmented).
+	function onthemekeydown(event: KeyboardEvent): void {
+		const index = THEMES.findIndex((t) => t.value === journal.settings.theme);
+		const delta =
+			event.key === 'ArrowRight' || event.key === 'ArrowDown'
+				? 1
+				: event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+					? -1
+					: 0;
+		if (delta === 0) return;
+		event.preventDefault();
+		const next = (index + delta + THEMES.length) % THEMES.length;
+		const choice = THEMES[next];
+		if (!choice) return;
+		void setTheme(choice.value);
+		(event.currentTarget as HTMLElement)
+			.querySelectorAll<HTMLButtonElement>('[role="radio"]')
+			[next]?.focus();
 	}
 </script>
 
 <svelte:window {onkeydown} />
 
+{#snippet navList(items: readonly NavItem[], divided: boolean)}
+	<ul role="list" class={['nav', divided && 'secondary']}>
+		{#each items as item (item.label)}
+			{const Icon = $derived(item.icon)}
+			<li>
+				<a
+					href={env.href(item.route)}
+					aria-current={isActive(item) ? 'page' : undefined}
+					{@attach tip(rail ? item.label : undefined, 'side')}
+				>
+					<Icon size={18} weight={isActive(item) ? 'fill' : 'regular'} />
+					<span class="label">{item.label}</span>
+				</a>
+			</li>
+		{/each}
+	</ul>
+{/snippet}
+
 <a class="skip" href="#app-main">Skip to content</a>
 
-<div class="shell" class:drawer-open={drawerOpen}>
-	<header class="mobile-bar">
+<div class={['shell', drawerOpen && 'drawer-open']} {@attach mirrorRail}>
+	<header class="mobile-bar" inert={behindDrawer}>
 		<button
 			type="button"
 			class="menu"
+			bind:this={menuButton}
 			aria-label="Open navigation"
 			aria-expanded={drawerOpen}
 			aria-controls="app-nav"
-			onclick={() => (drawerOpen = true)}
+			onclick={openDrawer}
 		>
 			<ListIcon size={20} />
 		</button>
@@ -111,11 +199,7 @@
 	</header>
 
 	{#if drawerOpen}
-		<button
-			type="button"
-			class="scrim"
-			aria-label="Close navigation"
-			onclick={() => (drawerOpen = false)}
+		<button type="button" class="scrim" aria-label="Close navigation" onclick={closeDrawer}
 		></button>
 	{/if}
 
@@ -125,8 +209,9 @@
 			<button
 				type="button"
 				class="close"
+				bind:this={closeButton}
 				aria-label="Close navigation"
-				onclick={() => (drawerOpen = false)}><XIcon size={18} /></button
+				onclick={closeDrawer}><XIcon size={18} /></button
 			>
 		</div>
 
@@ -137,38 +222,25 @@
 			</Button>
 		</div>
 
-		<ul role="list" class="nav">
-			{#each PRIMARY_NAV as item (item.label)}
-				{@const Icon = item.icon}
-				<li>
-					<a href={env.href(item.route)} aria-current={isActive(item) ? 'page' : undefined}>
-						<Icon size={18} weight={isActive(item) ? 'fill' : 'regular'} />
-						<span>{item.label}</span>
-					</a>
-				</li>
-			{/each}
-		</ul>
-		<ul role="list" class="nav secondary">
-			{#each secondary as item (item.label)}
-				{@const Icon = item.icon}
-				<li>
-					<a href={env.href(item.route)} aria-current={isActive(item) ? 'page' : undefined}>
-						<Icon size={18} weight={isActive(item) ? 'fill' : 'regular'} />
-						<span>{item.label}</span>
-					</a>
-				</li>
-			{/each}
-		</ul>
+		{@render navList(PRIMARY_NAV, false)}
+		{@render navList(secondary, true)}
 
 		<div class="sidebar-bottom">
-			<div class="themes" role="radiogroup" aria-label="Theme">
+			<div
+				class="themes"
+				role="radiogroup"
+				aria-label="Theme"
+				tabindex="-1"
+				onkeydown={onthemekeydown}
+			>
 				{#each THEMES as theme (theme.value)}
 					<button
 						type="button"
 						role="radio"
 						aria-checked={journal.settings.theme === theme.value}
 						aria-label={theme.label}
-						title={theme.label}
+						tabindex={journal.settings.theme === theme.value ? 0 : -1}
+						{@attach tip(theme.label, rail ? 'side' : 'start')}
 						onclick={() => setTheme(theme.value)}
 					>
 						{#if theme.value === 'system'}<MonitorIcon
@@ -190,7 +262,7 @@
 							type="button"
 							class="signout"
 							aria-label="Sign out"
-							title="Sign out"
+							{@attach tip('Sign out', rail ? 'side' : 'end')}
 							onclick={() => env.signOut?.()}
 						>
 							<SignOutIcon size={18} />
@@ -200,17 +272,51 @@
 			{:else}
 				<p class="local">Local journal on this computer</p>
 			{/if}
+			<button
+				type="button"
+				class="collapse"
+				aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+				aria-expanded={!collapsed}
+				aria-controls="app-nav"
+				{@attach tip(collapsed ? 'Expand sidebar' : 'Collapse sidebar', rail ? 'side' : 'start')}
+				onclick={toggleCollapsed}
+			>
+				<SidebarSimpleIcon size={18} />
+			</button>
 		</div>
 	</nav>
 
-	<div class="main-col">
+	<div class="main-col" inert={behindDrawer}>
 		{#if showFilters}
 			<div class="filterbar"><FilterBar /></div>
+		{:else if loading && FILTERED_ROUTES.has(active)}
+			<!-- Same box as the real bar, so it does not push the page down when the journal arrives. -->
+			<div class="filterbar" aria-hidden="true">
+				<div class="filters-skeleton">
+					{#each [150, 128, 128, 140, 112] as width, i (i)}
+						<span class="skeleton chip" style:width="{width}px"></span>
+					{/each}
+				</div>
+			</div>
 		{/if}
 		<main id="app-main" class="content" tabindex="-1">
-			{#if journal.status === 'loading' || journal.status === 'idle'}
-				<div class="state" aria-live="polite">
-					<Spinner label="Loading your journal" /> <span>Loading your journal</span>
+			{#if loading}
+				<!-- Page-shaped placeholder: header, stat row, two panels. The sidebar and bar stay put. -->
+				<div class="page-skeleton" aria-busy="true">
+					<span class="visually-hidden" role="status">Loading your journal</span>
+					<div class="sk-head">
+						<span class="skeleton sk-title"></span>
+						<span class="skeleton sk-sub"></span>
+					</div>
+					<div class="sk-tiles">
+						{#each [0, 1, 2, 3, 4] as n (n)}
+							<span class="skeleton sk-tile"></span>
+						{/each}
+					</div>
+					<div class="sk-panels">
+						<span class="skeleton sk-panel sk-tall"></span>
+						<span class="skeleton sk-panel"></span>
+					</div>
 				</div>
 			{:else if journal.status === 'error'}
 				<div class="state error" role="alert">
@@ -230,7 +336,7 @@
 <style>
 	.skip {
 		position: absolute;
-		left: var(--space-2);
+		inset-inline-start: var(--space-2);
 		top: -100px;
 		z-index: var(--z-toast);
 		padding: var(--space-2) var(--space-3);
@@ -247,10 +353,14 @@
 	.shell {
 		min-height: 100dvh;
 		display: grid;
-		grid-template-columns: 1fr;
+		grid-template-columns: minmax(0, 1fr);
+		/* Bar sizes to itself and the content row takes the slack, so a short page never pushes
+		   its content down by spreading the spare height into the first row. */
+		grid-template-rows: auto minmax(0, 1fr);
 		background: var(--color-bg);
 	}
 
+	/* ---------- mobile top bar (below 1024px) ---------- */
 	.mobile-bar {
 		position: sticky;
 		top: 0;
@@ -258,8 +368,10 @@
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		box-sizing: content-box;
 		height: var(--topbar-height);
-		padding: 0 var(--space-3);
+		padding: env(safe-area-inset-top) max(var(--space-3), env(safe-area-inset-right)) 0
+			max(var(--space-3), env(safe-area-inset-left));
 		background: var(--color-surface);
 		border-bottom: 1px solid var(--color-line);
 	}
@@ -269,25 +381,33 @@
 	.new-mobile {
 		display: grid;
 		place-items: center;
-		width: 40px;
-		height: 40px;
+		width: var(--control-touch);
+		height: var(--control-touch);
 		border: 0;
 		border-radius: var(--radius-sm);
 		background: transparent;
 		color: var(--color-ink-2);
+		transition:
+			background-color var(--duration-fast) var(--ease-out),
+			transform var(--duration-instant) var(--ease-out);
+	}
+
+	.menu:active,
+	.close:active,
+	.new-mobile:active {
+		transform: scale(0.94);
 	}
 
 	.new-mobile {
 		background: var(--color-signal);
 		color: var(--color-signal-ink);
-		width: 36px;
-		height: 36px;
 	}
 
 	.brand {
 		display: inline-flex;
 		color: var(--color-ink);
 		text-decoration: none;
+		border-radius: var(--radius-sm);
 	}
 
 	.scrim {
@@ -295,9 +415,17 @@
 		inset: 0;
 		z-index: calc(var(--z-overlay) - 1);
 		border: 0;
-		background: rgb(6 12 22 / 55%);
+		background: var(--color-scrim);
+		animation: fade var(--duration-base) var(--ease-out);
 	}
 
+	@keyframes fade {
+		from {
+			opacity: 0;
+		}
+	}
+
+	/* ---------- sidebar / drawer ---------- */
 	.sidebar {
 		position: fixed;
 		inset: 0 auto 0 0;
@@ -306,17 +434,26 @@
 		display: flex;
 		flex-direction: column;
 		gap: var(--space-4);
-		padding: var(--space-4) var(--space-3);
+		padding: max(var(--space-4), env(safe-area-inset-top)) var(--space-3) var(--space-4);
 		background: var(--color-surface);
 		border-right: 1px solid var(--color-line);
 		transform: translateX(-100%);
-		transition: transform var(--duration-base) var(--ease-out);
+		/* Closing is quicker than opening, and `visibility` drops it from the tab order once hidden. */
+		visibility: hidden;
+		transition:
+			transform var(--duration-fast) var(--ease-in),
+			visibility 0s linear var(--duration-fast);
 		overflow-y: auto;
+		overscroll-behavior: contain;
 	}
 
 	.drawer-open .sidebar {
 		transform: none;
+		visibility: visible;
 		box-shadow: var(--shadow-overlay);
+		transition:
+			transform var(--duration-base) var(--ease-out-strong),
+			visibility 0s;
 	}
 
 	.sidebar-top {
@@ -327,8 +464,10 @@
 		min-height: 40px;
 	}
 
-	.new :global(.btn) {
-		width: 100%;
+	.new :global {
+		.btn {
+			width: 100%;
+		}
 	}
 
 	.nav {
@@ -342,26 +481,74 @@
 	}
 
 	.nav a {
+		position: relative;
 		display: flex;
 		align-items: center;
 		gap: var(--space-3);
-		height: 36px;
+		height: var(--control);
 		padding: 0 var(--space-3);
 		border-radius: var(--radius-sm);
 		color: var(--color-ink-2);
 		text-decoration: none;
 		font-weight: 500;
+		transition:
+			background-color var(--duration-fast) var(--ease-out),
+			color var(--duration-fast) var(--ease-out);
 	}
 
-	.nav a:hover {
-		background: var(--color-surface-2);
-		color: var(--color-ink);
+	.nav a :global(svg) {
+		flex: none;
 	}
 
+	.nav .label {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	@media (pointer: coarse) {
+		.nav a {
+			height: var(--control-touch);
+		}
+	}
+
+	/* Hover is a lighter tint than the current page, so the two never read as the same state. */
+	@media (hover: hover) and (pointer: fine) {
+		.nav a:hover:not([aria-current='page']) {
+			background: color-mix(in oklab, var(--color-surface-2) 60%, transparent);
+			color: var(--color-ink);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	.nav a:focus-visible,
+	.nav a:active {
+		transition-delay: 0s;
+	}
+
+	.nav a:focus-visible {
+		outline-offset: -2px;
+	}
+
+	.nav a:active:not([aria-current='page']) {
+		background: var(--color-pressed);
+	}
+
+	/* Current page: filled icon, ink text, tint, and a signal bar on the leading edge. */
 	.nav a[aria-current='page'] {
 		background: var(--color-surface-2);
 		color: var(--color-ink);
-		box-shadow: inset 2px 0 0 var(--color-signal);
+	}
+
+	.nav a[aria-current='page']::before {
+		content: '';
+		position: absolute;
+		inset-block: var(--space-2);
+		inset-inline-start: 0;
+		width: 3px;
+		border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+		background: var(--color-signal);
 	}
 
 	.sidebar-bottom {
@@ -382,21 +569,80 @@
 		justify-self: start;
 	}
 
-	.themes button {
+	.themes button,
+	.collapse,
+	.signout {
 		display: grid;
 		place-items: center;
-		width: 30px;
-		height: 26px;
 		border: 0;
-		border-radius: var(--radius-xs);
 		background: transparent;
 		color: var(--color-ink-3);
+		transition:
+			background-color var(--duration-fast) var(--ease-out),
+			color var(--duration-fast) var(--ease-out),
+			box-shadow var(--duration-fast) var(--ease-out);
+	}
+
+	.themes button {
+		width: 32px;
+		height: 28px;
+		border-radius: var(--radius-xs);
 	}
 
 	.themes button[aria-checked='true'] {
 		background: var(--color-surface);
 		color: var(--color-ink);
-		box-shadow: 0 0 0 1px var(--color-line-strong);
+		box-shadow:
+			0 0 0 1px var(--color-control-line),
+			0 1px 2px rgb(15 27 45 / 8%);
+	}
+
+	.collapse,
+	.signout {
+		width: var(--control-dense);
+		height: var(--control-dense);
+		border-radius: var(--radius-sm);
+		flex: none;
+	}
+
+	.collapse {
+		display: none;
+		justify-self: start;
+	}
+
+	@media (pointer: coarse) {
+		.themes button {
+			width: var(--control-touch);
+			height: 36px;
+		}
+
+		.signout {
+			width: var(--control-touch);
+			height: var(--control-touch);
+		}
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.themes button:hover:not([aria-checked='true']),
+		.collapse:hover,
+		.signout:hover {
+			background: var(--color-hover);
+			color: var(--color-ink);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	.themes button:focus-visible,
+	.collapse:focus-visible,
+	.signout:focus-visible,
+	.themes button:active,
+	.collapse:active,
+	.signout:active {
+		transition-delay: 0s;
+	}
+
+	.themes button:focus-visible {
+		outline-offset: 0;
 	}
 
 	.user {
@@ -432,23 +678,7 @@
 		padding: 0 var(--space-2);
 	}
 
-	.signout {
-		display: grid;
-		place-items: center;
-		width: 32px;
-		height: 32px;
-		border: 0;
-		border-radius: var(--radius-sm);
-		background: transparent;
-		color: var(--color-ink-3);
-		flex: none;
-	}
-
-	.signout:hover {
-		background: var(--color-surface-2);
-		color: var(--color-ink);
-	}
-
+	/* ---------- main column ---------- */
 	.main-col {
 		min-width: 0;
 		display: flex;
@@ -457,12 +687,19 @@
 
 	.filterbar {
 		position: sticky;
-		top: var(--topbar-height);
+		top: calc(var(--topbar-height) + env(safe-area-inset-top));
 		z-index: calc(var(--z-sticky) - 1);
 		padding: var(--space-2) var(--space-4);
 		background: color-mix(in oklab, var(--color-bg) 92%, transparent);
 		backdrop-filter: blur(8px);
 		border-bottom: 1px solid var(--color-line);
+	}
+
+	/* Wrapped filters can take 4 rows on a phone; a sticky bar that tall would eat the screen. */
+	@media (max-width: 639px) {
+		.filterbar {
+			position: static;
+		}
 	}
 
 	.content {
@@ -472,6 +709,78 @@
 		margin: 0 auto;
 		padding: var(--space-5) var(--space-4) var(--space-16);
 		outline: none;
+	}
+
+	.filters-skeleton {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2);
+		/* Chip height matches the real controls; touch gets the 44px they get. */
+		min-height: var(--control-dense);
+	}
+
+	.chip {
+		height: var(--control-dense);
+	}
+
+	@media (pointer: coarse) {
+		.chip,
+		.filters-skeleton {
+			height: var(--control-touch);
+			min-height: var(--control-touch);
+		}
+	}
+
+	.page-skeleton {
+		display: grid;
+		gap: var(--space-6);
+	}
+
+	.sk-head {
+		display: grid;
+		gap: var(--space-2);
+	}
+
+	.sk-title {
+		width: min(260px, 60%);
+		height: 32px;
+	}
+
+	.sk-sub {
+		width: min(420px, 80%);
+		height: 16px;
+	}
+
+	.sk-tiles {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+		gap: var(--space-3);
+	}
+
+	.sk-tile {
+		height: 84px;
+		border-radius: var(--radius-md);
+	}
+
+	.sk-panels {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--space-4);
+	}
+
+	.sk-panel {
+		height: 240px;
+		border-radius: var(--radius-md);
+	}
+
+	@media (min-width: 1024px) {
+		.sk-panels {
+			grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+		}
+
+		.sk-tall {
+			height: 320px;
+		}
 	}
 
 	.state {
@@ -496,6 +805,7 @@
 	@media (min-width: 1024px) {
 		.shell {
 			grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+			grid-template-rows: minmax(0, 1fr);
 		}
 
 		.mobile-bar,
@@ -510,7 +820,9 @@
 			height: 100dvh;
 			width: var(--sidebar-width);
 			transform: none;
+			visibility: visible;
 			transition: none;
+			padding-top: var(--space-4);
 		}
 
 		.drawer-open .sidebar {
@@ -524,6 +836,88 @@
 
 		.content {
 			padding: var(--space-6) var(--space-8) var(--space-16);
+		}
+
+		.collapse {
+			display: grid;
+		}
+
+		/* Icon rail: labels leave the layout (but stay in the accessibility tree), tooltips take over. */
+		:global(:root[data-sidebar='collapsed']) .shell {
+			grid-template-columns: var(--sidebar-collapsed) minmax(0, 1fr);
+		}
+
+		:global(:root[data-sidebar='collapsed']) .sidebar {
+			width: var(--sidebar-collapsed);
+			padding-inline: var(--space-2);
+			/* Tooltips open to the right of the rail, outside its box. */
+			overflow: visible;
+		}
+
+		:global(:root[data-sidebar='collapsed']) .sidebar-top .brand :global(.word) {
+			display: none;
+		}
+
+		:global(:root[data-sidebar='collapsed']) .sidebar-top {
+			justify-content: center;
+			padding: 0;
+		}
+
+		:global(:root[data-sidebar='collapsed']) .nav a {
+			justify-content: center;
+			padding: 0;
+		}
+
+		:global(:root[data-sidebar='collapsed']) .nav .label,
+		:global(:root[data-sidebar='collapsed']) .new :global(.label),
+		:global(:root[data-sidebar='collapsed']) .who,
+		:global(:root[data-sidebar='collapsed']) .local {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			margin: -1px;
+			overflow: hidden;
+			clip-path: inset(50%);
+			white-space: nowrap;
+		}
+
+		:global(:root[data-sidebar='collapsed']) .new :global(.btn) {
+			padding: 0;
+		}
+
+		:global(:root[data-sidebar='collapsed']) .themes {
+			flex-direction: column;
+			justify-self: center;
+		}
+
+		:global(:root[data-sidebar='collapsed']) .user {
+			justify-content: center;
+			padding: 0;
+		}
+
+		:global(:root[data-sidebar='collapsed']) .collapse {
+			justify-self: center;
+		}
+
+		:global(:root[data-sidebar='collapsed']) .collapse :global(svg) {
+			transform: scaleX(-1);
+		}
+	}
+
+	@media (forced-colors: active) {
+		.nav a[aria-current='page']::before {
+			forced-color-adjust: none;
+			background: Highlight;
+		}
+
+		.nav a[aria-current='page'] {
+			outline: 1px solid Highlight;
+		}
+
+		.themes button[aria-checked='true'] {
+			forced-color-adjust: none;
+			background: Highlight;
+			color: HighlightText;
 		}
 	}
 </style>

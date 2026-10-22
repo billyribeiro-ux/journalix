@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import { tick } from 'svelte';
 	import { Button, Field, TextInput } from '@journalix/ui';
 	import AuthCard from '#lib/auth/AuthCard.svelte';
+	import PasswordField from '#lib/auth/PasswordField.svelte';
 	import type { PageProps } from './$types';
 
 	let { form }: PageProps = $props();
@@ -15,30 +17,40 @@
 	<meta name="robots" content="noindex" />
 </svelte:head>
 
-<AuthCard title="Sign in" subtitle="Pick up where your last session left off.">
+<AuthCard
+	title="Sign in"
+	subtitle="Pick up where your last session left off."
+	error={form?.message ?? null}
+>
 	<form
 		method="POST"
+		novalidate
 		use:enhance={() => {
 			busy = true;
-			return async ({ update }) => {
+			return async ({ result, update }) => {
 				await update({ reset: false });
 				busy = false;
+				if (result.type === 'failure') {
+					// To the field that needs fixing: the email when it was rejected, otherwise the password
+					// (selected, so the retry is one keystroke away).
+					await tick();
+					const emailInput = document.getElementById('email');
+					const emailRejected =
+						result.data?.message === 'Enter a valid email address' ||
+						(emailInput instanceof HTMLInputElement && emailInput.value === '');
+					const target = document.getElementById(emailRejected ? 'email' : 'password');
+					if (target instanceof HTMLInputElement) {
+						target.focus();
+						target.select();
+					}
+				}
 			};
 		}}
 	>
 		<Field label="Email" for="email">
 			<TextInput id="email" name="email" type="email" autocomplete="email" required value={email} />
 		</Field>
-		<Field label="Password" for="password">
-			<TextInput
-				id="password"
-				name="password"
-				type="password"
-				autocomplete="current-password"
-				required
-			/>
-		</Field>
-		{#if form?.message}<p class="error" role="alert">{form.message}</p>{/if}
+		<PasswordField label="Password" id="password" name="password" autocomplete="current-password" />
 		<Button type="submit" variant="primary" {busy}>Sign in</Button>
 	</form>
 	{#snippet footer()}
@@ -50,10 +62,5 @@
 	form {
 		display: grid;
 		gap: var(--space-4);
-	}
-
-	.error {
-		color: var(--color-loss);
-		font-size: var(--text-sm);
 	}
 </style>

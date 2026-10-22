@@ -229,8 +229,7 @@
 	{:else}
 		<div class="wrap" bind:clientWidth={width} bind:clientHeight={wrapHeight}>
 			<div
-				class="grid"
-				class:narrow
+				class={['grid', narrow && 'narrow']}
 				role="grid"
 				aria-label="Net P&L by weekday and hour"
 				bind:this={gridEl}
@@ -250,7 +249,11 @@
 							{narrow ? day.short.slice(0, 2) : day.short}
 						</div>
 						{#each matrix[ri] ?? [] as a (a.id)}
-							<div role="gridcell" class="cellwrap">
+							<div
+								role="gridcell"
+								class="cellwrap"
+								aria-label={a.trades > 0 ? undefined : labelFor(a)}
+							>
 								{#if a.trades > 0}
 									<button
 										type="button"
@@ -272,10 +275,16 @@
 										onblur={() => (focused = null)}
 										onkeydown={(e) => onkeydown(e, a)}
 									>
+										{#if a.pnl !== 0}
+											<!-- Sign by shape, so gain and loss never rest on hue alone. -->
+											<svg class="sign" width="7" height="6" viewBox="0 0 7 6" aria-hidden="true">
+												<path d={a.pnl > 0 ? 'M3.5 0L7 6H0Z' : 'M0 0H7L3.5 6Z'} />
+											</svg>
+										{/if}
 										{a.trades}
 									</button>
 								{:else}
-									<div class="cell empty" aria-label={labelFor(a)}></div>
+									<div class="cell empty"></div>
 								{/if}
 							</div>
 						{/each}
@@ -294,7 +303,7 @@
 			{/if}
 		</div>
 		<p class="note">
-			Cells show trade count; colour shows net P&amp;L.{weekendTrades
+			Cells show trade count. Colour and the corner mark show net P&amp;L: ▲ gain, ▼ loss.{weekendTrades
 				? ` ${weekendTrades} weekend ${weekendTrades === 1 ? 'trade is' : 'trades are'} not shown.`
 				: ''}
 		</p>
@@ -355,6 +364,7 @@
 	}
 
 	.cell {
+		position: relative;
 		display: grid;
 		place-items: center;
 		width: 100%;
@@ -376,13 +386,28 @@
 		font-size: var(--text-2xs);
 	}
 
+	.sign {
+		position: absolute;
+		top: 4px;
+		left: 4px;
+		fill: var(--color-ink-2);
+		pointer-events: none;
+	}
+
+	@media (pointer: coarse) {
+		.cell,
+		.narrow .cell {
+			height: var(--control-touch);
+		}
+	}
+
 	.cell.empty {
 		border-style: solid;
 		border-color: var(--chart-grid);
 	}
 
 	button.cell:hover {
-		border-color: var(--color-line-strong);
+		border-color: var(--color-ink-3);
 	}
 
 	button.cell:focus-visible {
