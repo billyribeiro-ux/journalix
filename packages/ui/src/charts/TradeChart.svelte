@@ -207,7 +207,8 @@
 						attributionLogo: true
 					},
 					grid: { vertLines: { color: c.grid }, horzLines: { color: c.grid } },
-					rightPriceScale: { borderColor: c.axis, scaleMargins: { top: 0.08, bottom: 0.18 } },
+					// The top 14% stays clear of the overlaid header pills (timeframe, OHLC, simulated / no data).
+					rightPriceScale: { borderColor: c.axis, scaleMargins: { top: 0.14, bottom: 0.18 } },
 					timeScale: {
 						borderColor: c.axis,
 						timeVisible: input.intraday,

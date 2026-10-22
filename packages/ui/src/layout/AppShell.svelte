@@ -193,12 +193,16 @@
 			aria-expanded={drawerOpen}
 			aria-controls="app-nav"
 			onclick={openDrawer}
+			{@attach tip('Open navigation', 'bottom')}
 		>
 			<ListIcon size={20} />
 		</button>
 		<a class="brand" href={env.href({ name: 'dashboard' })}><Logo size={22} /></a>
-		<a class="new-mobile" href={env.href({ name: 'trade-new' })} aria-label="New trade"
-			><PlusIcon size={18} weight="bold" /></a
+		<a
+			class="new-mobile"
+			href={env.href({ name: 'trade-new' })}
+			aria-label="New trade"
+			{@attach tip('New trade', 'bottom')}><PlusIcon size={18} weight="bold" /></a
 		>
 	</header>
 
