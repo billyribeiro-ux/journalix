@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import { Button } from '@journalix/ui';
@@ -45,8 +46,7 @@
 	}
 
 	// Close the menu after any navigation.
-	$effect(() => {
-		void page.url.pathname;
+	afterNavigate(() => {
 		open = false;
 	});
 </script>
@@ -115,7 +115,7 @@
 		position: sticky;
 		top: 0;
 		z-index: var(--z-sticky);
-		background: color-mix(in oklab, var(--color-bg) 92%, transparent);
+		background: color-mix(in oklab, var(--color-bg) 97%, transparent);
 		backdrop-filter: blur(8px);
 		border-bottom: 1px solid var(--color-line);
 	}
@@ -157,11 +157,24 @@
 		font-weight: 500;
 		text-decoration: none;
 		border-radius: var(--radius-sm);
+		transition:
+			background-color var(--duration-fast) var(--ease-out),
+			color var(--duration-fast) var(--ease-out);
 	}
 
-	.primary a:hover {
-		color: var(--color-ink);
-		background: var(--color-surface-2);
+	/* Hover intent: the tint waits a beat so a pointer crossing the bar does not flash every link;
+	   keyboard focus and press respond at once. Leaving is instant. */
+	@media (hover: hover) and (pointer: fine) {
+		.primary a:hover {
+			color: var(--color-ink);
+			background: var(--color-hover);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	.primary a:focus-visible,
+	.primary a:active {
+		transition-delay: 0s;
 	}
 
 	.primary a[aria-current='page'] {
@@ -174,19 +187,44 @@
 		display: inline-flex;
 		align-items: center;
 		gap: var(--space-2);
-		min-height: 40px;
+		min-height: var(--control-touch);
 		padding: 0 var(--space-3);
-		border: 1px solid var(--color-line-strong);
+		border: 1px solid var(--color-control-line);
 		border-radius: var(--radius-sm);
 		background: var(--color-surface);
 		color: var(--color-ink);
 		font-size: var(--text-base);
 		font-weight: 500;
+		transition: background-color var(--duration-fast) var(--ease-out);
 	}
 
+	@media (hover: hover) and (pointer: fine) {
+		.menu-toggle:hover {
+			background: var(--color-hover);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	.menu-toggle:active {
+		background: var(--color-pressed);
+		transition-delay: 0s;
+	}
+
+	/* A tall menu on a short landscape phone scrolls inside itself instead of running off screen. */
 	.mobile {
+		max-height: calc(100dvh - 60px);
+		overflow-y: auto;
+		overscroll-behavior: contain;
 		border-top: 1px solid var(--color-line);
 		padding: var(--space-2) var(--site-gutter) var(--space-6);
+		animation: menu-in var(--duration-base) var(--ease-out-strong);
+	}
+
+	@keyframes menu-in {
+		from {
+			opacity: 0;
+			transform: translateY(-6px);
+		}
 	}
 
 	.mobile[hidden] {
@@ -207,6 +245,19 @@
 		font-weight: 500;
 		text-decoration: none;
 		border-bottom: 1px solid var(--color-line);
+		transition: background-color var(--duration-fast) var(--ease-out);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.mobile a:hover {
+			background: var(--color-hover);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	.mobile a:focus-visible,
+	.mobile a:active {
+		transition-delay: 0s;
 	}
 
 	.mobile a[aria-current='page'] {

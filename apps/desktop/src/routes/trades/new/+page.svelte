@@ -5,6 +5,8 @@
 	const duplicateOf = $derived(page.url.searchParams.get('duplicate') ?? undefined);
 </script>
 
+<svelte:head><title>New trade — Journalix</title></svelte:head>
+
 {#key duplicateOf}
 	<TradeEditorScreen {duplicateOf} />
 {/key}

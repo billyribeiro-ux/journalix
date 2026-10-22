@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PostBlock } from '#lib/marketing/posts/types.ts';
+	import { scrollable } from '#lib/marketing/scrollable.ts';
 
 	interface Props {
 		blocks: readonly PostBlock[];
@@ -29,18 +30,18 @@
 		{:else if block.type === 'quote'}
 			<blockquote><p>{block.text}</p></blockquote>
 		{:else if block.type === 'formula'}
-			<figure class="formula">
+			<figure class="formula" {@attach scrollable('Formula, scrolls sideways')}>
 				<p class="expr">{block.text}</p>
 				{#if block.caption}<figcaption>{block.caption}</figcaption>{/if}
 			</figure>
 		{:else if block.type === 'table'}
-			<div class="table-wrap">
+			<div class="table-wrap" {@attach scrollable(`${block.caption}, scrolls sideways`)}>
 				<table>
 					<caption>{block.caption}</caption>
 					<thead>
 						<tr>
 							{#each block.head as cell, c (c)}
-								<th scope="col" class:r={block.numeric?.includes(c)}>{cell}</th>
+								<th scope="col" class={{ r: block.numeric?.includes(c) }}>{cell}</th>
 							{/each}
 						</tr>
 					</thead>
@@ -48,7 +49,7 @@
 						{#each block.rows as row, r (r)}
 							<tr>
 								{#each row as cell, c (c)}
-									<td class:r={block.numeric?.includes(c)}>{cell}</td>
+									<td class={{ r: block.numeric?.includes(c) }}>{cell}</td>
 								{/each}
 							</tr>
 						{/each}
@@ -60,10 +61,6 @@
 </div>
 
 <style>
-	.post-body h2 {
-		scroll-margin-top: 80px;
-	}
-
 	blockquote {
 		margin: var(--space-8) 0;
 		padding-left: var(--space-5);

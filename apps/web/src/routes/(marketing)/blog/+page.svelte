@@ -21,7 +21,7 @@
 <div class="container">
 	<ol class="posts" role="list">
 		{#each POSTS as post (post.slug)}
-			<li>
+			<li class="row-hover">
 				<article aria-labelledby="post-{post.slug}">
 					<p class="meta">
 						<time datetime={post.date}>{formatLongDate(post.date)}</time>
@@ -31,6 +31,7 @@
 						<a href={resolve('/(marketing)/blog/[slug]', { slug: post.slug })}>{post.title}</a>
 					</h2>
 					<p class="desc">{post.description}</p>
+					<span class="go hover-reveal" aria-hidden="true">→</span>
 				</article>
 			</li>
 		{/each}
@@ -42,14 +43,41 @@
 		display: grid;
 	}
 
+	/* The whole row is the target: the title link stretches over it, and the row tints on intent. */
 	.posts li {
-		border-bottom: 1px solid var(--color-line);
+		margin-inline: calc(-1 * var(--space-3));
+		padding-inline: var(--space-3);
+		/* The hairline keeps the text column's width while the hover tint bleeds past it. */
+		background-image: linear-gradient(var(--color-line), var(--color-line));
+		background-position: center bottom;
+		background-repeat: no-repeat;
+		background-size: calc(100% - 2 * var(--space-3)) 1px;
+	}
+
+	@media (forced-colors: active) {
+		.posts li {
+			background-image: none;
+			border-bottom: 1px solid CanvasText;
+		}
 	}
 
 	article {
+		position: relative;
 		display: grid;
 		gap: var(--space-3);
 		padding: var(--space-8) 0;
+	}
+
+	h2 a::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+	}
+
+	.go {
+		display: none;
+		color: var(--color-ink-2);
+		font-size: var(--text-lg);
 	}
 
 	@media (min-width: 900px) {
@@ -63,6 +91,13 @@
 			flex-direction: column;
 			gap: var(--space-1);
 		}
+
+		.go {
+			display: block;
+			position: absolute;
+			top: var(--space-8);
+			right: 0;
+		}
 	}
 
 	.meta {
@@ -74,22 +109,30 @@
 	}
 
 	h2 {
-		max-width: 32ch;
+		max-width: 19em;
 		font-size: var(--text-xl);
 		letter-spacing: var(--tracking-tight);
 	}
 
 	h2 a {
-		text-decoration: none;
+		text-decoration: underline;
+		text-decoration-color: transparent;
+		text-decoration-thickness: 2px;
+		text-underline-offset: 0.2em;
+		transition: text-decoration-color var(--duration-fast) var(--ease-out);
 	}
 
-	h2 a:hover {
-		text-decoration: underline;
+	@media (hover: hover) and (pointer: fine) {
+		h2 a:hover {
+			text-decoration-color: currentColor;
+			transition-delay: var(--hover-delay-tint);
+		}
 	}
 
 	.desc {
 		max-width: 64ch;
 		color: var(--color-ink-2);
+		text-wrap: pretty;
 	}
 
 	@media (min-width: 900px) {

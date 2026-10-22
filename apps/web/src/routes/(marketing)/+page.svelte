@@ -137,7 +137,10 @@
 
 <section class="hero container" aria-labelledby="hero-title">
 	<div class="hero-copy">
-		<h1 id="hero-title">Every leg. Every fill. On the chart.</h1>
+		<!-- Each sentence is one unbreakable unit, so the line breaks fall between ideas, not mid-phrase. -->
+		<h1 id="hero-title">
+			<span>Every leg.</span> <span>Every fill.</span> <span>On the chart.</span>
+		</h1>
 		<p class="lede">
 			Journalix is a trading journal built around options. Log each execution as it happened, review
 			the trade drawn on the chart, and measure your results with analytics that understand
@@ -148,6 +151,20 @@
 			<Button href="#how-it-works" variant="secondary">See how it works</Button>
 		</div>
 		<p class="note">Free during early access. No card required.</p>
+		<dl class="hero-facts">
+			<div>
+				<dt>Structures</dt>
+				<dd>30+ detected</dd>
+			</div>
+			<div>
+				<dt>Greeks</dt>
+				<dd>Solved from fills</dd>
+			</div>
+			<div>
+				<dt>Platforms</dt>
+				<dd>Web and desktop</dd>
+			</div>
+		</dl>
 	</div>
 	<div class="hero-figure">
 		<HeroChart demo={data.demo} />
@@ -337,15 +354,45 @@
 	}
 
 	.hero h1 {
-		max-width: 14ch;
+		/* Deliberately no max-width in ch: the width of "0" differs between the web font and its
+		   fallback, which moved a line break and shifted the page (measured 0.158 CLS at 390px). */
 		font-size: clamp(2.5rem, 7.5vw, 4.75rem);
 		font-weight: 600;
 		line-height: 0.98;
 		letter-spacing: var(--tracking-display);
 	}
 
+	.hero h1 span {
+		display: inline-block;
+	}
+
 	.hero .lede {
 		max-width: 46ch;
+	}
+
+	.hero-facts {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: var(--space-3) var(--space-4);
+		max-width: 30rem;
+		margin-top: var(--space-2);
+		padding-top: var(--space-5);
+		border-top: 1px solid var(--color-line);
+	}
+
+	.hero-facts dt {
+		color: var(--color-ink-3);
+		font-size: var(--text-xs);
+		font-weight: 500;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	.hero-facts dd {
+		margin-top: 2px;
+		color: var(--color-ink);
+		font-size: var(--text-sm);
+		font-weight: 500;
 	}
 
 	.hero-figure {
@@ -446,7 +493,6 @@
 
 	.more {
 		margin-top: var(--space-8);
-		font-weight: 500;
 	}
 
 	.figure-panel {

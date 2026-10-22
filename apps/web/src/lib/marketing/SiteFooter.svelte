@@ -60,17 +60,19 @@
 		max-width: 36ch;
 		color: var(--color-ink-3);
 		font-size: var(--text-sm);
+		text-wrap: pretty;
 	}
 
 	.home {
 		display: inline-flex;
 		width: fit-content;
+		min-height: 28px;
 		color: var(--color-ink);
 		text-decoration: none;
 	}
 
 	h2 {
-		margin-bottom: var(--space-3);
+		margin-bottom: var(--space-2);
 		font-size: var(--text-sm);
 		font-weight: 600;
 		letter-spacing: 0;
@@ -79,18 +81,40 @@
 
 	ul {
 		display: grid;
-		gap: var(--space-2);
 	}
 
+	/* 28px rows on a pointer, 44px on touch: the text is small, the target is not (WCAG 2.5.8). */
 	.column a {
+		display: inline-flex;
+		align-items: center;
+		min-height: 28px;
 		color: var(--color-ink-2);
 		font-size: var(--text-sm);
-		text-decoration: none;
+		text-decoration: underline;
+		text-decoration-color: transparent;
+		text-underline-offset: 0.22em;
+		transition:
+			color var(--duration-fast) var(--ease-out),
+			text-decoration-color var(--duration-fast) var(--ease-out);
 	}
 
-	.column a:hover {
-		color: var(--color-ink);
-		text-decoration: underline;
+	@media (hover: hover) and (pointer: fine) {
+		.column a:hover {
+			color: var(--color-ink);
+			text-decoration-color: currentColor;
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	.column a:focus-visible,
+	.column a:active {
+		transition-delay: 0s;
+	}
+
+	@media (pointer: coarse) {
+		.column a {
+			min-height: var(--control-touch);
+		}
 	}
 
 	.legal {

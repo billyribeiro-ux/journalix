@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
 	import { Button, Field, Select, TextInput, Textarea } from '@journalix/ui';
@@ -17,7 +18,22 @@
 	let topic = $state<ContactTopic>('general');
 	let message = $state('');
 	let submitting = $state(false);
-	let successHeading = $state<HTMLHeadingElement>();
+	let summary = $state<HTMLElement>();
+	// Set when the request itself failed (server error, offline): the form and its text stay as typed.
+	let sendError = $state<string | null>(null);
+
+	const FIELD_LABELS = {
+		name: 'Name',
+		email: 'Email',
+		topic: 'Topic',
+		message: 'Message'
+	} as const;
+	const errorList = $derived(
+		(Object.keys(FIELD_LABELS) as (keyof typeof FIELD_LABELS)[]).flatMap((field) => {
+			const text = errors?.[field];
+			return text ? [{ field, label: FIELD_LABELS[field], text }] : [];
+		})
+	);
 
 	// Restore what was typed when the server sends the form back with errors (no-JS path too).
 	$effect.pre(() => {
@@ -28,10 +44,6 @@
 			? (previous.topic as ContactTopic)
 			: 'general';
 		message = previous.message;
-	});
-
-	$effect(() => {
-		if (sent) successHeading?.focus();
 	});
 
 	const describe = (field: string, help = false): string | undefined =>
@@ -55,7 +67,8 @@
 <div class="container body">
 	{#if sent}
 		<section class="success" aria-labelledby="sent-title">
-			<h2 id="sent-title" tabindex="-1" bind:this={successHeading}>Message sent</h2>
+			<!-- The heading only exists once the message is sent: move focus to it as it mounts. -->
+			<h2 id="sent-title" tabindex="-1" {@attach (node) => node.focus()}>Message sent</h2>
 			<p>Thanks for writing. We’ll reply to the email address you gave.</p>
 			<p><a href={resolve('')}>Back to the home page</a></p>
 		</section>
@@ -65,14 +78,43 @@
 			novalidate
 			use:enhance={() => {
 				submitting = true;
-				return async ({ update }) => {
+				sendError = null;
+				return async ({ result, update }) => {
+					if (result.type === 'error' || (result.type === 'failure' && result.status >= 500)) {
+						// Not a validation problem: keep everything typed and say what happened.
+						sendError =
+							'We couldn’t send your message. Check your connection and try again. Nothing you typed has been lost.';
+						submitting = false;
+						await tick();
+						summary?.focus();
+						return;
+					}
 					await update({ reset: false });
 					submitting = false;
+					if (result.type === 'failure') {
+						await tick();
+						summary?.focus();
+					}
 				};
 			}}
 		>
-			{#if errors && Object.keys(errors).length > 0}
-				<p class="form-error" role="alert">Check the highlighted fields and try again.</p>
+			{#if sendError}
+				<div class="form-error" role="alert" tabindex="-1" bind:this={summary}>
+					<p>{sendError}</p>
+				</div>
+			{:else if errorList.length > 0}
+				<div class="form-error" role="alert" tabindex="-1" bind:this={summary}>
+					<p>
+						{errorList.length === 1
+							? 'One field needs attention:'
+							: `${errorList.length} fields need attention:`}
+					</p>
+					<ul role="list">
+						{#each errorList as item (item.field)}
+							<li><a href="#{item.field}">{item.label}: {item.text}</a></li>
+						{/each}
+					</ul>
+				</div>
 			{/if}
 
 			<div class="row">
@@ -175,11 +217,33 @@
 	}
 
 	.form-error {
+		display: grid;
+		gap: var(--space-2);
 		padding: var(--space-3) var(--space-4);
 		border-left: 3px solid var(--color-loss);
 		background: var(--color-loss-soft);
 		color: var(--color-ink);
 		font-size: var(--text-base);
+	}
+
+	.form-error p {
+		font-weight: 600;
+	}
+
+	.form-error ul {
+		display: grid;
+		gap: var(--space-1);
+	}
+
+	.form-error a {
+		color: var(--color-loss-text);
+		font-size: var(--text-sm);
+		text-underline-offset: 0.2em;
+	}
+
+	/* Focus is moved here on purpose after a failed send, so the ring is its own signal. */
+	.form-error:focus-visible {
+		outline-offset: 2px;
 	}
 
 	.success h2 {

@@ -11,6 +11,7 @@
 	import CheckIcon from 'phosphor-svelte/lib/CheckIcon';
 	import MinusIcon from 'phosphor-svelte/lib/MinusIcon';
 	import Seo from '#lib/marketing/Seo.svelte';
+	import { scrollable } from '#lib/marketing/scrollable.ts';
 
 	type Billing = BillingInterval;
 	const plans = PLANS;
@@ -118,6 +119,13 @@
 	function price(plan: Plan): number {
 		return planPrice(plan, billing);
 	}
+
+	// The largest yearly discount across the paid plans, from the catalogue, so the claim cannot
+	// drift from the prices shown (Pro 29 to 24 is 17.2%, Desk 59 to 49 is 16.9%).
+	const maxYearlySaving = Math.max(
+		0,
+		...plans.filter((p) => p.monthly > 0).map((p) => Math.round((1 - p.yearly / p.monthly) * 100))
+	);
 </script>
 
 <Seo
@@ -138,13 +146,13 @@
 		<h2 id="plans-title">Choose a plan</h2>
 		<div class="billing">
 			<Segmented bind:value={billing} options={billingOptions} label="Billing period" />
-			<span class="note">Yearly saves up to 17%</span>
+			<span class="note">Yearly saves up to {maxYearlySaving}%</span>
 		</div>
 	</div>
 
 	<ul class="plans" role="list">
 		{#each plans as plan (plan.id)}
-			<li class="plan" class:featured={plan.featured}>
+			<li class={['plan', { featured: plan.featured }]}>
 				<h3>{plan.name}</h3>
 				<p class="summary">{plan.summary}</p>
 				<p class="price">
@@ -180,14 +188,14 @@
 
 <section class="container compare" aria-labelledby="compare-title">
 	<h2 id="compare-title">Compare plans</h2>
-	<div class="table-wrap">
+	<div class="table-wrap" {@attach scrollable('Plan comparison, scrolls sideways')}>
 		<table>
 			<caption class="visually-hidden">Features included in each plan</caption>
 			<thead>
 				<tr>
 					<th scope="col">Feature</th>
 					{#each plans as plan (plan.id)}
-						<th scope="col" class="c">{plan.name}</th>
+						<th scope="col" class={['c', { hl: plan.featured }]}>{plan.name}</th>
 					{/each}
 				</tr>
 			</thead>
@@ -200,7 +208,7 @@
 						<tr>
 							<th scope="row">{row.feature}</th>
 							{#each row.values as value, index (index)}
-								<td class="c">
+								<td class={['c', { hl: plans[index]?.featured }]}>
 									{#if value === true}
 										<CheckIcon size={16} aria-hidden="true" />
 										<span class="visually-hidden">Included</span>
@@ -237,7 +245,10 @@
 
 <style>
 	.notice {
-		max-width: var(--prose-max);
+		/* rem, not ch: this sentence sits within a few pixels of the 68ch limit, so the web font and
+		   its fallback disagreed about where it wraps. */
+		max-width: 44rem;
+		text-wrap: pretty;
 		margin-top: var(--space-6);
 		padding: var(--space-4) var(--space-5);
 		border-left: 3px solid var(--color-signal);
@@ -297,8 +308,10 @@
 		border-bottom: 0;
 	}
 
+	/* The recommended plan: an ink rule and a quiet tint. The signal colour stays on its button. */
 	.plan.featured {
 		box-shadow: inset 0 3px 0 var(--color-ink);
+		background: color-mix(in oklab, var(--color-surface-2) 55%, var(--color-surface));
 	}
 
 	.plan h3 {
@@ -365,7 +378,12 @@
 		padding-top: var(--space-16);
 	}
 
+	/* On a phone all three plan columns stay in view (fixed layout, feature names wrap) rather than
+	   hiding Pro and Desk behind a sideways scroll. The scroll box stays only so one long unbreakable
+	   word can never push the page sideways. From 640px the header row also
+	   sticks under the site header while the 25 rows scroll. */
 	.table-wrap {
+		--highlight: color-mix(in oklab, var(--color-surface-2) 60%, var(--color-bg));
 		position: relative;
 		margin-top: var(--space-6);
 		overflow-x: auto;
@@ -374,13 +392,17 @@
 
 	table {
 		width: 100%;
-		min-width: 560px;
-		font-size: var(--text-base);
+		table-layout: fixed;
+		font-size: var(--text-sm);
+	}
+
+	.hl {
+		background: var(--highlight);
 	}
 
 	th,
 	td {
-		padding: var(--space-3) var(--space-3);
+		padding: var(--space-3) var(--space-2);
 		border-bottom: 1px solid var(--color-line);
 		text-align: left;
 		vertical-align: middle;
@@ -403,7 +425,7 @@
 	}
 
 	.c {
-		width: 18%;
+		width: 21%;
 		text-align: center;
 	}
 
@@ -421,6 +443,17 @@
 		font-size: var(--text-sm);
 	}
 
+	@media (hover: hover) and (pointer: fine) {
+		tbody tr:not(.group-row):hover > :is(th, td):not(.hl) {
+			background: var(--color-hover);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	tbody tr > :is(th, td) {
+		transition: background-color var(--duration-fast) var(--ease-out);
+	}
+
 	.faq-list {
 		max-width: var(--prose-max);
 		margin-top: var(--space-6);
@@ -436,10 +469,19 @@
 		align-items: center;
 		justify-content: space-between;
 		gap: var(--space-4);
-		padding: var(--space-4) 0;
+		min-height: var(--control-touch);
+		padding: var(--space-3) 0;
 		cursor: pointer;
 		font-weight: 500;
 		list-style: none;
+		transition: color var(--duration-fast) var(--ease-out);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		summary:hover::after {
+			color: var(--color-ink);
+			transition-delay: var(--hover-delay-tint);
+		}
 	}
 
 	summary::-webkit-details-marker {
@@ -452,6 +494,7 @@
 		color: var(--color-ink-3);
 		font-size: var(--text-lg);
 		line-height: 1;
+		transition: color var(--duration-fast) var(--ease-out);
 	}
 
 	details[open] summary::after {
@@ -461,10 +504,43 @@
 	details p {
 		padding-bottom: var(--space-5);
 		color: var(--color-ink-2);
+		text-wrap: pretty;
 	}
 
 	.faq-more {
 		margin-top: var(--space-6);
+	}
+
+	@media (min-width: 640px) {
+		.table-wrap {
+			overflow: visible;
+		}
+
+		table {
+			font-size: var(--text-base);
+		}
+
+		th,
+		td {
+			padding: var(--space-3);
+		}
+
+		.c {
+			width: 18%;
+		}
+
+		/* Plan names stay in view while a 25-row table scrolls under the 60px site header. */
+		thead th {
+			position: sticky;
+			top: 60px;
+			z-index: 1;
+			background: var(--color-bg);
+			box-shadow: inset 0 -1px 0 var(--color-line);
+		}
+
+		thead th.hl {
+			background: var(--highlight);
+		}
 	}
 
 	@media (min-width: 900px) {

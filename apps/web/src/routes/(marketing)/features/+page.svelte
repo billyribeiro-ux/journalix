@@ -338,31 +338,61 @@
 		margin-top: var(--space-8);
 	}
 
+	/* Chips rather than bare links: 32px tall on a pointer, 44px on touch, so each is an easy target. */
 	.toc ul {
 		display: flex;
 		flex-wrap: wrap;
-		gap: var(--space-2) var(--space-5);
+		gap: var(--space-2);
 	}
 
 	.toc a {
+		display: inline-flex;
+		align-items: center;
+		min-height: var(--control-dense);
+		padding: 0 var(--space-3);
+		border: 1px solid var(--color-line);
+		border-radius: var(--radius-pill);
+		background: var(--color-surface);
 		color: var(--color-ink-2);
 		font-size: var(--text-sm);
 		font-weight: 500;
+		text-decoration: none;
+		transition:
+			background-color var(--duration-fast) var(--ease-out),
+			color var(--duration-fast) var(--ease-out),
+			border-color var(--duration-fast) var(--ease-out);
 	}
 
-	.toc a:hover {
-		color: var(--color-ink);
+	@media (hover: hover) and (pointer: fine) {
+		.toc a:hover {
+			border-color: var(--color-control-line);
+			background: var(--color-hover);
+			color: var(--color-ink);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	.toc a:focus-visible,
+	.toc a:active {
+		transition-delay: 0s;
+	}
+
+	@media (pointer: coarse) {
+		.toc a {
+			min-height: var(--control-touch);
+		}
 	}
 
 	.groups {
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 	}
 
 	.group {
 		display: grid;
+		grid-template-columns: minmax(0, 1fr);
 		gap: var(--space-6);
 		padding-top: var(--space-16);
-		scroll-margin-top: 72px;
 	}
 
 	.group-head {
@@ -401,6 +431,13 @@
 		.group {
 			grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
 			gap: var(--space-12);
+		}
+
+		/* The group title stays beside its rows while a long group scrolls. */
+		.group-head {
+			position: sticky;
+			top: 84px;
+			align-self: start;
 		}
 	}
 </style>

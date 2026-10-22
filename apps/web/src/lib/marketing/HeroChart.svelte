@@ -13,12 +13,14 @@
 	} from '@journalix/core';
 	import { TIMEFRAME_LABELS } from '@journalix/core/market-data';
 	import type { DemoTrade } from '#lib/marketing/demo-trade.ts';
+	import { scrollable } from '#lib/marketing/scrollable.ts';
 
 	interface Props {
 		demo: DemoTrade;
 	}
 
 	let { demo }: Props = $props();
+	const uid = $props.id();
 
 	const CHART_HEIGHT = 380;
 
@@ -76,7 +78,7 @@
 	const pnlClass = $derived(metrics.netPnl >= 0 ? 'gain' : 'loss');
 </script>
 
-<figure class="hero-chart" aria-labelledby="hero-chart-caption">
+<figure class="hero-chart" aria-labelledby="{uid}-caption">
 	<div class="chart-head">
 		<p class="instrument">
 			<span class="symbol">{contract}</span>
@@ -105,7 +107,7 @@
 		{/if}
 	</div>
 
-	<div class="ledger">
+	<div class="ledger" {@attach scrollable('Fills table, scrolls sideways')}>
 		<table>
 			<caption class="visually-hidden">Fills for this trade</caption>
 			<thead>
@@ -119,7 +121,7 @@
 			</thead>
 			<tbody>
 				{#each ledger as row (row.id)}
-					<tr>
+					<tr class="row-hover">
 						<th scope="row">
 							<span class="side" data-side={row.execution.side}>{row.action}</span>
 						</th>
@@ -135,7 +137,7 @@
 		</table>
 	</div>
 
-	<figcaption id="hero-chart-caption">
+	<figcaption id="{uid}-caption">
 		A sample {STRATEGIES[metrics.strategy].label.toLowerCase()} with an add and a partial exit, on
 		{TIMEFRAME_LABELS[demo.timeframe].toLowerCase()} candles of the underlying. Simulated prices for illustration.
 	</figcaption>
