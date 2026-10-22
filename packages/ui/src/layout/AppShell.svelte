@@ -197,7 +197,7 @@
 		>
 			<ListIcon size={20} />
 		</button>
-		<a class="brand" href={env.href({ name: 'dashboard' })}><Logo size={22} /></a>
+		<a class="brand tap-target" href={env.href({ name: 'dashboard' })}><Logo size={22} /></a>
 		<a
 			class="new-mobile"
 			href={env.href({ name: 'trade-new' })}

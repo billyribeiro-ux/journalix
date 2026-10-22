@@ -19,7 +19,7 @@
 	const money = (v: number, signed = true): string => formatMoney(v, { currency, signed });
 </script>
 
-<div class="wrap">
+<div class="wrap scroll-fade">
 	<table aria-label={label}>
 		<thead>
 			<tr>

@@ -107,7 +107,7 @@
 		{/if}
 	</div>
 
-	<div class="ledger" {@attach scrollable('Fills table, scrolls sideways')}>
+	<div class="ledger scroll-fade" {@attach scrollable('Fills table, scrolls sideways')}>
 		<table>
 			<caption class="visually-hidden">Fills for this trade</caption>
 			<thead>

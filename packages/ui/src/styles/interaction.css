@@ -212,3 +212,19 @@
 		display: none;
 	}
 }
+
+/* ---------- touch hit areas ---------- */
+/* A standalone text link or small control keeps its look and layout, but on a coarse pointer its
+   tappable area grows to about 44px (WCAG 2.5.8 asks for 24px; platform guidance asks for 44). The
+   pseudo-element only extends the hit area, so nothing around it moves. */
+@media (pointer: coarse) {
+	.tap-target {
+		position: relative;
+	}
+
+	.tap-target::after {
+		content: '';
+		position: absolute;
+		inset: -12px -8px;
+	}
+}

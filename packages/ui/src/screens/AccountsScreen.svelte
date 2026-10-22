@@ -176,7 +176,7 @@
 		{#snippet actions()}<Button variant="primary" onclick={create}>New account</Button>{/snippet}
 	</EmptyState>
 {:else}
-	<div class="table-wrap">
+	<div class="table-wrap scroll-fade">
 		<table>
 			<caption class="visually-hidden">Accounts</caption>
 			<thead>

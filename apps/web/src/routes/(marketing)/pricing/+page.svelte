@@ -188,7 +188,7 @@
 
 <section class="container compare" data-reveal aria-labelledby="compare-title">
 	<h2 id="compare-title">Compare plans</h2>
-	<div class="table-wrap" {@attach scrollable('Plan comparison, scrolls sideways')}>
+	<div class="table-wrap scroll-fade" {@attach scrollable('Plan comparison, scrolls sideways')}>
 		<table>
 			<caption class="visually-hidden">Features included in each plan</caption>
 			<thead>

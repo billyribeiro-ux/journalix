@@ -14,7 +14,7 @@
 
 <header class="page-header" data-reveal="fade">
 	<div class="text">
-		{#if back}<a class="back" href={back.href}>{back.label}</a>{/if}
+		{#if back}<a class="back tap-target" href={back.href}>{back.label}</a>{/if}
 		<h1>{title}</h1>
 		{#if description}<p>{description}</p>{/if}
 		{@render children?.()}
