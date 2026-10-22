@@ -69,6 +69,29 @@
 		);
 	});
 
+	// Moving to another note (or a new one) while this one has unsaved edits asks first.
+	let discardOpen = $state(false);
+	let afterDiscard: (() => void) | null = null;
+	let editorEl: HTMLElement | null = null;
+
+	function guarded(action: () => void): void {
+		if (!dirty) {
+			action();
+			return;
+		}
+		afterDiscard = action;
+		discardOpen = true;
+	}
+
+	function openNote(id: string): void {
+		guarded(() => {
+			select(id);
+			// On a phone the editor sits below the list: bring it into view.
+			if (window.matchMedia('(max-width: 959px)').matches)
+				editorEl?.scrollIntoView({ block: 'start' });
+		});
+	}
+
 	function create(kind: Kind = 'premarket'): void {
 		const now = new Date().toISOString();
 		draft = {
@@ -140,7 +163,7 @@
 	description="Pre-market plans, end-of-day recaps and the lessons you want to keep."
 >
 	{#snippet actions()}
-		<Button variant="primary" onclick={() => create()}>
+		<Button variant="primary" onclick={() => guarded(() => create())}>
 			{#snippet icon()}<PlusIcon size={16} weight="bold" />{/snippet}
 			New note
 		</Button>
@@ -182,10 +205,9 @@
 					<li>
 						<button
 							type="button"
-							class="item"
-							class:active={note.id === selectedId}
+							class={['item', note.id === selectedId && 'active']}
 							aria-current={note.id === selectedId ? 'true' : undefined}
-							onclick={() => select(note.id)}
+							onclick={() => openNote(note.id)}
 						>
 							<span class="meta"
 								>{formatDayKey(note.date)}, {kindLabel(note.kind).toLowerCase()}</span
@@ -197,12 +219,29 @@
 						</button>
 					</li>
 				{:else}
-					<li class="none">No notes match.</li>
+					<li class="none">
+						<p>No notes match{query.trim() ? ` “${query.trim()}”` : ' this type'}.</p>
+						<button
+							type="button"
+							class="link"
+							onclick={() => {
+								query = '';
+								kindFilter = 'all';
+							}}>Show all notes</button
+						>
+					</li>
 				{/each}
 			</ul>
 		</section>
 
-		<section class="editor" aria-label="Note editor">
+		<section
+			class="editor"
+			aria-label="Note editor"
+			{@attach (el) => {
+				editorEl = el;
+				return () => (editorEl = null);
+			}}
+		>
 			{#if draft}
 				<form id="note-form" onsubmit={save} novalidate>
 					<div class="row">
@@ -237,6 +276,9 @@
 						<Button type="submit" variant="primary" busy={saving} disabled={!dirty}
 							>Save note</Button
 						>
+						<span class={['state', { dirty }]} aria-live="polite">
+							{#if dirty}<span class="dot" aria-hidden="true"></span>Unsaved changes{/if}
+						</span>
 						<Button variant="ghost" onclick={() => (confirmOpen = true)}>
 							{#snippet icon()}<TrashIcon size={16} />{/snippet}
 							Delete
@@ -249,6 +291,19 @@
 		</section>
 	</div>
 {/if}
+
+<ConfirmDialog
+	bind:open={discardOpen}
+	title="Discard unsaved changes?"
+	message="This note has edits that were not saved. Leaving it now loses them."
+	confirmLabel="Discard changes"
+	tone="danger"
+	onconfirm={() => {
+		const next = afterDiscard;
+		afterDiscard = null;
+		next?.();
+	}}
+/>
 
 <ConfirmDialog
 	bind:open={confirmOpen}
@@ -284,15 +339,35 @@
 		gap: var(--space-2);
 		padding: 0 var(--space-3);
 		height: 36px;
-		border: 1px solid var(--color-line-strong);
+		border: 1px solid var(--color-control-line);
 		border-radius: var(--radius-sm);
 		background: var(--color-surface);
 		color: var(--color-ink-3);
+		transition: border-color var(--duration-fast) var(--ease-out);
+	}
+
+	@media (pointer: coarse) {
+		.search {
+			height: var(--control-touch);
+		}
+
+		.search input {
+			font-size: max(16px, var(--text-base));
+		}
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.search:hover:not(:focus-within) {
+			border-color: var(--color-ink-3);
+			transition-delay: var(--hover-delay-tint);
+		}
 	}
 
 	.search:focus-within {
-		outline: 2px solid var(--color-focus);
-		outline-offset: -1px;
+		outline: var(--focus-ring-width) solid var(--color-focus);
+		outline-offset: 0;
+		border-color: transparent;
+		transition-delay: 0s;
 	}
 
 	.search input {
@@ -326,8 +401,20 @@
 		text-align: left;
 	}
 
-	.item:hover {
-		background: var(--color-surface-2);
+	.item {
+		transition: background-color var(--duration-fast) var(--ease-out);
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.item:hover {
+			background: var(--color-hover);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	.item:focus-visible,
+	.item:active {
+		transition-delay: 0s;
 	}
 
 	.item.active {
@@ -361,9 +448,26 @@
 	}
 
 	.none {
+		display: grid;
+		justify-items: start;
+		gap: var(--space-1);
 		padding: var(--space-3);
 		color: var(--color-ink-3);
 		font-size: var(--text-sm);
+	}
+
+	.none p {
+		margin: 0;
+	}
+
+	.link {
+		padding: 0;
+		border: 0;
+		background: transparent;
+		color: var(--color-ink);
+		font: inherit;
+		text-decoration: underline;
+		cursor: pointer;
 	}
 
 	.editor {
@@ -396,6 +500,24 @@
 
 	.actions {
 		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
 		gap: var(--space-2);
+	}
+
+	.state {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		font-size: var(--text-sm);
+		color: var(--color-ink-2);
+	}
+
+	.state .dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--color-signal);
+		box-shadow: 0 0 0 1px var(--color-signal-fg);
 	}
 </style>

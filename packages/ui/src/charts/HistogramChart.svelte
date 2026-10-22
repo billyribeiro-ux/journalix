@@ -264,7 +264,7 @@
 	}
 
 	.axis {
-		stroke: var(--chart-axis);
+		stroke: var(--chart-baseline);
 		stroke-width: 1;
 		shape-rendering: crispEdges;
 	}

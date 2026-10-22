@@ -56,9 +56,24 @@
 	);
 	const dropped = $derived(points.length - usable.length);
 
-	// Draw order: neutral first, then losses, then wins, so the colour layers are stable.
-	const RANK: Record<ScatterPoint['outcome'], number> = { open: 0, breakeven: 1, loss: 2, win: 3 };
-	const ordered = $derived([...usable].sort((a, b) => RANK[a.outcome] - RANK[b.outcome]));
+	/** Legend key an outcome belongs to (breakeven and open share one entry). */
+	const legendKey = (o: ScatterPoint['outcome']): string =>
+		o === 'breakeven' || o === 'open' ? 'neutral' : o;
+
+	let hiddenKeys = $state<ReadonlySet<string>>(new Set());
+	const visible = $derived(usable.filter((p) => !hiddenKeys.has(legendKey(p.outcome))));
+
+	function toggleKey(key: string): void {
+		const next = new Set(hiddenKeys);
+		if (next.has(key)) next.delete(key);
+		else next.add(key);
+		hiddenKeys = next;
+		active = null;
+	}
+
+	// Draw order: neutral first, then wins, then losses on top — a loss must never hide under a win.
+	const RANK: Record<ScatterPoint['outcome'], number> = { open: 0, breakeven: 1, win: 2, loss: 3 };
+	const ordered = $derived([...visible].sort((a, b) => RANK[a.outcome] - RANK[b.outcome]));
 
 	const legend = $derived.by((): LegendItem[] => {
 		const present = new Set(usable.map((p) => p.outcome));
@@ -66,7 +81,7 @@
 		if (present.has('win'))
 			items.push({ key: 'win', label: 'Win', color: OUTCOME_FILL.win, shape: 'dot' });
 		if (present.has('loss'))
-			items.push({ key: 'loss', label: 'Loss', color: OUTCOME_FILL.loss, shape: 'dot' });
+			items.push({ key: 'loss', label: 'Loss', color: OUTCOME_FILL.loss, shape: 'diamond' });
 		if (present.has('breakeven') || present.has('open')) {
 			const label =
 				present.has('open') && !present.has('breakeven')
@@ -74,10 +89,19 @@
 					: present.has('open')
 						? 'Breakeven or open'
 						: 'Breakeven';
-			items.push({ key: 'neutral', label, color: 'var(--color-neutral)', shape: 'dot' });
+			items.push({ key: 'neutral', label, color: 'var(--color-neutral)', shape: 'ring' });
 		}
 		return items;
 	});
+
+	/**
+	 * Outcome is carried by shape as well as colour: a win is a disc, a loss a diamond, breakeven or
+	 * open a hollow ring, so the chart reads in greyscale and under every colour-vision deficiency.
+	 */
+	function diamond(cx: number, cy: number, r: number): string {
+		const d = r * 1.3;
+		return `M${cx},${cy - d}L${cx + d},${cy}L${cx},${cy + d}L${cx - d},${cy}Z`;
+	}
 
 	function extent(values: readonly number[]): [number, number] {
 		let lo = Infinity;
@@ -258,7 +282,7 @@
 	{#if usable.length === 0}
 		<ChartEmpty message="No trades to plot in this range" {height} />
 	{:else}
-		<ChartLegend items={legend} />
+		<ChartLegend items={legend} hidden={hiddenKeys} ontoggle={toggleKey} />
 		<div class="wrap" bind:clientWidth={width} style:height="{height}px">
 			{#if width > 0}
 				<svg {width} {height} role="img" aria-label="Scatter plot. {summary}">
@@ -301,7 +325,13 @@
 							>{xLabel}</text
 						>
 						{#each plotted as d (d.p.id)}
-							<circle class="dot" cx={d.cx} cy={d.cy} r={R} fill={OUTCOME_FILL[d.p.outcome]} />
+							{#if d.p.outcome === 'loss'}
+								<path class="dot" d={diamond(d.cx, d.cy, R)} fill={OUTCOME_FILL.loss} />
+							{:else if d.p.outcome === 'win'}
+								<circle class="dot" cx={d.cx} cy={d.cy} r={R} fill={OUTCOME_FILL.win} />
+							{:else}
+								<circle class="dot ring" cx={d.cx} cy={d.cy} r={R - 0.5} />
+							{/if}
 						{/each}
 						{#if activePlotted}
 							<line
@@ -311,13 +341,28 @@
 								y1={activePlotted.cy + 8}
 								y2={innerHeight}
 							/>
-							<circle
-								class="dot active"
-								cx={activePlotted.cx}
-								cy={activePlotted.cy}
-								r={R + 2}
-								fill={OUTCOME_FILL[activePlotted.p.outcome]}
-							/>
+							{#if activePlotted.p.outcome === 'loss'}
+								<path
+									class="dot active"
+									d={diamond(activePlotted.cx, activePlotted.cy, R + 2)}
+									fill={OUTCOME_FILL.loss}
+								/>
+							{:else if activePlotted.p.outcome === 'win'}
+								<circle
+									class="dot active"
+									cx={activePlotted.cx}
+									cy={activePlotted.cy}
+									r={R + 2}
+									fill={OUTCOME_FILL.win}
+								/>
+							{:else}
+								<circle
+									class="dot active ring"
+									cx={activePlotted.cx}
+									cy={activePlotted.cy}
+									r={R + 1.5}
+								/>
+							{/if}
 						{/if}
 					</g>
 				</svg>
@@ -392,7 +437,7 @@
 	}
 
 	.zero {
-		stroke: var(--chart-axis);
+		stroke: var(--chart-baseline);
 		stroke-width: 1;
 		shape-rendering: crispEdges;
 	}
@@ -420,6 +465,13 @@
 	}
 
 	.dot.active {
+		stroke-width: 2;
+	}
+
+	/* Hollow marker: a surface-filled disc with a neutral outline. */
+	.dot.ring {
+		fill: var(--color-surface);
+		stroke: var(--color-neutral);
 		stroke-width: 2;
 	}
 

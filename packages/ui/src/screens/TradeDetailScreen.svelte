@@ -94,9 +94,10 @@
 		optionLegs.find((l) => l.id === contractLegId) ?? optionLegs[0] ?? null
 	);
 
-	let barsState = $state<{ status: 'idle' | 'loading' } | { status: 'done'; result: BarsResult }>({
-		status: 'idle'
-	});
+	// Replaced wholesale by each fetch and never mutated, so the (large) bar arrays stay unproxied.
+	let barsState = $state.raw<
+		{ status: 'idle' | 'loading' } | { status: 'done'; result: BarsResult }
+	>({ status: 'idle' });
 
 	$effect(() => {
 		const v = view;
@@ -161,6 +162,9 @@
 			barsState.result.provider.simulated
 	);
 
+	// A failed MFE/MAE save is reported once per trade, not on every re-run of the effect below.
+	let excursionFailedFor: string | null = null;
+
 	// MFE / MAE for single linear legs, computed once from real bars and stored on the trade.
 	$effect(() => {
 		const v = view;
@@ -180,9 +184,17 @@
 		const long = v.metrics.direction === 'long';
 		const mfe = (long ? high - entry : entry - low) * size;
 		const mae = (long ? low - entry : entry - high) * size;
+		const tradeKey = v.trade.id;
 		void journal
 			.saveTrade({ ...v.trade, mfe: Math.max(0, mfe), mae: Math.min(0, mae) })
-			.catch(() => undefined);
+			.catch((error: unknown) => {
+				if (excursionFailedFor === tradeKey) return;
+				excursionFailedFor = tradeKey;
+				toaster.error(
+					'Could not save the excursion figures',
+					error instanceof Error ? error.message : undefined
+				);
+			});
 	});
 
 	// ---------- Options analysis ----------
@@ -271,68 +283,77 @@
 	);
 	const account = $derived(view ? journal.accountById.get(view.trade.accountId) : undefined);
 
-	const details = $derived.by<MetricItem[]>(() => {
+	const detailGroups = $derived.by<{ title: string; items: MetricItem[] }[]>(() => {
 		if (!view) return [];
 		const m = view.metrics;
-		const items: MetricItem[] = [
+		const single = view.trade.legs.length === 1;
+		const position: MetricItem[] = [
 			{
 				label: 'Direction',
 				value: `${m.direction === 'long' ? 'Long' : 'Short'}${m.entryType !== 'even' ? `, ${m.entryType}` : ''}`
 			},
+			{ label: 'Size', value: formatQuantity(m.quantity) },
+			{ label: 'Opened', value: formatDateTime(m.openedAt, tz) },
+			{ label: 'Closed', value: m.closedAt ? formatDateTime(m.closedAt, tz) : 'Open' },
+			{ label: 'Adds and partial exits', value: `${m.adds} and ${m.partialExits}` }
+		];
+		const prices: MetricItem[] = [];
+		if (m.averageEntry !== null && single)
+			prices.push({ label: 'Average entry', value: formatPrice(m.averageEntry) });
+		if (m.averageExit !== null && single)
+			prices.push({ label: 'Average exit', value: formatPrice(m.averageExit) });
+		if (m.initialStop !== null)
+			prices.push({ label: 'Initial stop', value: formatPrice(m.initialStop) });
+		if (m.initialTarget !== null)
+			prices.push({ label: 'Initial target', value: formatPrice(m.initialTarget) });
+		if (m.initialRisk !== null)
+			prices.push({ label: `Initial risk (${m.riskSource})`, value: money(m.initialRisk) });
+		if (m.plannedRewardRisk !== null)
+			prices.push({
+				label: 'Planned reward to risk',
+				value: `${formatNumber(m.plannedRewardRisk, 2)} to 1`
+			});
+		const result: MetricItem[] = [
 			{
 				label: 'Gross P&L',
 				value: money(m.grossPnl, true),
 				tone: m.grossPnl > 0 ? 'gain' : m.grossPnl < 0 ? 'loss' : 'neutral'
 			},
-			{ label: 'Fees', value: money(m.fees) },
-			{ label: 'Opened', value: formatDateTime(m.openedAt, tz) },
-			{ label: 'Closed', value: m.closedAt ? formatDateTime(m.closedAt, tz) : 'Open' }
+			{ label: 'Fees', value: money(m.fees) }
 		];
-		if (m.averageEntry !== null && view.trade.legs.length === 1)
-			items.push({ label: 'Average entry', value: formatPrice(m.averageEntry) });
-		if (m.averageExit !== null && view.trade.legs.length === 1)
-			items.push({ label: 'Average exit', value: formatPrice(m.averageExit) });
-		items.push({ label: 'Size', value: formatQuantity(m.quantity) });
-		items.push({ label: 'Adds and partial exits', value: `${m.adds} and ${m.partialExits}` });
-		if (m.initialRisk !== null)
-			items.push({ label: `Initial risk (${m.riskSource})`, value: money(m.initialRisk) });
-		if (m.plannedRewardRisk !== null)
-			items.push({
-				label: 'Planned reward to risk',
-				value: `${formatNumber(m.plannedRewardRisk, 2)} to 1`
-			});
-		if (m.initialStop !== null)
-			items.push({ label: 'Initial stop', value: formatPrice(m.initialStop) });
-		if (m.initialTarget !== null)
-			items.push({ label: 'Initial target', value: formatPrice(m.initialTarget) });
 		if (view.trade.mfe !== null)
-			items.push({
+			result.push({
 				label: 'Max favourable excursion',
 				value: money(view.trade.mfe, true),
 				tone: 'gain'
 			});
 		if (view.trade.mae !== null)
-			items.push({
+			result.push({
 				label: 'Max adverse excursion',
 				value: money(view.trade.mae, true),
 				tone: 'loss'
 			});
+		const options: MetricItem[] = [];
 		if (hasOptions) {
-			items.push({
+			options.push({
 				label: 'Max profit',
 				value: m.maxProfit === null ? 'Unlimited' : money(m.maxProfit)
 			});
-			items.push({ label: 'Max loss', value: m.maxLoss === null ? 'Unlimited' : money(m.maxLoss) });
+			options.push({
+				label: 'Max loss',
+				value: m.maxLoss === null ? 'Unlimited' : money(m.maxLoss)
+			});
 			if (m.breakevens.length)
-				items.push({
+				options.push({
 					label: 'Breakeven at expiry',
 					value: m.breakevens.map((b) => formatPrice(b)).join(', ')
 				});
-			if (m.dteAtEntry !== null) items.push({ label: 'DTE at entry', value: String(m.dteAtEntry) });
+			if (m.dteAtEntry !== null)
+				options.push({ label: 'DTE at entry', value: String(m.dteAtEntry) });
 			const captured = premiumCaptured(view);
 			if (captured !== null)
-				items.push({ label: 'Premium captured', value: formatPercent(captured) });
-			items.push({
+				options.push({ label: 'Premium captured', value: formatPercent(captured) });
+			options.push({
 				label: 'Outcome at expiry',
 				value: m.assigned
 					? 'Assigned or exercised'
@@ -343,7 +364,12 @@
 							: 'Open'
 			});
 		}
-		return items;
+		return [
+			{ title: 'Position', items: position },
+			{ title: 'Result', items: result },
+			{ title: 'Prices and risk', items: prices },
+			{ title: 'Option structure', items: options }
+		].filter((g) => g.items.length > 0);
 	});
 
 	let confirmDelete = $state(false);
@@ -381,7 +407,7 @@
 			>{/snippet}
 	</EmptyState>
 {:else}
-	{@const m = view.metrics}
+	{const m = $derived(view.metrics)}
 	<PageHeader
 		title="{view.trade.underlying} {STRATEGIES[m.strategy].label.toLowerCase()}"
 		back={{ href: env.href({ name: 'trades' }), label: 'Trades' }}
@@ -475,20 +501,27 @@
 					<Select aria-label="Timeframe" bind:value={tfChoice} options={tfOptions} />
 				</div>
 			{/snippet}
-			{#if barsState.status === 'loading'}
-				<div class="loading">
-					<Spinner size={16} /> Loading {TIMEFRAME_LABELS[timeframe].toLowerCase()} bars
-				</div>
-			{/if}
-			{#if barsMessage === 'no-provider'}
-				<p class="notice">
-					Showing fills without candles. Add a market data provider in
-					<a href={env.href({ name: 'settings', section: 'market-data' })}>Settings</a> to see the price
-					action around this trade.
-				</p>
-			{:else if barsMessage}
-				<p class="notice error">{barsMessage}</p>
-			{/if}
+			<!-- One reserved line, so loading, a notice and an error never push the chart around. -->
+			<div class="chart-status" aria-live="polite">
+				{#if barsState.status === 'loading'}
+					<p class="loading">
+						<Spinner size={14} />
+						<span>Loading {TIMEFRAME_LABELS[timeframe].toLowerCase()} bars</span>
+						<span class="skeleton bar" aria-hidden="true"></span>
+					</p>
+				{:else if barsMessage === 'no-provider'}
+					<p class="notice">
+						Showing fills without candles. Add a market data provider in
+						<a href={env.href({ name: 'settings', section: 'market-data' })}>Settings</a> to see the price
+						action around this trade.
+					</p>
+				{:else if barsMessage}
+					<p class="notice error" role="alert">
+						<span class="notice-title">Candles unavailable.</span>
+						{barsMessage}
+					</p>
+				{/if}
+			</div>
 			<TradeChart
 				{view}
 				{bars}
@@ -509,7 +542,14 @@
 
 	<div class="grid">
 		<Panel title="Details">
-			<MetricList items={details} />
+			<div class="groups">
+				{#each detailGroups as group (group.title)}
+					<section class="group" aria-label={group.title}>
+						<h3 class="sub">{group.title}</h3>
+						<MetricList items={group.items} columns={1} />
+					</section>
+				{/each}
+			</div>
 		</Panel>
 
 		<Panel title="Fills" flush>
@@ -529,10 +569,10 @@
 					</thead>
 					<tbody>
 						{#each ledger as row (row.e.id)}
-							<tr>
+							<tr class="row-hover">
 								<td class="nowrap">{formatDateTime(row.e.executedAt, tz)}</td>
 								<td
-									><span class="side {row.e.side}">{row.e.side === 'buy' ? 'Buy' : 'Sell'}</span>
+									><span class="side">{row.e.side === 'buy' ? 'Buy' : 'Sell'}</span>
 									<span class="muted">{row.role}</span></td
 								>
 								{#if view.trade.legs.length > 1}<td class="nowrap">{row.legLabel}</td>{/if}
@@ -603,9 +643,23 @@
 		<Panel title="Thesis and review">
 			<div class="prose">
 				<h3 class="sub">Thesis</h3>
-				<p class:muted={!view.trade.thesis}>{view.trade.thesis || 'No thesis recorded.'}</p>
+				{#if view.trade.thesis}
+					<p>{view.trade.thesis}</p>
+				{:else}
+					<p class="muted">
+						No thesis recorded. <a href={env.href({ name: 'trade-edit', id: tradeId })}>Add one</a>
+					</p>
+				{/if}
 				<h3 class="sub">Review</h3>
-				<p class:muted={!view.trade.review}>{view.trade.review || 'No review yet.'}</p>
+				{#if view.trade.review}
+					<p>{view.trade.review}</p>
+				{:else}
+					<p class="muted">
+						No review yet. <a href={env.href({ name: 'trade-edit', id: tradeId })}
+							>Write what happened</a
+						>
+					</p>
+				{/if}
 				<div class="ratings">
 					<span>Execution <Stars label="Execution rating" value={view.trade.rating} /></span>
 					<span>Confidence <Stars label="Confidence" value={view.trade.confidence} /></span>
@@ -659,26 +713,47 @@
 		font-size: var(--text-sm);
 	}
 
-	.loading,
-	.notice {
+	/* Reserves the line: the chart below never moves when this changes. */
+	.chart-status {
+		min-height: 2.5rem;
+		margin-bottom: var(--space-2);
+	}
+
+	.chart-status p {
+		margin: 0;
+	}
+
+	.loading {
 		display: flex;
 		align-items: center;
 		gap: var(--space-2);
-		margin-bottom: var(--space-3);
+		min-height: 2.5rem;
 		font-size: var(--text-sm);
 		color: var(--color-ink-3);
 	}
 
+	.loading .bar {
+		flex: 1;
+		max-width: 180px;
+		height: 10px;
+	}
+
 	.notice {
-		display: block;
 		padding: var(--space-2) var(--space-3);
 		border-radius: var(--radius-sm);
 		background: var(--color-surface-2);
 		color: var(--color-ink-2);
+		font-size: var(--text-sm);
 	}
 
 	.notice.error {
 		background: var(--color-loss-soft);
+		color: var(--color-ink);
+	}
+
+	.notice-title {
+		font-weight: 600;
+		color: var(--color-loss-text);
 	}
 
 	.source {
@@ -691,6 +766,23 @@
 		display: grid;
 		gap: var(--space-5);
 		margin-bottom: var(--space-5);
+		/* Panels keep their own height: a short Fills table no longer stretches to match Details. */
+		align-items: start;
+	}
+
+	.groups {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+		gap: var(--space-5) var(--space-6);
+	}
+
+	.group .sub {
+		margin: 0 0 var(--space-1);
+		font-size: var(--text-xs);
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--color-ink-3);
 	}
 
 	@media (min-width: 1100px) {
@@ -699,8 +791,18 @@
 		}
 	}
 
+	/* Sideways scroll on a narrow screen; the edge shadows say there is more to see. */
 	.table-wrap {
 		overflow-x: auto;
+		background:
+			linear-gradient(to right, var(--color-surface) 30%, transparent) left center / 24px 100%
+				no-repeat local,
+			linear-gradient(to left, var(--color-surface) 30%, transparent) right center / 24px 100%
+				no-repeat local,
+			radial-gradient(farthest-side at 0 50%, rgb(0 0 0 / 0.16), transparent) left center / 10px
+				100% no-repeat scroll,
+			radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 0.16), transparent) right center / 10px
+				100% no-repeat scroll;
 	}
 
 	table {
@@ -763,6 +865,8 @@
 	.prose p {
 		white-space: pre-wrap;
 		max-width: var(--prose-max);
+		line-height: var(--leading-normal);
+		overflow-wrap: anywhere;
 	}
 
 	.ratings {

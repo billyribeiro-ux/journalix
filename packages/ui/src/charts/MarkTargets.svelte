@@ -59,6 +59,18 @@
 		if (next !== index && next >= 0 && next < targets.length) moveTo(next);
 	}
 
+	/**
+	 * A finger drag keeps its pointer captured by the first mark it touched, so `pointerenter` never fires
+	 * on the marks it slides over. Resolve the mark under the finger ourselves so touch can scrub.
+	 */
+	function onTouchMove(event: PointerEvent): void {
+		if (event.pointerType !== 'touch') return;
+		const under = document.elementFromPoint(event.clientX, event.clientY);
+		if (!(under instanceof HTMLElement) || !container?.contains(under)) return;
+		const index = Number(under.dataset.index);
+		if (Number.isInteger(index)) onactive(index);
+	}
+
 	function onfocusout(event: FocusEvent): void {
 		const next = event.relatedTarget;
 		if (next instanceof Node && container?.contains(next)) return;
@@ -67,20 +79,28 @@
 	}
 </script>
 
+<svelte:window
+	onpointerdown={(e) => {
+		if (active !== null && e.pointerType === 'touch' && !container?.contains(e.target as Node))
+			onactive(null);
+	}}
+/>
+
 <div
 	class="targets"
 	role="group"
 	aria-label={label}
 	bind:this={container}
 	{onfocusout}
-	onpointerleave={() => focused === null && onactive(null)}
+	onpointerleave={(e) => {
+		// Touch fires pointerleave when the finger lifts; the readout stays until the next tap elsewhere.
+		if (e.pointerType !== 'touch' && focused === null) onactive(null);
+	}}
 >
 	{#each targets as target, i (target.key)}
 		<button
 			type="button"
-			class="target"
-			class:pressable={onpress !== undefined}
-			class:on={active === i}
+			class={['target', onpress !== undefined && 'pressable', active === i && 'on']}
 			data-index={i}
 			tabindex={i === tabStop ? 0 : -1}
 			aria-label={target.label}
@@ -90,6 +110,7 @@
 			style:width="{target.w}px"
 			style:height="{target.h}px"
 			onpointerenter={() => onactive(i)}
+			onpointermove={onTouchMove}
 			onfocus={() => {
 				focused = i;
 				lastFocused = i;
@@ -115,6 +136,8 @@
 		border: 0;
 		background: transparent;
 		pointer-events: auto;
+		/* Vertical drags still scroll the page; horizontal ones scrub the marks. */
+		touch-action: pan-y;
 		cursor: default;
 		border-radius: var(--radius-xs);
 	}

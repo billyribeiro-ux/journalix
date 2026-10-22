@@ -1,4 +1,5 @@
 <script lang="ts">
+	import CalendarBlankIcon from 'phosphor-svelte/lib/CalendarBlankIcon';
 	import CaretLeftIcon from 'phosphor-svelte/lib/CaretLeftIcon';
 	import CaretRightIcon from 'phosphor-svelte/lib/CaretRightIcon';
 	import {
@@ -16,6 +17,7 @@
 	import Button from '../primitives/Button.svelte';
 	import IconButton from '../primitives/IconButton.svelte';
 	import Panel from '../primitives/Panel.svelte';
+	import EmptyState from '../primitives/EmptyState.svelte';
 	import Field from '../primitives/Field.svelte';
 	import Select from '../primitives/Select.svelte';
 	import Textarea from '../primitives/Textarea.svelte';
@@ -148,190 +150,243 @@
 	description="Closed P&L by trading day in {tz}. Select a day to review its trades and notes."
 />
 
-<div class="layout">
-	<div class="main">
-		<Panel title={monthLabel}>
-			{#snippet actions()}
-				<Button size="sm" variant="ghost" onclick={goToday}>Today</Button>
-				<IconButton label="Previous month" size="sm" onclick={() => shiftMonth(-1)}
-					><CaretLeftIcon size={16} /></IconButton
-				>
-				<IconButton label="Next month" size="sm" onclick={() => shiftMonth(1)}
-					><CaretRightIcon size={16} /></IconButton
-				>
-			{/snippet}
-			<CalendarMonth
-				{month}
-				{days}
-				weekStartsOn={journal.settings.weekStartsOn}
-				{currency}
-				{selected}
-				onselect={selectDay}
-			/>
-			<dl class="month-summary">
-				<div>
-					<dt>Month</dt>
-					<dd><Pnl value={monthPnl} {currency} /></dd>
-				</div>
-				<div>
-					<dt>Trades</dt>
-					<dd class="num">{monthTrades}</dd>
-				</div>
-				<div>
-					<dt>Green days</dt>
-					<dd class="num">{monthGreen} of {monthDays.length}</dd>
-				</div>
-				<div>
-					<dt>Green-day rate</dt>
-					<dd class="num">
-						{formatPercent(monthDays.length ? monthGreen / monthDays.length : null)}
-					</dd>
-				</div>
-			</dl>
-		</Panel>
-
-		<Panel title="Weeks">
-			<table class="weeks">
-				<caption class="visually-hidden">Weekly totals for {monthLabel}</caption>
-				<thead>
-					<tr
-						><th scope="col">Week</th><th scope="col" class="num">Days traded</th><th
-							scope="col"
-							class="num">Trades</th
-						><th scope="col" class="num">Net P&L</th></tr
+{#if journal.trades.length === 0 && journal.notes.length === 0}
+	<EmptyState
+		title="Nothing to show on the calendar yet"
+		message="Each trading day shows its closed P&L here, and you can attach a plan or recap to any day. Log a trade, or load the sample journal to see it filled in."
+	>
+		{#snippet icon()}<CalendarBlankIcon size={28} />{/snippet}
+		{#snippet actions()}
+			<Button href={env.href({ name: 'trade-new' })} variant="primary">New trade</Button>
+			<Button href={env.href({ name: 'settings', section: 'data' })}>Load sample data</Button>
+		{/snippet}
+	</EmptyState>
+{:else}
+	<div class="layout">
+		<div class="area-month">
+			<Panel title={monthLabel}>
+				{#snippet actions()}
+					<Button size="sm" variant="ghost" onclick={goToday}>Today</Button>
+					<IconButton label="Previous month" size="sm" onclick={() => shiftMonth(-1)}
+						><CaretLeftIcon size={16} /></IconButton
 					>
-				</thead>
-				<tbody>
-					{#each weeks as week (week.from)}
-						<tr>
-							<th scope="row">{formatDayKey(week.from)} to {formatDayKey(week.to)}</th>
-							<td class="num">{week.days}</td>
-							<td class="num">{week.trades}</td>
-							<td class="num"
-								>{#if week.trades}<Pnl value={week.pnl} {currency} />{:else}<span class="muted"
-										>—</span
-									>{/if}</td
-							>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</Panel>
+					<IconButton label="Next month" size="sm" onclick={() => shiftMonth(1)}
+						><CaretRightIcon size={16} /></IconButton
+					>
+				{/snippet}
+				<CalendarMonth
+					{month}
+					{days}
+					weekStartsOn={journal.settings.weekStartsOn}
+					{currency}
+					{selected}
+					onselect={selectDay}
+				/>
+				<dl class="month-summary">
+					<div>
+						<dt>Month</dt>
+						<dd><Pnl value={monthPnl} {currency} /></dd>
+					</div>
+					<div>
+						<dt>Trades</dt>
+						<dd class="num">{monthTrades}</dd>
+					</div>
+					<div>
+						<dt>Green days</dt>
+						<dd class="num">{monthGreen} of {monthDays.length}</dd>
+					</div>
+					<div>
+						<dt>Green-day rate</dt>
+						<dd class="num">
+							{formatPercent(monthDays.length ? monthGreen / monthDays.length : null)}
+						</dd>
+					</div>
+				</dl>
+			</Panel>
+		</div>
 
-		<Panel title="Last 52 weeks">
-			<YearHeatmap
-				{days}
-				endDate={today}
-				weekStartsOn={journal.settings.weekStartsOn}
-				{currency}
-				onselect={selectDay}
-			/>
-		</Panel>
-	</div>
-
-	<aside class="side" aria-label="Selected day">
-		<Panel title={selected ? formatDayKey(selected, 'long') : 'No day selected'}>
-			{#if !selected}
-				<p class="muted">
-					Select a day in the calendar to see the trades opened or closed that day and write a
-					recap.
-				</p>
-			{:else}
-				{#if selectedDay}
-					<dl class="day-stats">
-						<div>
-							<dt>Net P&L</dt>
-							<dd><Pnl value={selectedDay.pnl} {currency} /></dd>
-						</div>
-						<div>
-							<dt>Closed</dt>
-							<dd class="num">{selectedDay.trades}</dd>
-						</div>
-						<div>
-							<dt>Won / lost</dt>
-							<dd class="num">{selectedDay.wins} / {selectedDay.losses}</dd>
-						</div>
-						<div>
-							<dt>Fees</dt>
-							<dd class="num">{formatMoney(selectedDay.fees, { currency })}</dd>
-						</div>
-					</dl>
-				{/if}
-
-				<h3>Trades</h3>
-				{#if selectedTrades.length}
-					<ul class="trades">
-						{#each selectedTrades as v (v.trade.id)}
-							<li>
-								<a href={env.href({ name: 'trade', id: v.trade.id })}>
-									<span class="sym">{v.trade.underlying}</span>
-									<span class="strategy">{STRATEGIES[v.metrics.strategy].label}</span>
-									<StatusBadge status={v.metrics.status} outcome={v.metrics.outcome} />
-									<span class="pnl"
-										>{#if v.metrics.status === 'closed'}<Pnl
-												value={v.metrics.netPnl}
-												{currency}
-											/>{/if}</span
-									>
-								</a>
-							</li>
+		<div class="area-weeks">
+			<Panel title="Weeks">
+				<table class="weeks">
+					<caption class="visually-hidden">Weekly totals for {monthLabel}</caption>
+					<thead>
+						<tr
+							><th scope="col">Week</th><th scope="col" class="num">Days traded</th><th
+								scope="col"
+								class="num">Trades</th
+							><th scope="col" class="num">Net P&L</th></tr
+						>
+					</thead>
+					<tbody>
+						{#each weeks as week (week.from)}
+							<tr class="row-hover">
+								<th scope="row">{formatDayKey(week.from)} to {formatDayKey(week.to)}</th>
+								<td class="num">{week.days}</td>
+								<td class="num">{week.trades}</td>
+								<td class="num"
+									>{#if week.trades}<Pnl value={week.pnl} {currency} />{:else}<span class="muted"
+											>—</span
+										>{/if}</td
+								>
+							</tr>
 						{/each}
-					</ul>
+					</tbody>
+				</table>
+			</Panel>
+		</div>
+
+		<div class="area-year">
+			<Panel title="Last 52 weeks">
+				<YearHeatmap
+					{days}
+					endDate={today}
+					weekStartsOn={journal.settings.weekStartsOn}
+					{currency}
+					onselect={selectDay}
+				/>
+			</Panel>
+		</div>
+
+		<aside class="side" aria-label="Selected day">
+			<Panel title={selected ? formatDayKey(selected, 'long') : 'No day selected'}>
+				{#if !selected}
+					<p class="muted">
+						Select a day in the calendar to see the trades opened or closed that day and write a
+						recap.
+					</p>
+					{#if days.length}
+						{const latest = $derived(days[days.length - 1]?.date ?? '')}
+						<Button size="sm" onclick={() => selectDay(latest)}
+							>Open latest trading day, {formatDayKey(latest)}</Button
+						>
+					{/if}
 				{:else}
-					<p class="muted">No trades match the filters on this day.</p>
+					{#if selectedDay}
+						<dl class="day-stats">
+							<div>
+								<dt>Net P&L</dt>
+								<dd><Pnl value={selectedDay.pnl} {currency} /></dd>
+							</div>
+							<div>
+								<dt>Closed</dt>
+								<dd class="num">{selectedDay.trades}</dd>
+							</div>
+							<div>
+								<dt>Won / lost</dt>
+								<dd class="num">{selectedDay.wins} / {selectedDay.losses}</dd>
+							</div>
+							<div>
+								<dt>Fees</dt>
+								<dd class="num">{formatMoney(selectedDay.fees, { currency })}</dd>
+							</div>
+						</dl>
+					{/if}
+
+					<h3>Trades</h3>
+					{#if selectedTrades.length}
+						<ul class="trades">
+							{#each selectedTrades as v (v.trade.id)}
+								<li>
+									<a class="row-hover" href={env.href({ name: 'trade', id: v.trade.id })}>
+										<span class="sym">{v.trade.underlying}</span>
+										<span class="strategy">{STRATEGIES[v.metrics.strategy].label}</span>
+										<StatusBadge status={v.metrics.status} outcome={v.metrics.outcome} />
+										<span class="pnl"
+											>{#if v.metrics.status === 'closed'}<Pnl
+													value={v.metrics.netPnl}
+													{currency}
+												/>{/if}</span
+										>
+									</a>
+								</li>
+							{/each}
+						</ul>
+					{:else}
+						<p class="muted">No trades match the filters on this day.</p>
+					{/if}
+
+					<h3>Notes</h3>
+					{#each selectedNotes as note (note.id)}
+						<article class="note">
+							<p class="kind">{kindLabel(note.kind)}{note.title ? `: ${note.title}` : ''}</p>
+							<p class="body">{note.body}</p>
+						</article>
+					{:else}
+						<p class="muted">No notes for this day.</p>
+					{/each}
+
+					<form class="note-form" onsubmit={addNote}>
+						<Field label="Type" for="cal-note-kind">
+							<Select id="cal-note-kind" bind:value={noteKind} options={NOTE_KINDS} />
+						</Field>
+						<Field label="Note" for="cal-note-body">
+							<Textarea
+								id="cal-note-body"
+								bind:value={noteBody}
+								rows={4}
+								placeholder="What went well, what to repeat, what to stop."
+							/>
+						</Field>
+						<Button type="submit" busy={savingNote} disabled={!noteBody.trim()}>Save note</Button>
+					</form>
 				{/if}
-
-				<h3>Notes</h3>
-				{#each selectedNotes as note (note.id)}
-					<article class="note">
-						<p class="kind">{kindLabel(note.kind)}{note.title ? `: ${note.title}` : ''}</p>
-						<p class="body">{note.body}</p>
-					</article>
-				{:else}
-					<p class="muted">No notes for this day.</p>
-				{/each}
-
-				<form class="note-form" onsubmit={addNote}>
-					<Field label="Type" for="cal-note-kind">
-						<Select id="cal-note-kind" bind:value={noteKind} options={NOTE_KINDS} />
-					</Field>
-					<Field label="Note" for="cal-note-body">
-						<Textarea
-							id="cal-note-body"
-							bind:value={noteBody}
-							rows={4}
-							placeholder="What went well, what to repeat, what to stop."
-						/>
-					</Field>
-					<Button type="submit" busy={savingNote} disabled={!noteBody.trim()}>Save note</Button>
-				</form>
-			{/if}
-		</Panel>
-	</aside>
-</div>
+			</Panel>
+		</aside>
+	</div>
+{/if}
 
 <style>
+	/*
+	 * One column on small screens, in reading order: month, then the selected day (so choosing a day
+	 * shows its trades right below the calendar), then weeks and the year view.
+	 */
 	.layout {
 		display: grid;
 		gap: var(--space-5);
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-areas:
+			'month'
+			'side'
+			'weeks'
+			'year';
+	}
+
+	.area-month {
+		grid-area: month;
+		min-width: 0;
+	}
+
+	.area-weeks {
+		grid-area: weeks;
+		min-width: 0;
+	}
+
+	.area-year {
+		grid-area: year;
+		min-width: 0;
+	}
+
+	.side {
+		grid-area: side;
+		min-width: 0;
 	}
 
 	@media (min-width: 1100px) {
 		.layout {
 			grid-template-columns: minmax(0, 1fr) 360px;
+			grid-template-areas:
+				'month side'
+				'weeks side'
+				'year side';
+			grid-template-rows: auto auto 1fr;
 			align-items: start;
 		}
 
 		.side {
 			position: sticky;
 			top: var(--space-5);
+			align-self: start;
 		}
-	}
-
-	.main {
-		display: grid;
-		gap: var(--space-5);
-		min-width: 0;
 	}
 
 	.month-summary,
@@ -398,10 +453,6 @@
 		border-radius: var(--radius-sm);
 		color: inherit;
 		text-decoration: none;
-	}
-
-	.trades a:hover {
-		background: var(--color-surface-2);
 	}
 
 	.trades a:focus-visible {

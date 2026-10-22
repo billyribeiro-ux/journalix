@@ -233,6 +233,9 @@
 		{#if dirty}<Button variant="ghost" onclick={() => (form = fromSettings(journal.settings))}
 				>Discard changes</Button
 			>{/if}
+		<span class={['state', { dirty }]} aria-live="polite">
+			{#if dirty}<span class="dot" aria-hidden="true"></span>Unsaved changes{/if}
+		</span>
 	</div>
 </form>
 
@@ -250,6 +253,24 @@
 
 	.actions {
 		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
 		gap: var(--space-2);
+	}
+
+	.state {
+		display: inline-flex;
+		align-items: center;
+		gap: var(--space-2);
+		font-size: var(--text-sm);
+		color: var(--color-ink-2);
+	}
+
+	.state .dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--color-signal);
+		box-shadow: 0 0 0 1px var(--color-signal-fg);
 	}
 </style>

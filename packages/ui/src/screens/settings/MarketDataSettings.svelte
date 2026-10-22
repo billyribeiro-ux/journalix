@@ -114,8 +114,8 @@
 		{:else}
 			<ul class="list" role="list">
 				{#each journal.providers as view (view.id)}
-					{@const info = PROVIDERS[view.provider]}
-					{@const result = results.get(view.id)}
+					{const info = $derived(PROVIDERS[view.provider])}
+					{const result = $derived(results.get(view.id))}
 					<li class="item">
 						<div class="head">
 							<div class="title">
@@ -174,7 +174,7 @@
 							</div>
 						</dl>
 						{#if result}
-							<p class="result" class:ok={result.ok} role="status">
+							<p class={['result', result.ok && 'ok']} role="status">
 								{#if result.ok}<CheckCircleIcon
 										size={16}
 										weight="fill"
@@ -288,11 +288,11 @@
 		align-items: flex-start;
 		gap: var(--space-2);
 		font-size: var(--text-sm);
-		color: var(--color-loss);
+		color: var(--color-loss-text);
 	}
 
 	.result.ok {
-		color: var(--color-gain);
+		color: var(--color-gain-text);
 	}
 
 	.result :global(svg) {

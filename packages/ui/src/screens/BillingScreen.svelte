@@ -66,7 +66,13 @@
 
 <section class="plans-section" aria-labelledby="plans-title">
 	<div class="plans-bar">
-		<h2 id="plans-title">Plans after early access</h2>
+		<div>
+			<h2 id="plans-title">Plans after early access</h2>
+			<p class="plans-note">
+				Planned plans and prices, shown for reference. They may change before billing opens, and
+				nothing on this page can charge you.
+			</p>
+		</div>
 		<Segmented
 			label="Billing interval"
 			bind:value={interval}
@@ -78,9 +84,12 @@
 	</div>
 	<ul class="plans" role="list">
 		{#each PLANS as plan (plan.id)}
-			{@const price = planPrice(plan, interval)}
-			<li class="plan" class:featured={plan.featured}>
-				<h3>{plan.name}</h3>
+			{const price = $derived(planPrice(plan, interval))}
+			<li class={['plan', plan.featured && 'featured']}>
+				<div class="plan-head">
+					<h3>{plan.name}</h3>
+					<Badge tone="outline">Not on sale yet</Badge>
+				</div>
 				<p class="summary">{plan.summary}</p>
 				<p class="price">
 					<span class="amount num">{price === 0 ? 'Free' : usd.format(price)}</span>
@@ -178,6 +187,21 @@
 
 	h2 {
 		font-size: var(--text-lg);
+	}
+
+	.plans-note {
+		margin-top: var(--space-1);
+		max-width: var(--prose-max);
+		font-size: var(--text-sm);
+		color: var(--color-ink-3);
+	}
+
+	.plan-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-2);
 	}
 
 	.plans {

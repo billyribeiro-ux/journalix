@@ -211,16 +211,20 @@
 
 	<ul class="grid" role="list">
 		{#each visible as p (p.id)}
-			{@const s = stats.get(p.id)}
-			<li class="card" style:--identity={p.color}>
+			{const s = $derived(stats.get(p.id))}
+			<li class="card reveal-host" style:--identity={p.color}>
 				<header>
 					<h2>{p.name}</h2>
-					<div class="card-actions">
-						<IconButton label="Edit {p.name}" size="sm" onclick={() => edit(p)}
+					<div class="card-actions hover-reveal">
+						<IconButton label="Edit {p.name}" size="sm" data-tip-pos="end" onclick={() => edit(p)}
 							><PencilSimpleIcon size={16} /></IconButton
 						>
-						<IconButton label="Delete {p.name}" size="sm" tone="danger" onclick={() => askDelete(p)}
-							><TrashIcon size={16} /></IconButton
+						<IconButton
+							label="Delete {p.name}"
+							size="sm"
+							tone="danger"
+							data-tip-pos="end"
+							onclick={() => askDelete(p)}><TrashIcon size={16} /></IconButton
 						>
 					</div>
 				</header>
@@ -274,6 +278,17 @@
 			</li>
 		{/each}
 	</ul>
+	{#if visible.length === 0}
+		<p class="none">
+			{show === 'archived' ? 'No archived playbooks.' : 'Every playbook is archived.'}
+			<button
+				type="button"
+				class="link"
+				onclick={() => (show = show === 'archived' ? 'active' : 'archived')}
+				>Show {show === 'archived' ? 'active' : 'archived'} playbooks</button
+			>
+		</p>
+	{/if}
 {/if}
 
 <Dialog
@@ -363,6 +378,20 @@
 	h2 {
 		font-size: var(--text-lg);
 		overflow-wrap: anywhere;
+	}
+
+	.none {
+		color: var(--color-ink-3);
+	}
+
+	.link {
+		padding: 0;
+		border: 0;
+		background: transparent;
+		color: var(--color-ink);
+		font: inherit;
+		text-decoration: underline;
+		cursor: pointer;
 	}
 
 	.card-actions {

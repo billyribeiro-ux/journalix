@@ -342,10 +342,9 @@
 					</g>
 				</svg>
 				<ul
-					class="labels"
+					class={['labels', stacked && 'stacked']}
 					role="list"
 					aria-hidden="true"
-					class:stacked
 					style:width={stacked ? '100%' : `${labelColumn}px`}
 					style:top="{margin.top}px"
 					style:height="{innerHeight}px"
@@ -441,7 +440,7 @@
 	}
 
 	.zero {
-		stroke: var(--chart-axis);
+		stroke: var(--chart-baseline);
 		stroke-width: 1;
 		shape-rendering: crispEdges;
 	}

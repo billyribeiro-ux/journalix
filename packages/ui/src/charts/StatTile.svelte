@@ -31,7 +31,7 @@
 
 {#snippet body()}
 	<span class="label">{label}</span>
-	<span class="value" class:gain={tone === 'gain'} class:loss={tone === 'loss'}>{value}</span>
+	<span class={['value', { gain: tone === 'gain', loss: tone === 'loss' }]}>{value}</span>
 	{#if detail || (trend && trend.length >= 2)}
 		<span class="foot">
 			{#if detail}<span class="detail">{detail}</span>{/if}
@@ -52,9 +52,9 @@
 {/snippet}
 
 {#if href}
-	<a class="tile link" class:hero {href}>{@render body()}</a>
+	<a class={['tile link', hero && 'hero']} {href}>{@render body()}</a>
 {:else}
-	<div class="tile" class:hero>{@render body()}</div>
+	<div class={['tile', hero && 'hero']}>{@render body()}</div>
 {/if}
 
 <style>
@@ -75,14 +75,23 @@
 		transition: background-color var(--duration-fast) var(--ease-out);
 	}
 
-	.link:hover {
-		background: var(--color-surface-2);
+	@media (hover: hover) and (pointer: fine) {
+		.link:hover {
+			background: var(--color-surface-2);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	.link:active {
+		background: var(--color-surface-3);
+		transition-delay: 0s;
 	}
 
 	.link:focus-visible {
-		outline: 2px solid var(--color-focus);
+		outline: var(--focus-ring-width) solid var(--color-focus);
 		outline-offset: -2px;
 		border-radius: 0;
+		transition-delay: 0s;
 	}
 
 	.label {
@@ -113,12 +122,14 @@
 		overflow-wrap: normal;
 	}
 
+	/* The figure always carries its own sign (+/−), so hue is a second channel, not the only one.
+	   *-text tokens hold 4.5:1 on the tile; the plain mark colours do not in light mode. */
 	.value.gain {
-		color: var(--color-gain);
+		color: var(--color-gain-text);
 	}
 
 	.value.loss {
-		color: var(--color-loss);
+		color: var(--color-loss-text);
 	}
 
 	.foot {
@@ -141,6 +152,19 @@
 
 	.trend {
 		margin-left: auto;
+	}
+
+	/* In a narrow tile the trend drops below the detail instead of squeezing it into an ellipsis. */
+	@container (max-width: 175px) {
+		.foot {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: var(--space-1);
+		}
+
+		.trend {
+			margin-left: 0;
+		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {

@@ -195,8 +195,7 @@
 	<figcaption id="{uid}-title" class="visually-hidden">{summary}</figcaption>
 	<div class="wrap" bind:clientWidth={width} bind:clientHeight={wrapHeight}>
 		<div
-			class="grid"
-			class:compact
+			class={['grid', compact && 'compact']}
 			role="grid"
 			aria-label="{monthTitle} trading calendar"
 			aria-describedby="{uid}-title"
@@ -205,8 +204,7 @@
 			<div class="row head" role="row">
 				{#each columns as wd (wd)}
 					<div
-						class="colhead"
-						class:weekend={wd === 0 || wd === 6}
+						class={['colhead', (wd === 0 || wd === 6) && 'weekend']}
 						role="columnheader"
 						aria-label={WEEKDAY_LONG[wd]}
 					>
@@ -222,7 +220,7 @@
 			{#each weeks as week (week.key)}
 				<div class="row" role="row">
 					{#each week.cells as cell (cell.date)}
-						{@const weekend = cell.weekday === 0 || cell.weekday === 6}
+						{const weekend = $derived(cell.weekday === 0 || cell.weekday === 6)}
 						<div
 							role="gridcell"
 							class="cellwrap"
@@ -231,12 +229,14 @@
 							{#if !cell.inMonth}
 								<div class="cell outside" aria-hidden="true"></div>
 							{:else if cell.data}
-								{@const d = cell.data}
+								{const d = $derived(cell.data)}
 								<button
 									type="button"
-									class="cell active"
-									class:weekend
-									class:selected={selected === cell.date}
+									class={[
+										'cell active',
+										weekend && 'weekend',
+										selected === cell.date && 'selected'
+									]}
 									style:background={fillFor(cell)}
 									data-date={cell.date}
 									tabindex={tabStop === cell.date ? 0 : -1}
@@ -257,11 +257,8 @@
 								>
 									<span class="num">{cell.day}</span>
 									{#if compact}
-										<span
-											class="dot"
-											class:gain={d.pnl > 0}
-											class:loss={d.pnl < 0}
-											aria-hidden="true">{d.pnl > 0 ? '+' : d.pnl < 0 ? '−' : ''}</span
+										<span class={['dot', { gain: d.pnl > 0, loss: d.pnl < 0 }]} aria-hidden="true"
+											>{d.pnl > 0 ? '+' : d.pnl < 0 ? '−' : ''}</span
 										>
 									{:else}
 										<span class="pnl">{compactSignedMoney(d.pnl, currency)}</span>
@@ -269,7 +266,7 @@
 									{/if}
 								</button>
 							{:else}
-								<div class="cell idle" class:weekend aria-label={ariaFor(cell)}>
+								<div class={['cell idle', weekend && 'weekend']} aria-label={ariaFor(cell)}>
 									<span class="num">{cell.day}</span>
 								</div>
 							{/if}
@@ -350,10 +347,6 @@
 		text-align: left;
 	}
 
-	.colhead.weekend {
-		opacity: 0.7;
-	}
-
 	.colhead.total {
 		text-align: right;
 	}
@@ -401,6 +394,12 @@
 		gap: 0;
 	}
 
+	@media (pointer: coarse) {
+		.compact .cell {
+			min-height: var(--control-touch);
+		}
+	}
+
 	.cell.outside {
 		border-color: transparent;
 		background: transparent;
@@ -414,17 +413,13 @@
 		background: var(--color-surface-2);
 	}
 
-	.cell.idle.weekend {
-		opacity: 0.6;
-	}
-
 	button.cell {
 		cursor: pointer;
 		transition: border-color var(--duration-fast) var(--ease-out);
 	}
 
 	button.cell:hover {
-		border-color: var(--color-line-strong);
+		border-color: var(--color-ink-3);
 	}
 
 	button.cell.selected {
@@ -472,14 +467,14 @@
 	.dot {
 		display: grid;
 		place-items: center;
-		width: 12px;
-		height: 12px;
+		width: 14px;
+		height: 14px;
 		margin-top: 3px;
 		border-radius: 50%;
 		background: var(--color-neutral);
 		box-shadow: 0 0 0 2px var(--color-surface);
 		color: var(--color-surface);
-		font-size: 10px;
+		font-size: var(--text-2xs);
 		font-weight: 700;
 		line-height: 1;
 	}

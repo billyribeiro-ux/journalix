@@ -7,6 +7,7 @@
 	import IconButton from '../../primitives/IconButton.svelte';
 	import NumberInput from '../../primitives/NumberInput.svelte';
 	import Select from '../../primitives/Select.svelte';
+	import '../../primitives/control.css';
 	import {
 		STRUCTURE_PRESETS,
 		defaultMultiplier,
@@ -94,7 +95,7 @@
 				</label>
 				<label>
 					<span>Expiration</span>
-					<input class="date" type="date" bind:value={presetExpiry} aria-label="Expiration" />
+					<input class="control" type="date" bind:value={presetExpiry} aria-label="Expiration" />
 				</label>
 				<Button
 					size="sm"
@@ -110,7 +111,7 @@
 
 	<div class="legs" role="list">
 		{#each draft.legs as leg, index (leg.id)}
-			{@const occ = occFor(index)}
+			{const occ = $derived(occFor(index))}
 			<div class="leg" role="listitem">
 				<span class="n num" aria-hidden="true">{index + 1}</span>
 				{#if options}
@@ -136,7 +137,7 @@
 						<label>
 							<span class="lbl">Expiration</span>
 							<input
-								class="date"
+								class="control"
 								type="date"
 								bind:value={leg.expiration}
 								aria-label="Leg {index + 1} expiration"
@@ -165,7 +166,9 @@
 				</label>
 				{#if options && draft.legs.length > 1}
 					<IconButton
-						label="Remove leg {index + 1}"
+						label={draft.executions.some((e) => e.legId === leg.id)
+							? `Remove leg ${index + 1} and its fills`
+							: `Remove leg ${index + 1}`}
 						tone="danger"
 						onclick={() => draft.removeLeg(leg.id)}><TrashIcon size={16} /></IconButton
 					>
@@ -253,19 +256,6 @@
 		align-self: end;
 	}
 
-	.date {
-		min-height: 36px;
-		padding: 0 var(--space-2);
-		border: 1px solid var(--color-line-strong);
-		border-radius: var(--radius-sm);
-		background: var(--color-surface);
-		width: 100%;
-	}
-
-	.date[aria-invalid='true'] {
-		border-color: var(--color-loss);
-	}
-
 	.note {
 		align-self: center;
 		color: var(--color-ink-2);
@@ -290,7 +280,7 @@
 	.err {
 		grid-column: 2 / -1;
 		font-size: var(--text-xs);
-		color: var(--color-loss);
+		color: var(--color-loss-text);
 	}
 
 	.actions {
