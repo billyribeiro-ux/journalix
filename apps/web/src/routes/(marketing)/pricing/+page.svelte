@@ -152,7 +152,7 @@
 
 	<ul class="plans" role="list">
 		{#each plans as plan (plan.id)}
-			<li class={['plan', { featured: plan.featured }]}>
+			<li class={['plan', { featured: plan.featured }]} data-reveal>
 				<h3>{plan.name}</h3>
 				<p class="summary">{plan.summary}</p>
 				<p class="price">
@@ -186,7 +186,7 @@
 	</ul>
 </section>
 
-<section class="container compare" aria-labelledby="compare-title">
+<section class="container compare" data-reveal aria-labelledby="compare-title">
 	<h2 id="compare-title">Compare plans</h2>
 	<div class="table-wrap" {@attach scrollable('Plan comparison, scrolls sideways')}>
 		<table>
@@ -228,7 +228,7 @@
 	</div>
 </section>
 
-<section class="container faq" aria-labelledby="faq-title">
+<section class="container faq" data-reveal aria-labelledby="faq-title">
 	<h2 id="faq-title">Questions</h2>
 	<div class="faq-list">
 		{#each faqs as item (item.q)}

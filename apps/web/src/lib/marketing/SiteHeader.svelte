@@ -53,7 +53,7 @@
 
 <svelte:window onkeydown={onWindowKeydown} />
 
-<header class="site-header" onfocusout={onFocusOut}>
+<header class="site-header" data-scroll-shade onfocusout={onFocusOut}>
 	<div class="bar">
 		<a class="home" href={resolve('')} aria-label="Journalix home">
 			<Logo size={26} label="Journalix" />

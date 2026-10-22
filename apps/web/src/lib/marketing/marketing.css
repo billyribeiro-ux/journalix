@@ -352,3 +352,8 @@ html:has(.mk) {
 		border: 1px solid CanvasText;
 	}
 }
+
+/* The routed region cross-fades between pages (motion.css); header and footer stay put. */
+.mk main {
+	view-transition-name: page;
+}

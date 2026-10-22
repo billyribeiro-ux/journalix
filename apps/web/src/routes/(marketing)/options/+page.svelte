@@ -162,7 +162,7 @@
 	</div>
 </header>
 
-<section class="container block" aria-labelledby="structures-title">
+<section class="container block" data-reveal aria-labelledby="structures-title">
 	<div class="block-head">
 		<h2 id="structures-title">Supported structures</h2>
 		<p>
@@ -173,7 +173,7 @@
 	</div>
 	<div class="families">
 		{#each families as family (family.id)}
-			<section class="family" aria-labelledby="family-{family.id}">
+			<section class="family" data-reveal aria-labelledby="family-{family.id}">
 				<h3 id="family-{family.id}">{family.title}</h3>
 				<p class="note">{family.note}</p>
 				<ul role="list">
@@ -190,7 +190,7 @@
 	</p>
 </section>
 
-<section class="container block" aria-labelledby="recording-title">
+<section class="container block" data-reveal aria-labelledby="recording-title">
 	<div class="block-head">
 		<h2 id="recording-title">How trades are recorded</h2>
 		<p>
@@ -216,7 +216,7 @@
 	</dl>
 </section>
 
-<section class="container block" aria-labelledby="analysis-title">
+<section class="container block" data-reveal aria-labelledby="analysis-title">
 	<div class="block-head">
 		<h2 id="analysis-title">Payoff, Greeks and attribution</h2>
 		<p>Numbers you would otherwise work out on paper, computed for every options trade.</p>
@@ -246,7 +246,7 @@
 	</div>
 </section>
 
-<section class="container block" aria-labelledby="reports-title">
+<section class="container block" data-reveal aria-labelledby="reports-title">
 	<div class="block-head">
 		<h2 id="reports-title">Options-specific reports</h2>
 		<p>

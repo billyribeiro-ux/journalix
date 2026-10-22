@@ -18,6 +18,7 @@
 	import Logo from '../marketing/Logo.svelte';
 	import Toasts from '../primitives/Toasts.svelte';
 	import Button from '../primitives/Button.svelte';
+	import { installReveals } from '../primitives/reveal.ts';
 	import { installTooltips, tip } from '../primitives/tooltip.ts';
 	import FilterBar from './FilterBar.svelte';
 	import { FILTERED_ROUTES, PRIMARY_NAV, SECONDARY_NAV, type NavItem } from './nav.ts';
@@ -70,6 +71,9 @@
 
 	// Screens put `data-tip` on their own elements; one controller serves all of them.
 	$effect(() => installTooltips());
+
+	// Panels and page headers carry `data-reveal`; one controller reveals them as they scroll in.
+	$effect(() => installReveals());
 
 	// Apply the saved theme once settings load, and whenever it changes.
 	$effect(() => {
@@ -189,12 +193,16 @@
 			aria-expanded={drawerOpen}
 			aria-controls="app-nav"
 			onclick={openDrawer}
+			{@attach tip('Open navigation', 'bottom')}
 		>
 			<ListIcon size={20} />
 		</button>
 		<a class="brand" href={env.href({ name: 'dashboard' })}><Logo size={22} /></a>
-		<a class="new-mobile" href={env.href({ name: 'trade-new' })} aria-label="New trade"
-			><PlusIcon size={18} weight="bold" /></a
+		<a
+			class="new-mobile"
+			href={env.href({ name: 'trade-new' })}
+			aria-label="New trade"
+			{@attach tip('New trade', 'bottom')}><PlusIcon size={18} weight="bold" /></a
 		>
 	</header>
 
@@ -703,6 +711,8 @@
 	}
 
 	.content {
+		/* The region that cross-fades between routes (motion.css); the sidebar and bars stay put. */
+		view-transition-name: page;
 		flex: 1;
 		width: 100%;
 		max-width: var(--content-max);

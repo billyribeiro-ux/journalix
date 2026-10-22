@@ -159,7 +159,7 @@
 	{:else}
 		<div class="wrap" bind:clientWidth={width} style:height="{height}px">
 			{#if width > 0}
-				<svg {width} {height} role="img" aria-label="Histogram. {summary}">
+				<svg data-wipe {width} {height} role="img" aria-label="Histogram. {summary}">
 					<g transform="translate({margin.left},{margin.top})">
 						{#each yTicks as tick (tick.key)}
 							<line

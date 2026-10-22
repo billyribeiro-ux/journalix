@@ -39,7 +39,7 @@
 							aria-label="{level.kind} price"
 						/>
 					</label>
-					<label>
+					<label class="when">
 						<span>Set at</span>
 						<input
 							type="datetime-local"
@@ -118,10 +118,12 @@
 
 	@media (max-width: 720px) {
 		.row {
-			grid-template-columns: 1fr 1fr;
+			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 		}
 
+		/* The date-time input is about 210px wide, more than half a phone: it gets a row of its own. */
 		.kind,
+		.when,
 		.note {
 			grid-column: 1 / -1;
 		}
