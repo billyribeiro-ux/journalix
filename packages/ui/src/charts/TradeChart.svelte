@@ -57,6 +57,9 @@
 	let status = $state<'loading' | 'ready' | 'error'>('loading');
 	const id = $props.id();
 
+	/** Fewest empty time slots before the first candle, so a marker label on the first bar is not clipped. */
+	const LEAD_BARS = 6;
+
 	type Phase = 'entry' | 'add' | 'partial' | 'exit' | 'expired' | 'assigned';
 
 	interface Mark {
@@ -152,7 +155,7 @@
 		const { trade, metrics } = view;
 		const parts = [
 			`${trade.underlying} ${metrics.direction} trade`,
-			`${marks.length} fills marked`,
+			`${marks.length} ${marks.length === 1 ? 'fill' : 'fills'} marked`,
 			metrics.initialStop !== null ? `stop ${formatPrice(metrics.initialStop)}` : null,
 			metrics.initialTarget !== null ? `target ${formatPrice(metrics.initialTarget)}` : null,
 			metrics.status === 'closed'
@@ -254,15 +257,26 @@
 						wickDownColor: t.loss,
 						priceLineVisible: false
 					});
-					candles.setData(
-						sourceBars.map((b) => ({
+					// Marker text is centred on its bar, so an entry on the first bar would run off the left edge.
+					// A few bar-less points before the first candle leave room for it.
+					const first = sourceBars[0]?.time ?? 0;
+					const step = Math.max(1, (sourceBars[1]?.time ?? first + 60) - first);
+					// Sized so about 56px stays free whatever the bar spacing (narrow charts have narrower bars).
+					const spacing = (el.clientWidth || 600) / (sourceBars.length + LEAD_BARS) || 12;
+					const leadBars = Math.min(24, Math.max(LEAD_BARS, Math.ceil(56 / spacing)));
+					const lead = Array.from({ length: leadBars }, (_, i) => ({
+						time: (first - step * (leadBars - i)) as UTCTimestamp
+					}));
+					candles.setData([
+						...lead,
+						...sourceBars.map((b) => ({
 							time: b.time as UTCTimestamp,
 							open: b.open,
 							high: b.high,
 							low: b.low,
 							close: b.close
 						}))
-					);
+					]);
 					main = candles;
 					const volume = chart.addSeries(lw.HistogramSeries, {
 						priceScaleId: 'volume',

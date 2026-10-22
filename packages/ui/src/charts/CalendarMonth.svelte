@@ -262,7 +262,10 @@
 										>
 									{:else}
 										<span class="pnl">{compactSignedMoney(d.pnl, currency)}</span>
-										<span class="trades">{d.trades} {d.trades === 1 ? 'trade' : 'trades'}</span>
+										<span class="trades"
+											>{d.trades}
+											<span class="word">{d.trades === 1 ? 'trade' : 'trades'}</span></span
+										>
 									{/if}
 								</button>
 							{:else}
@@ -284,7 +287,10 @@
 									<span class="pnl small">{compactSignedMoney(week.pnl, currency)}</span>
 								{:else}
 									<span class="pnl">{compactSignedMoney(week.pnl, currency)}</span>
-									<span class="trades">{week.trades} {week.trades === 1 ? 'trade' : 'trades'}</span>
+									<span class="trades"
+										>{week.trades}
+										<span class="word">{week.trades === 1 ? 'trade' : 'trades'}</span></span
+									>
 								{/if}
 							{:else}
 								<span class="trades">—</span>
@@ -363,6 +369,8 @@
 	.cellwrap {
 		display: flex;
 		min-width: 0;
+		/* Cells size their type and padding from their own width, so a figure is never cut off. */
+		container-type: inline-size;
 	}
 
 	.cell {
@@ -496,6 +504,22 @@
 	.compact .cell.total {
 		align-items: flex-end;
 		padding-inline: 2px;
+	}
+
+	/* Under ~72px (a phone-width month) a figure like "+$1.2K" no longer fits at full size: tighten
+	   the padding, let the type follow the cell, and drop the word "trades" (the count stays). */
+	@container (max-width: 72px) {
+		.cell {
+			padding: var(--space-1);
+		}
+
+		.pnl {
+			font-size: clamp(0.625rem, 17cqi, var(--text-sm));
+		}
+
+		.trades .word {
+			display: none;
+		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {

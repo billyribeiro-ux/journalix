@@ -83,7 +83,8 @@ test('a stock trade entered fill by fill computes its P&L', async ({ page }) => 
 	await page.getByLabel('Execution time').nth(0).fill('2026-10-19T10:00');
 
 	await page.getByRole('button', { name: 'Add fill' }).click();
-	await page.getByLabel('Side').nth(1).selectOption('sell');
+	// Exact: a substring match also hits the "Collapse sidebar" button, which comes first in the DOM.
+	await page.getByLabel('Side', { exact: true }).nth(1).selectOption('sell');
 	await page.getByLabel('Quantity').nth(1).fill('100');
 	await page.getByLabel('Price').nth(1).fill('205');
 	await page.getByLabel('Fees').nth(1).fill('0');

@@ -83,6 +83,8 @@
 		tagNames: new Map(journal.tags.map((t) => [t.id, t.name]))
 	});
 	const by = (d: Dimension) => groupBy(views, d, ctx);
+	/** The Options tab counts option trades only, so its strategy charts leave out shares. */
+	const optionBy = (d: Dimension) => groupBy(optionViews, d, ctx);
 
 	const tone = (v: number): 'gain' | 'loss' | 'neutral' =>
 		v > 0 ? 'gain' : v < 0 ? 'loss' : 'neutral';
@@ -429,15 +431,15 @@
 			</StatStrip>
 			<div class="grid two-even">
 				<Panel title="By strategy">
-					<GroupBarChart rows={by('strategy')} metric="netPnl" {currency} />
+					<GroupBarChart rows={optionBy('strategy')} metric="netPnl" {currency} />
 				</Panel>
 				<Panel title="Win rate by strategy">
-					<GroupBarChart rows={by('strategy')} metric="winRate" {currency} />
+					<GroupBarChart rows={optionBy('strategy')} metric="winRate" {currency} />
 				</Panel>
 			</div>
 			<Panel title="Strategy breakdown">
 				<BreakdownTable
-					rows={by('strategy')}
+					rows={optionBy('strategy')}
 					{currency}
 					label="Results by strategy"
 					heading="Strategy"

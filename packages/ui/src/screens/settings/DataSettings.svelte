@@ -234,9 +234,10 @@
 			<div>
 				<h3>Delete journal</h3>
 				<p class="danger-copy">
-					Permanently deletes every account, trade, tag, playbook and note on this computer.
-					Settings and market data providers are kept. There is no undo: export first if you might
-					want it back.
+					Permanently deletes every account, trade, tag, playbook and note {env.user
+						? 'in your Journalix account'
+						: 'on this computer'}. Settings and market data providers are kept. There is no undo:
+					export first if you might want it back.
 				</p>
 			</div>
 			<Button
