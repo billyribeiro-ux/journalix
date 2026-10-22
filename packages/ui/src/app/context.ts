@@ -11,12 +11,4 @@ export interface AppContext {
 	readonly toaster: Toaster;
 }
 
-const [getAppContextInternal, setAppContextInternal] = createContext<AppContext>();
-
-export function setAppContext(ctx: AppContext): AppContext {
-	return setAppContextInternal(ctx);
-}
-
-export function useApp(): AppContext {
-	return getAppContextInternal();
-}
+export const [useApp, setAppContext] = createContext<AppContext>();

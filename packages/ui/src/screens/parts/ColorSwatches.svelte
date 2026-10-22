@@ -60,14 +60,37 @@
 		position: relative;
 		display: grid;
 		place-items: center;
-		width: 28px;
-		height: 28px;
+		width: var(--control-sm);
+		height: var(--control-sm);
 		border-radius: var(--radius-pill);
 		background: var(--swatch);
 		cursor: pointer;
 		box-shadow: 0 0 0 2px var(--color-surface);
+		transition:
+			box-shadow var(--duration-fast) var(--ease-out),
+			transform var(--duration-fast) var(--ease-out);
 	}
 
+	@media (pointer: coarse) {
+		.swatch {
+			width: var(--control-touch);
+			height: var(--control-touch);
+		}
+	}
+
+	@media (hover: hover) and (pointer: fine) {
+		.swatch:hover {
+			transform: scale(1.12);
+			transition-delay: var(--hover-delay-tint);
+		}
+	}
+
+	.swatch:active {
+		transform: scale(0.94);
+		transition-delay: 0s;
+	}
+
+	/* Selected is a ring around the swatch (shape), so it never relies on hue alone. */
 	.swatch:has(input:checked) {
 		box-shadow:
 			0 0 0 2px var(--color-surface),
@@ -75,8 +98,9 @@
 	}
 
 	.swatch:has(input:focus-visible) {
-		outline: 2px solid var(--color-focus);
-		outline-offset: 4px;
+		outline: var(--focus-ring-width) solid var(--color-focus);
+		outline-offset: 5px;
+		transition-delay: 0s;
 	}
 
 	input {
@@ -85,5 +109,17 @@
 		margin: 0;
 		opacity: 0;
 		cursor: pointer;
+	}
+
+	@media (forced-colors: active) {
+		.swatch {
+			forced-color-adjust: none;
+			border: 1px solid CanvasText;
+		}
+
+		.swatch:has(input:checked) {
+			outline: 3px solid Highlight;
+			outline-offset: 2px;
+		}
 	}
 </style>

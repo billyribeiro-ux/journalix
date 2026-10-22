@@ -1,0 +1,214 @@
+/*
+ * Shared interaction patterns. Token meanings and the hover-intent rules are documented at the top
+ * of tokens.css; this file is the reference implementation.
+ *
+ *   .hover-tint       Background tint on hover (after --hover-delay-tint). Override --hover-bg.
+ *   .row-hover        A table row / list row: tints on hover, and is the host for `.hover-reveal`.
+ *   .reveal-host      Like .row-hover but without the tint (cards, panels).
+ *   .hover-reveal     A secondary affordance inside a host. Hidden until the host is hovered for
+ *                     --hover-delay-reveal, or until keyboard focus is anywhere inside the host.
+ *                     Always visible on touch / non-hover devices.
+ *   [data-tip]        Tooltip: `<button data-tip="Delete trade">` or `{@attach tip('Delete trade')}`
+ *                     (primitives/tooltip.ts). Opens after --hover-delay-tooltip (0 when "warm"),
+ *                     instantly on keyboard focus, closes at once. Escape dismisses it, the pointer
+ *                     can move onto it, it is `position: fixed` and clamped to the viewport (never
+ *                     adds page overflow, never clipped). `data-tip-pos="bottom|start|end|side"`.
+ *   .skeleton         Loading placeholder with a quiet shimmer (static under reduced motion).
+ */
+
+/* ---------- hover tint ---------- */
+.hover-tint,
+.row-hover {
+	transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.hover-tint:hover:not(:disabled, [aria-disabled='true']),
+	.row-hover:hover {
+		background-color: var(--hover-bg, var(--color-hover));
+		transition-delay: var(--hover-delay-tint);
+	}
+}
+
+.hover-tint:focus-visible,
+.hover-tint:active,
+.row-hover:focus-visible {
+	transition-delay: 0s;
+}
+
+/* Separate rules: an engine without :has() would otherwise drop the whole selector list. */
+.row-hover:has(:focus-visible) {
+	background-color: var(--hover-bg, var(--color-hover));
+	transition-delay: 0s;
+}
+
+.hover-tint:active:not(:disabled, [aria-disabled='true']) {
+	background-color: var(--color-pressed);
+}
+
+/* ---------- hover reveal ---------- */
+.hover-reveal {
+	transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.hover-reveal {
+		opacity: 0;
+	}
+
+	.row-hover:hover .hover-reveal,
+	.reveal-host:hover .hover-reveal {
+		opacity: 1;
+		transition-delay: var(--hover-delay-reveal);
+	}
+}
+
+/* Keyboard parity: no delay, and reveal whenever focus is anywhere inside the host. */
+.hover-reveal:focus-visible,
+.hover-reveal:focus-within {
+	opacity: 1;
+	transition-delay: 0s;
+}
+
+.row-hover:has(:focus-visible) .hover-reveal {
+	opacity: 1;
+	transition-delay: 0s;
+}
+
+.reveal-host:has(:focus-visible) .hover-reveal {
+	opacity: 1;
+	transition-delay: 0s;
+}
+
+/* ---------- tooltip ---------- */
+/* Behaviour lives in primitives/tooltip.ts (one delegated controller, one element in <body>). */
+.jx-tip {
+	position: fixed;
+	inset: auto;
+	left: 0;
+	top: 0;
+	margin: 0;
+	padding: 4px var(--space-2);
+	border: 0;
+	overflow: visible;
+	width: max-content;
+	max-width: min(280px, calc(100vw - 2 * var(--space-2)));
+	border-radius: var(--radius-sm);
+	background: var(--color-ink);
+	color: var(--color-ink-inverse);
+	box-shadow: var(--shadow-pop);
+	font-size: var(--text-xs);
+	font-weight: 500;
+	line-height: var(--leading-snug);
+	letter-spacing: 0;
+	text-align: center;
+	text-wrap: balance;
+	cursor: default;
+	z-index: calc(var(--z-toast) + 1);
+	/* Closed: invisible and click-through. Closing starts at once; the controller drops the
+	   element from the top layer after the fade. */
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transform: translateY(2px);
+	transition:
+		opacity var(--duration-fast) var(--ease-out),
+		transform var(--duration-fast) var(--ease-out),
+		visibility 0s linear var(--duration-fast);
+}
+
+.jx-tip[data-side='bottom'] {
+	transform: translateY(-2px);
+}
+
+.jx-tip[data-side='right'] {
+	transform: translateX(-2px);
+}
+
+.jx-tip[data-side='left'] {
+	transform: translateX(2px);
+}
+
+/* Open and hoverable (WCAG 1.4.13). The delay lives in the controller, not here. */
+.jx-tip.is-open {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+	transform: none;
+	transition-delay: 0s;
+}
+
+/* An invisible bridge over the gap to the host, so the pointer can travel onto the tooltip. */
+.jx-tip::before {
+	content: '';
+	position: absolute;
+}
+
+.jx-tip[data-side='top']::before {
+	inset: 100% 0 auto;
+	height: 8px;
+}
+
+.jx-tip[data-side='bottom']::before {
+	inset: auto 0 100%;
+	height: 8px;
+}
+
+.jx-tip[data-side='right']::before {
+	inset: 0 100% 0 auto;
+	width: 8px;
+}
+
+.jx-tip[data-side='left']::before {
+	inset: 0 auto 0 100%;
+	width: 8px;
+}
+
+@media (hover: none), (pointer: coarse) {
+	.jx-tip {
+		display: none;
+	}
+}
+
+@media (forced-colors: active) {
+	.jx-tip {
+		border: 1px solid CanvasText;
+		background: Canvas;
+		color: CanvasText;
+	}
+}
+
+/* ---------- skeleton ---------- */
+.skeleton {
+	position: relative;
+	overflow: hidden;
+	border-radius: var(--radius-sm);
+	background: var(--color-surface-2);
+}
+
+.skeleton::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		color-mix(in oklab, var(--color-surface-3) 70%, transparent),
+		transparent
+	);
+	transform: translateX(-100%);
+	animation: jx-shimmer 1.4s var(--ease-in-out) infinite;
+}
+
+@keyframes jx-shimmer {
+	to {
+		transform: translateX(100%);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.skeleton::after {
+		animation: none;
+		display: none;
+	}
+}

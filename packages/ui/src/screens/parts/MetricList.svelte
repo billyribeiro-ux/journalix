@@ -49,19 +49,22 @@
 	dt {
 		color: var(--color-ink-3);
 		font-size: var(--text-sm);
+		min-width: 0;
+		text-wrap: pretty;
 	}
 
 	dd {
 		margin: 0;
 		font-weight: 500;
-		text-align: right;
+		text-align: end;
+		white-space: nowrap;
 	}
 
 	.gain {
-		color: var(--color-gain);
+		color: var(--color-gain-text);
 	}
 
 	.loss {
-		color: var(--color-loss);
+		color: var(--color-loss-text);
 	}
 </style>

@@ -11,7 +11,7 @@
 	let { tone = 'neutral', color, children }: Props = $props();
 </script>
 
-<span class="badge {tone}">
+<span class={['badge', tone]}>
 	{#if color}<span class="dot" style:background={color} aria-hidden="true"></span>{/if}
 	{@render children()}
 </span>
@@ -21,25 +21,27 @@
 		display: inline-flex;
 		align-items: center;
 		gap: 6px;
-		height: 22px;
+		height: 24px;
 		padding: 0 var(--space-2);
 		border-radius: var(--radius-xs);
 		background: var(--color-surface-2);
 		color: var(--color-ink-2);
 		font-size: var(--text-xs);
 		font-weight: 500;
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.01em;
 		white-space: nowrap;
 		line-height: 1;
 	}
 
 	.gain {
 		background: var(--color-gain-soft);
-		color: var(--color-gain);
+		color: var(--color-gain-text);
 	}
 
 	.loss {
 		background: var(--color-loss-soft);
-		color: var(--color-loss);
+		color: var(--color-loss-text);
 	}
 
 	.signal {
@@ -53,9 +55,15 @@
 	}
 
 	.dot {
-		width: 7px;
-		height: 7px;
+		width: 8px;
+		height: 8px;
 		border-radius: 50%;
 		flex: none;
+	}
+
+	@media (forced-colors: active) {
+		.badge {
+			border: 1px solid CanvasText;
+		}
 	}
 </style>

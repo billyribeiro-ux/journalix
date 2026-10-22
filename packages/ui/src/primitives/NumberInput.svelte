@@ -42,7 +42,11 @@
 	}
 </script>
 
-<div class="wrap" class:has-prefix={!!prefix} class:has-suffix={!!suffix}>
+<div
+	class={['wrap', prefix && 'has-prefix', suffix && 'has-suffix']}
+	style:--prefix-ch={prefix?.length}
+	style:--suffix-ch={suffix?.length}
+>
 	{#if prefix}<span class="affix prefix" aria-hidden="true">{prefix}</span>{/if}
 	<input
 		class="control num"
@@ -66,15 +70,16 @@
 	}
 
 	input {
-		text-align: right;
+		text-align: end;
 	}
 
+	/* Room for the affix is measured from its length, so "$" and "USD" both fit. */
 	.has-prefix input {
-		padding-left: calc(var(--space-3) + 1.1em);
+		padding-inline-start: calc(var(--space-3) + var(--prefix-ch, 1) * 1ch + var(--space-2));
 	}
 
 	.has-suffix input {
-		padding-right: calc(var(--space-3) + 2em);
+		padding-inline-end: calc(var(--space-3) + var(--suffix-ch, 1) * 1ch + var(--space-2));
 	}
 
 	.affix {
@@ -85,11 +90,11 @@
 	}
 
 	.prefix {
-		left: var(--space-3);
+		inset-inline-start: var(--space-3);
 	}
 
 	.suffix {
-		right: var(--space-3);
+		inset-inline-end: var(--space-3);
 	}
 
 	input::-webkit-outer-spin-button,

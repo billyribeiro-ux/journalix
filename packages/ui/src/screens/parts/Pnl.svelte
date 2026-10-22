@@ -24,11 +24,11 @@
 	}
 
 	.gain {
-		color: var(--color-gain);
+		color: var(--color-gain-text);
 	}
 
 	.loss {
-		color: var(--color-loss);
+		color: var(--color-loss-text);
 	}
 
 	.flat,
