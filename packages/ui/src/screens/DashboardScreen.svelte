@@ -230,7 +230,7 @@
 					<dd class="num">{stats.maxConsecutiveLosses}</dd>
 				</div>
 			</dl>
-			<a class="more" href={env.href({ name: 'reports' })}>All reports</a>
+			<a class="more tap-target" href={env.href({ name: 'reports' })}>All reports</a>
 		</Panel>
 	</div>
 
@@ -270,7 +270,7 @@
 	<div class="row two">
 		<Panel title="Recent closed trades" flush>
 			{#snippet actions()}
-				<a class="more head-link" href={env.href({ name: 'trades' })}>All trades</a>
+				<a class="more head-link tap-target" href={env.href({ name: 'trades' })}>All trades</a>
 			{/snippet}
 			<ul class="list" role="list">
 				{#each recent as v (v.trade.id)}

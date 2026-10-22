@@ -35,7 +35,10 @@
 				{#if block.caption}<figcaption>{block.caption}</figcaption>{/if}
 			</figure>
 		{:else if block.type === 'table'}
-			<div class="table-wrap" {@attach scrollable(`${block.caption}, scrolls sideways`)}>
+			<div
+				class="table-wrap scroll-fade"
+				{@attach scrollable(`${block.caption}, scrolls sideways`)}
+			>
 				<table>
 					<caption>{block.caption}</caption>
 					<thead>

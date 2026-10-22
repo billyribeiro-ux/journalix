@@ -157,6 +157,38 @@
 	}
 }
 
+/* A theme change fades the whole page (the `page` region included) instead of sliding it. */
+@media (prefers-reduced-motion: no-preference) {
+	.theme-vt::view-transition-old(root),
+	.theme-vt::view-transition-new(root),
+	.theme-vt::view-transition-old(page),
+	.theme-vt::view-transition-new(page) {
+		animation-duration: 260ms;
+		animation-timing-function: var(--ease-out);
+		animation-delay: 0s;
+	}
+
+	.theme-vt::view-transition-old(page) {
+		animation-name: jx-fade-out;
+	}
+
+	.theme-vt::view-transition-new(page) {
+		animation-name: jx-fade-in;
+	}
+}
+
+@keyframes jx-fade-out {
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes jx-fade-in {
+	from {
+		opacity: 0;
+	}
+}
+
 @keyframes jx-page-out {
 	to {
 		opacity: 0;
@@ -189,5 +221,35 @@
 
 	to {
 		clip-path: inset(0 0 0 0);
+	}
+}
+
+/* ---------- scroll affordance ---------- */
+/* A horizontally scrolling container fades its right edge while more content is hidden there, and
+   stops once you reach the end. Right edge only: tables keep a sticky first column, which a left
+   fade would grey out. Driven by the container's own scroll position, so one that does not overflow
+   shows no fade at all, and a browser without scroll-driven animations shows the hard edge. */
+@property --jx-fade {
+	syntax: '<length>';
+	inherits: false;
+	initial-value: 0px;
+}
+
+@supports (animation-timeline: scroll()) {
+	.scroll-fade {
+		mask-image: linear-gradient(to right, #000 calc(100% - var(--jx-fade)), transparent);
+		animation: jx-scroll-fade linear both;
+		animation-timeline: scroll(self inline);
+	}
+}
+
+@keyframes jx-scroll-fade {
+	0%,
+	94% {
+		--jx-fade: 32px;
+	}
+
+	100% {
+		--jx-fade: 0px;
 	}
 }

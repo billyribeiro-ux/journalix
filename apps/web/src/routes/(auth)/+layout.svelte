@@ -30,13 +30,16 @@
 		background: var(--color-bg);
 	}
 
-	/* Ruled drafting paper that fades out toward the footer, so the legal line never sits on a rule. */
+	/* Ruled drafting paper that fades out toward the footer, so the legal line never sits on a rule.
+	   The rules are offset so the 44px header sits between two of them (the first rule is 2px above
+	   it, the next 2px below), instead of one running through the wordmark. */
 	.auth::before {
 		content: '';
 		position: absolute;
 		inset: 0;
 		z-index: -1;
-		background: linear-gradient(var(--color-line) 1px, transparent 1px) 0 0 / 100% 48px;
+		background: linear-gradient(var(--color-line) 1px, transparent 1px) 0
+			calc(var(--space-6) - 2px) / 100% 48px;
 		mask-image: linear-gradient(to bottom, var(--color-ink) 30%, transparent 90%);
 		pointer-events: none;
 	}

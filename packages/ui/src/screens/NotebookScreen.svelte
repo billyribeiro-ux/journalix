@@ -255,7 +255,7 @@
 							<div class="day">
 								<span>That day</span>
 								<Pnl value={draftDay.pnl} {currency} />
-								<a href={env.href({ name: 'calendar' })}
+								<a class="tap-target" href={env.href({ name: 'calendar' })}
 									>{draftDay.trades} {draftDay.trades === 1 ? 'trade' : 'trades'}</a
 								>
 							</div>

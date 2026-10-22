@@ -553,7 +553,7 @@
 		</Panel>
 
 		<Panel title="Fills" flush>
-			<div class="table-wrap">
+			<div class="table-wrap scroll-fade">
 				<table>
 					<thead>
 						<tr>

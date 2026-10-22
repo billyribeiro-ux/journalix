@@ -235,7 +235,7 @@
 			{/each}
 		</svg>
 		<div
-			class="scroller"
+			class="scroller scroll-fade"
 			data-scroll
 			style:margin-left="{LEFT}px"
 			{@attach scrollToLatest}
