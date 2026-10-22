@@ -299,7 +299,13 @@
 	{:else}
 		<div class="wrap" bind:clientWidth={width} style:height="{height}px">
 			{#if width > 0}
-				<svg {width} height={mainHeight} role="img" aria-label="Equity line chart. {summary}">
+				<svg
+					data-wipe
+					{width}
+					height={mainHeight}
+					role="img"
+					aria-label="Equity line chart. {summary}"
+				>
 					<defs>
 						<clipPath id={clipId}>
 							<rect x={0} y={-2} width={innerWidth} height={mainInner + 4} />

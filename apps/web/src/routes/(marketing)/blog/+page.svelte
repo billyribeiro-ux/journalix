@@ -21,7 +21,7 @@
 <div class="container">
 	<ol class="posts" role="list">
 		{#each POSTS as post (post.slug)}
-			<li class="row-hover">
+			<li class="row-hover" data-reveal>
 				<article aria-labelledby="post-{post.slug}">
 					<p class="meta">
 						<time datetime={post.date}>{formatLongDate(post.date)}</time>

@@ -294,7 +294,13 @@
 	{:else}
 		<div class="wrap" bind:clientWidth={width} style:height="{chartHeight}px">
 			{#if width > 0}
-				<svg {width} height={chartHeight} role="img" aria-label="Horizontal bar chart. {summary}">
+				<svg
+					data-wipe
+					{width}
+					height={chartHeight}
+					role="img"
+					aria-label="Horizontal bar chart. {summary}"
+				>
 					<g transform="translate({margin.left},{margin.top})">
 						{#each xTicks as tick (tick.key)}
 							<line

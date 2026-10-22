@@ -38,7 +38,7 @@
 </header>
 
 <div class="container body">
-	<section class="prose" aria-labelledby="story-title">
+	<section class="prose" data-reveal aria-labelledby="story-title">
 		<h2 id="story-title" class="visually-hidden">Background</h2>
 		<p>
 			A journal is supposed to tell you what you did and whether it worked. For an options trader,
@@ -60,7 +60,7 @@
 		</p>
 	</section>
 
-	<section class="principles" aria-labelledby="principles-title">
+	<section class="principles" data-reveal aria-labelledby="principles-title">
 		<h2 id="principles-title">Principles</h2>
 		<dl class="spec">
 			{#each principles as principle (principle.title)}
@@ -72,7 +72,7 @@
 		</dl>
 	</section>
 
-	<section class="status" aria-labelledby="status-title">
+	<section class="status" data-reveal aria-labelledby="status-title">
 		<h2 id="status-title">Where things stand</h2>
 		<p>
 			Journalix is in early access. The journal, chart review, options analysis and analytics

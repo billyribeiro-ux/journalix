@@ -146,7 +146,13 @@
 	{:else}
 		<div class="wrap" bind:clientWidth={width} style:height="{height}px">
 			{#if width > 0}
-				<svg {width} {height} role="img" aria-label="Column chart of daily net P&L. {summary}">
+				<svg
+					data-wipe
+					{width}
+					{height}
+					role="img"
+					aria-label="Column chart of daily net P&L. {summary}"
+				>
 					<g transform="translate({margin.left},{margin.top})">
 						{#each yTicks as tick (tick.key)}
 							<line

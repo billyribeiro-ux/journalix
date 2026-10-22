@@ -12,7 +12,7 @@
 	let { title, description, actions, back, children }: Props = $props();
 </script>
 
-<header class="page-header">
+<header class="page-header" data-reveal="fade">
 	<div class="text">
 		{#if back}<a class="back" href={back.href}>{back.label}</a>{/if}
 		<h1>{title}</h1>

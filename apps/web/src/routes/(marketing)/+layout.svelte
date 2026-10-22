@@ -8,6 +8,7 @@
 </script>
 
 <div class="mk">
+	<div class="scroll-progress" aria-hidden="true"></div>
 	<a class="skip-link" href="#main">Skip to content</a>
 	<SiteHeader />
 	<main id="main" tabindex="-1">

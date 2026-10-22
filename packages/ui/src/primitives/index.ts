@@ -20,3 +20,5 @@ export { default as MultiSelect } from './MultiSelect.svelte';
 export { default as Menu } from './Menu.svelte';
 export type { MenuItem } from './Menu.svelte';
 export { tip, installTooltips, type TipPosition } from './tooltip.ts';
+export { installReveals } from './reveal.ts';
+export { crossfadeRoutes } from './page-transition.ts';

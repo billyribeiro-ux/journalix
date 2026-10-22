@@ -299,7 +299,7 @@
 
 <div class="container groups">
 	{#each groups as group (group.id)}
-		<section id={group.id} class="group" aria-labelledby="{group.id}-title">
+		<section id={group.id} data-reveal class="group" aria-labelledby="{group.id}-title">
 			<div class="group-head">
 				<h2 id="{group.id}-title">{group.title}</h2>
 				<p>{group.summary}</p>
@@ -315,7 +315,7 @@
 		</section>
 	{/each}
 
-	<section class="group" aria-labelledby="not-yet-title">
+	<section class="group" data-reveal aria-labelledby="not-yet-title">
 		<div class="group-head">
 			<h2 id="not-yet-title">Not in Journalix yet</h2>
 			<p>So you know what to expect.</p>

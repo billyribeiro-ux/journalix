@@ -146,12 +146,14 @@
 			the trade drawn on the chart, and measure your results with analytics that understand
 			multi-leg positions.
 		</p>
-		<div class="cta-row">
+		<div class="cta-row" data-reveal style="--reveal-delay: 160ms">
 			<Button href={resolve('signup')} variant="primary">Start journaling</Button>
 			<Button href="#how-it-works" variant="secondary">See how it works</Button>
 		</div>
-		<p class="note">Free during early access. No card required.</p>
-		<dl class="hero-facts">
+		<p class="note" data-reveal="fade" style="--reveal-delay: 240ms">
+			Free during early access. No card required.
+		</p>
+		<dl class="hero-facts" data-reveal="fade" style="--reveal-delay: 320ms">
 			<div>
 				<dt>Structures</dt>
 				<dd>30+ detected</dd>
@@ -166,13 +168,15 @@
 			</div>
 		</dl>
 	</div>
-	<div class="hero-figure">
-		<HeroChart demo={data.demo} />
+	<div class="hero-figure" data-reveal="scale" style="--reveal-delay: 200ms">
+		<div data-parallax style="--parallax: 20px">
+			<HeroChart demo={data.demo} />
+		</div>
 	</div>
 </section>
 
 <section id="how-it-works" class="section container" aria-labelledby="how-title">
-	<div class="section-head">
+	<div class="section-head" data-reveal>
 		<h2 id="how-title" class="display">Log it, review it, measure it</h2>
 		<p class="lede">
 			A journal is only as useful as the record behind it. Journalix keeps the record at the level
@@ -181,7 +185,7 @@
 	</div>
 	<ol class="steps" role="list">
 		{#each steps as step, index (step.title)}
-			<li>
+			<li data-reveal>
 				<span class="step-no num" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
 				<h3>{step.title}</h3>
 				<p>{step.text}</p>
@@ -197,7 +201,7 @@
 
 <section class="section container" aria-labelledby="options-title">
 	<div class="split">
-		<div>
+		<div data-reveal="left">
 			<h2 id="options-title" class="display">Built for the way options trade</h2>
 			<p class="lede">
 				A spread is one trade, not four unrelated rows. Journalix keeps the legs together and
@@ -213,7 +217,7 @@
 			</dl>
 			<p class="more"><a href={resolve('options')}>Read how options trades are recorded</a></p>
 		</div>
-		<div class="figure-panel">
+		<div class="figure-panel" data-reveal="scale">
 			<p class="figure-title">
 				<span>{IRON_CONDOR.symbol} iron condor 630/640/705/715</span>
 				<span class="muted num"
@@ -249,7 +253,7 @@
 </section>
 
 <section class="section container" aria-labelledby="analytics-title">
-	<div class="section-head">
+	<div class="section-head" data-reveal>
 		<h2 id="analytics-title" class="display">Analytics that answer specific questions</h2>
 		<p class="lede">
 			Do your 0DTE trades pay for themselves? Is your edge in credit or debit structures? Which
@@ -259,7 +263,7 @@
 	</div>
 	<div class="metric-grid">
 		{#each metricGroups as group (group.title)}
-			<div class="metric-group">
+			<div class="metric-group" data-reveal>
 				<h3>{group.title}</h3>
 				<ul role="list">
 					{#each group.items as item (item)}
@@ -274,11 +278,11 @@
 
 <section class="section container" aria-labelledby="data-title">
 	<div class="split even">
-		<div>
+		<div data-reveal>
 			<h2 id="data-title" class="display">Your data, your market data</h2>
 		</div>
 		<div class="stack">
-			<div class="fact">
+			<div class="fact" data-reveal>
 				<h3>Bring your own data provider</h3>
 				<p>
 					Candles come from your own account with Massive (formerly Polygon), Alpaca, Databento or
@@ -286,14 +290,14 @@
 					your charts. A built-in simulator draws demo charts without any key.
 				</p>
 			</div>
-			<div class="fact">
+			<div class="fact" data-reveal>
 				<h3>Nothing is sold or shared</h3>
 				<p>
 					Your journal is not used for advertising, not sold, and not used to train models. You can
 					export all of it at any time and delete it permanently.
 				</p>
 			</div>
-			<div class="fact">
+			<div class="fact" data-reveal>
 				<h3>Local on the desktop</h3>
 				<p>
 					The desktop app keeps the whole journal in a SQLite database on your own machine, so your
@@ -305,7 +309,7 @@
 </section>
 
 <section class="section container" aria-labelledby="platforms-title">
-	<div class="platforms">
+	<div class="platforms" data-reveal>
 		<h2 id="platforms-title" class="display">In the browser or on your desk</h2>
 		<div class="platform-cols">
 			<div>
@@ -327,7 +331,7 @@
 </section>
 
 <section class="section container" aria-labelledby="cta-title">
-	<div class="final-cta">
+	<div class="final-cta" data-reveal="scale">
 		<h2 id="cta-title" class="display">Start with your last ten trades</h2>
 		<p class="lede">
 			Log them leg by leg and look at them on the chart. Most traders learn something from the first

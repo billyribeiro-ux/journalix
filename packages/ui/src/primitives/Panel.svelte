@@ -15,6 +15,7 @@
 
 <section
 	class={['panel', flush && 'flush']}
+	data-reveal
 	aria-labelledby={title && id ? `${id}-title` : undefined}
 >
 	{#if title || actions}

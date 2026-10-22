@@ -12,7 +12,7 @@
 	let { children, label, minTileWidth = 160 }: Props = $props();
 </script>
 
-<div class="strip" role="group" aria-label={label} style:--tile-min="{minTileWidth}px">
+<div class="strip" data-reveal role="group" aria-label={label} style:--tile-min="{minTileWidth}px">
 	{@render children()}
 </div>
 

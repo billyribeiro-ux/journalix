@@ -285,7 +285,7 @@
 		<ChartLegend items={legend} hidden={hiddenKeys} ontoggle={toggleKey} />
 		<div class="wrap" bind:clientWidth={width} style:height="{height}px">
 			{#if width > 0}
-				<svg {width} {height} role="img" aria-label="Scatter plot. {summary}">
+				<svg data-wipe {width} {height} role="img" aria-label="Scatter plot. {summary}">
 					<text class="axis-title" x={margin.left} y={10}>{yLabel}</text>
 					<g transform="translate({margin.left},{margin.top})">
 						{#each yTicks as tick (tick.key)}

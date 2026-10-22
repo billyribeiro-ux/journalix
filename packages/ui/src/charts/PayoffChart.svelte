@@ -303,6 +303,7 @@
 		<div class="wrap" bind:clientWidth={width} style:height="{height + topPad}px">
 			{#if width > 0}
 				<svg
+					data-wipe
 					{width}
 					height={height + topPad}
 					role="img"

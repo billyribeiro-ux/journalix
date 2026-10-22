@@ -87,7 +87,7 @@
 
 <div class="container">
 	{#each releases as release (release.version)}
-		<article class="release" aria-labelledby="v-{release.version}">
+		<article class="release" data-reveal aria-labelledby="v-{release.version}">
 			<div class="release-meta">
 				<h2 id="v-{release.version}">Version {release.version}</h2>
 				<p><time datetime={release.date}>{formatLongDate(release.date)}</time></p>

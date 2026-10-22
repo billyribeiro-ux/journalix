@@ -1,0 +1,193 @@
+/*
+ * Scroll and page motion. Hover/press timing lives in interaction.css; this file is entrances,
+ * scroll-linked effects and route transitions. Everything here is opt-in and progressive:
+ *
+ *   [data-reveal]           Rises and fades in once as it scrolls into view (primitives/reveal.ts adds
+ *                           data-reveal-state="in"). Variants: "", "fade", "scale", "left", "right".
+ *                           --reveal-delay staggers it; the controller sets it for elements that enter together.
+ *   .scroll-progress        A fixed bar that fills with the page's scroll position (scroll-driven, no JS).
+ *   [data-scroll-shade]     A sticky bar whose bottom border fades in over the first 64px of scroll
+ *                           (without scroll-driven animation support the border is simply always there).
+ *   [data-parallax]         Drifts against the scroll through its time in view. Decorative only.
+ *   view-transition-name    `page` marks the region that cross-fades between routes; chrome stays still.
+ *
+ * Rules every effect here follows:
+ *   1. Only `opacity`, `translate` and `scale` animate (compositor-only, no layout, no repaint), with
+ *      one exception: the shaded header's 1px border colour.
+ *      Individual transform properties are used so an element's own `transform` (hover lifts) is never
+ *      clobbered.
+ *   2. Nothing is hidden unless scripting is on AND motion is not reduced, so server-rendered HTML,
+ *      no-JS visitors and reduced-motion users always get the content.
+ *   3. Scroll-driven effects sit behind @supports (animation-timeline) and degrade to nothing.
+ */
+
+:root {
+	/* Entrances land long and soft (the same curve Apple uses for large surfaces), exits stay short. */
+	--duration-reveal: 720ms;
+	--distance-reveal: 24px;
+	--duration-page: 360ms;
+}
+
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+	[data-reveal] {
+		--reveal-x: 0px;
+		--reveal-y: var(--distance-reveal);
+		--reveal-scale: 1;
+	}
+
+	[data-reveal='fade'] {
+		--reveal-y: 0px;
+	}
+
+	[data-reveal='scale'] {
+		--reveal-y: 12px;
+		--reveal-scale: 0.96;
+	}
+
+	[data-reveal='left'] {
+		--reveal-x: calc(var(--distance-reveal) * -1.5);
+		--reveal-y: 0px;
+	}
+
+	[data-reveal='right'] {
+		--reveal-x: calc(var(--distance-reveal) * 1.5);
+		--reveal-y: 0px;
+	}
+
+	/* Hidden until the controller reveals it. The fail-safe un-hides it if the controller never runs. */
+	[data-reveal]:not([data-reveal-state='in']) {
+		opacity: 0;
+		translate: var(--reveal-x) var(--reveal-y);
+		scale: var(--reveal-scale);
+		animation: jx-reveal-failsafe 1ms linear 3s forwards;
+	}
+
+	[data-reveal][data-reveal-state='in'] {
+		/* `backwards`: holds the hidden frame through the delay, then releases to the element's own
+		   styles, so a card's hover lift works the moment the entrance is over. */
+		animation: jx-reveal var(--duration-reveal) var(--ease-out-strong) var(--reveal-delay, 0ms)
+			backwards;
+	}
+}
+
+@keyframes jx-reveal {
+	from {
+		opacity: 0;
+		translate: var(--reveal-x) var(--reveal-y);
+		scale: var(--reveal-scale);
+	}
+}
+
+@keyframes jx-reveal-failsafe {
+	to {
+		opacity: 1;
+		translate: 0 0;
+		scale: 1;
+	}
+}
+
+/* ---------- scroll-driven effects (no JS) ---------- */
+@supports (animation-timeline: scroll()) {
+	@media (prefers-reduced-motion: no-preference) {
+		.scroll-progress {
+			position: fixed;
+			inset: 0 0 auto 0;
+			z-index: var(--z-overlay);
+			height: 2px;
+			background: var(--color-signal);
+			transform-origin: 0 50%;
+			scale: 0 1;
+			pointer-events: none;
+			animation: jx-scroll-progress linear both;
+			animation-timeline: scroll(root block);
+		}
+
+		[data-scroll-shade] {
+			animation: jx-scroll-shade linear both;
+			animation-timeline: scroll(root block);
+			animation-range: 0 64px;
+		}
+
+		[data-parallax] {
+			animation: jx-parallax linear both;
+			animation-timeline: view();
+			animation-range: cover;
+		}
+	}
+}
+
+@keyframes jx-scroll-progress {
+	to {
+		scale: 1 1;
+	}
+}
+
+/* The header starts flush with the page and settles into a hairline bar over 64px. */
+@keyframes jx-scroll-shade {
+	from {
+		border-bottom-color: transparent;
+	}
+}
+
+@keyframes jx-parallax {
+	from {
+		translate: 0 calc(var(--parallax, 32px) * -1);
+	}
+
+	to {
+		translate: 0 var(--parallax, 32px);
+	}
+}
+
+/* ---------- route transitions ---------- */
+@media (prefers-reduced-motion: no-preference) {
+	/* The chrome (header, sidebar, footer) is in the unnamed root group and does not change between
+	   routes, so only the named page region visibly animates. */
+	::view-transition-group(page) {
+		animation-duration: var(--duration-page);
+		animation-timing-function: var(--ease-out-strong);
+	}
+
+	::view-transition-old(page) {
+		animation: jx-page-out 140ms var(--ease-in) both;
+	}
+
+	::view-transition-new(page) {
+		animation: jx-page-in var(--duration-page) var(--ease-out-strong) 60ms both;
+	}
+}
+
+@keyframes jx-page-out {
+	to {
+		opacity: 0;
+		translate: 0 -6px;
+	}
+}
+
+@keyframes jx-page-in {
+	from {
+		opacity: 0;
+		translate: 0 10px;
+	}
+}
+
+/* ---------- chart entrances ---------- */
+/* A chart inside a revealed container is wiped in left to right once its container has landed, the
+   way a price line is drawn. It reads the container's --reveal-delay (custom properties inherit) so
+   a grid of charts draws in sequence. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+	[data-reveal-state='in'] svg[data-wipe] {
+		animation: jx-wipe 1100ms var(--ease-out-strong) calc(var(--reveal-delay, 0ms) + 180ms)
+			backwards;
+	}
+}
+
+@keyframes jx-wipe {
+	from {
+		clip-path: inset(0 100% 0 0);
+	}
+
+	to {
+		clip-path: inset(0 0 0 0);
+	}
+}
